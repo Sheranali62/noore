@@ -1,0 +1,16 @@
+﻿# www.robotstxt.org
+# Allow crawling of all content
+User-agent: *
+Allow: /
+
+# Disallow admin and API routes
+Disallow: /admin/
+Disallow: /api/
+Disallow: /login/
+Disallow: /register/
+Disallow: /account/
+Disallow: /checkout/
+Disallow: /cart/
+
+# Sitemap location
+Sitemap: http://localhost:3000/sitemap.xml
