@@ -1,7 +1,10 @@
 import { prisma } from "@/lib/prisma"
 
+export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
+
 export default async function sitemap() {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://noore-b9cwhu0vp-sheranali62.vercel.app"
 
   // Static pages
   const staticPages = [
@@ -24,31 +27,39 @@ export default async function sitemap() {
     priority: path === "" ? 1 : 0.8,
   }))
 
-  // Blog posts
-  const posts = await prisma.blogPost.findMany({
-    where: { published: true },
-    select: { slug: true, updatedAt: true },
-  })
+  // Blog posts – with error handling and proper types
+  let blogPages: any[] = []
+  try {
+    const posts = await prisma.blogPost.findMany({
+      where: { published: true },
+      select: { slug: true, updatedAt: true },
+    })
+    blogPages = posts.map((post: { slug: string; updatedAt: Date }) => ({
+      url: `${baseUrl}/blog/${post.slug}`,
+      lastModified: post.updatedAt,
+      changeFrequency: "weekly" as const,
+      priority: 0.6,
+    }))
+  } catch (error) {
+    console.warn("Sitemap: Could not fetch blog posts:", error)
+  }
 
-  const blogPages = posts.map((post) => ({
-    url: `${baseUrl}/blog/${post.slug}`,
-    lastModified: post.updatedAt,
-    changeFrequency: "weekly" as const,
-    priority: 0.6,
-  }))
-
-  // Product pages
-  const products = await prisma.product.findMany({
-    where: { status: "ACTIVE" },
-    select: { slug: true, updatedAt: true },
-  })
-
-  const productPages = products.map((product) => ({
-    url: `${baseUrl}/product/${product.slug}`,
-    lastModified: product.updatedAt,
-    changeFrequency: "weekly" as const,
-    priority: 0.7,
-  }))
+  // Product pages – with error handling and proper types
+  let productPages: any[] = []
+  try {
+    const products = await prisma.product.findMany({
+      where: { status: "ACTIVE" },
+      select: { slug: true, updatedAt: true },
+    })
+    productPages = products.map((product: { slug: string; updatedAt: Date }) => ({
+      url: `${baseUrl}/product/${product.slug}`,
+      lastModified: product.updatedAt,
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+    }))
+  } catch (error) {
+    console.warn("Sitemap: Could not fetch products:", error)
+  }
 
   return [...staticPages, ...blogPages, ...productPages]
 }
