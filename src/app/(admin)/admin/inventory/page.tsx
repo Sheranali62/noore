@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma"
-
+import Link from "next/link"  // ← Add this line
 export default async function AdminInventoryPage() {
   const products = await prisma.product.findMany({
     orderBy: { stock: "asc" },

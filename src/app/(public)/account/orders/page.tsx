@@ -3,6 +3,28 @@ import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
 
+// Define types (or use Prisma's generated types)
+type OrderWithItems = {
+  id: string
+  orderNumber: string
+  createdAt: Date
+  total: number
+  status: string
+  paymentMethod: string
+  paymentStatus: string
+  trackingNumber: string | null
+  items: {
+    id: string
+    quantity: number
+    price: number
+    total: number
+    product: {
+      name: string
+      images: string[]
+    }
+  }[]
+}
+
 export default async function OrdersPage() {
   const session = await auth()
   
@@ -20,7 +42,7 @@ export default async function OrdersPage() {
         },
       },
     },
-  })
+  }) as OrderWithItems[]  // Cast to type
 
   return (
     <div className="min-h-screen bg-cream py-8">
@@ -42,8 +64,8 @@ export default async function OrdersPage() {
             </Link>
           </div>
         ) : (
-          <div className="space-y-4">
-            {orders.map((order) => (
+          <div className="space-y-6">
+            {orders.map((order: OrderWithItems) => (
               <div key={order.id} className="bg-white rounded-lg border border-cream p-6">
                 <div className="flex flex-wrap justify-between items-start gap-4">
                   <div>
@@ -67,5 +89,48 @@ export default async function OrdersPage() {
                   </div>
                 </div>
 
-                {/* Order Items Preview */}
-                <div className="mt-4 pt-4 border-t border-cream"></div>
+                {/* Order Items */}
+                <div className="mt-4 pt-4 border-t border-cream">
+                  <div className="space-y-2">
+                    {order.items.map((item) => (
+                      <div key={item.id} className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-cream rounded overflow-hidden flex-shrink-0">
+                          {item.product.images[0] && (
+                            <img 
+                              src={item.product.images[0]} 
+                              alt={item.product.name}
+                              className="w-full h-full object-cover"
+                            />
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium text-sm">{item.product.name}</p>
+                          <p className="text-xs text-secondary">Qty: {item.quantity} × PKR {item.price.toLocaleString()}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-semibold">PKR {item.total.toLocaleString()}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-cream flex justify-between items-center">
+                  <div>
+                    <p className="text-sm text-secondary">Payment: {order.paymentMethod}</p>
+                    <p className="text-sm text-secondary">Status: {order.paymentStatus}</p>
+                  </div>
+                  {order.trackingNumber && (
+                    <p className="text-sm text-secondary">
+                      Tracking: {order.trackingNumber}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}

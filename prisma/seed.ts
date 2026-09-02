@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, Status } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
@@ -9,55 +9,54 @@ async function main() {
       name: 'Noor Lawn Edit',
       slug: 'noor-lawn-edit',
       sku: 'NL-001',
-      description: 'Premium lawn fabric with delicate floral embroidery. Perfect for summer evenings.',
+      description: 'Premium lawn fabric with delicate floral embroidery.',
       category: 'Women',
       subcategory: 'Unstitched',
       price: 2499,
       salePrice: 1999,
       stock: 50,
       images: ['https://images.unsplash.com/photo-1564257631407-4deb1f99d992?w=400&h=500&fit=crop&crop=center'],
-      status: 'ACTIVE',
+      status: Status.ACTIVE,
     },
     {
       name: 'Aab-e-Rang Lawn',
       slug: 'aab-e-rang-lawn',
       sku: 'AR-002',
-      description: 'Luxurious lawn fabric with intricate thread work and modern design.',
+      description: 'Luxurious lawn fabric with intricate thread work.',
       category: 'Women',
       subcategory: 'Unstitched',
       price: 3799,
       salePrice: 2999,
       stock: 35,
       images: ['https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=400&h=500&fit=crop&crop=center'],
-      status: 'ACTIVE',
+      status: Status.ACTIVE,
     },
     {
       name: 'Zara Embroidered Lawn',
       slug: 'zara-embroidered-lawn',
       sku: 'ZE-003',
-      description: 'Hand-embroidered lawn suit with elegant cutwork details.',
+      description: 'Hand-embroidered lawn suit with elegant cutwork.',
       category: 'Women',
       subcategory: 'Unstitched',
       price: 4299,
       salePrice: 3599,
       stock: 20,
       images: ['https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=400&h=500&fit=crop&crop=center'],
-      status: 'ACTIVE',
+      status: Status.ACTIVE,
     },
-    
     // Women - Ready to Wear
     {
       name: 'Mehr Embroidered Suit',
       slug: 'mehr-embroidered-suit',
       sku: 'ME-004',
-      description: 'Ready-to-wear embroidered suit with elegant neckline detailing.',
+      description: 'Ready-to-wear embroidered suit with elegant neckline.',
       category: 'Women',
       subcategory: 'Ready to Wear',
       price: 3499,
       salePrice: 2799,
       stock: 30,
       images: ['https://images.unsplash.com/photo-1583394293214-28ded15ee548?w=400&h=500&fit=crop&crop=center'],
-      status: 'ACTIVE',
+      status: Status.ACTIVE,
     },
     {
       name: 'Aira Cotton Co-Ord',
@@ -69,7 +68,7 @@ async function main() {
       price: 2999,
       stock: 45,
       images: ['https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=400&h=500&fit=crop&crop=center'],
-      status: 'ACTIVE',
+      status: Status.ACTIVE,
     },
     {
       name: 'Zoya Printed Set',
@@ -82,22 +81,21 @@ async function main() {
       salePrice: 3899,
       stock: 25,
       images: ['https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=400&h=500&fit=crop&crop=center'],
-      status: 'ACTIVE',
+      status: Status.ACTIVE,
     },
-    
     // Luxury
     {
       name: 'Rania Silk Pret',
       slug: 'rania-silk-pret',
       sku: 'RN-007',
-      description: 'Exclusive silk pret with hand-embellished details for special occasions.',
+      description: 'Exclusive silk pret with hand-embellished details.',
       category: 'Luxury',
       subcategory: 'Luxury Pret',
       price: 7999,
       salePrice: 6999,
       stock: 15,
       images: ['https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=400&h=500&fit=crop&crop=center'],
-      status: 'ACTIVE',
+      status: Status.ACTIVE,
     },
     {
       name: 'Luxe Embroidered Ensemble',
@@ -110,9 +108,8 @@ async function main() {
       salePrice: 10999,
       stock: 8,
       images: ['https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=400&h=500&fit=crop&crop=center'],
-      status: 'ACTIVE',
+      status: Status.ACTIVE,
     },
-    
     // Men
     {
       name: 'Meher Kurta',
@@ -124,10 +121,10 @@ async function main() {
       price: 1999,
       stock: 40,
       images: ['https://images.unsplash.com/photo-1583394293214-28ded15ee548?w=400&h=500&fit=crop&crop=center'],
-      status: 'ACTIVE',
+      status: Status.ACTIVE,
     },
     {
-      name: 'Men\'s Shalwar Kameez',
+      name: "Men's Shalwar Kameez",
       slug: 'mens-shalwar-kameez',
       sku: 'MS-010',
       description: 'Traditional shalwar kameez with modern fit.',
@@ -137,21 +134,8 @@ async function main() {
       salePrice: 2599,
       stock: 30,
       images: ['https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=400&h=500&fit=crop&crop=center'],
-      status: 'ACTIVE',
+      status: Status.ACTIVE,
     },
-    {
-      name: 'Men\'s Unstitched Fabric',
-      slug: 'mens-unstitched-fabric',
-      sku: 'MU-011',
-      description: 'Premium unstitched fabric for bespoke tailoring.',
-      category: 'Men',
-      subcategory: 'Unstitched',
-      price: 1499,
-      stock: 50,
-      images: ['https://images.unsplash.com/photo-1564257631407-4deb1f99d992?w=400&h=500&fit=crop&crop=center'],
-      status: 'ACTIVE',
-    },
-    
     // Accessories
     {
       name: 'Nooré Signature Tote',
@@ -163,7 +147,7 @@ async function main() {
       price: 2499,
       stock: 35,
       images: ['https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=400&h=500&fit=crop&crop=center'],
-      status: 'ACTIVE',
+      status: Status.ACTIVE,
     },
     {
       name: 'Embroidered Clutch',
@@ -175,7 +159,7 @@ async function main() {
       price: 1899,
       stock: 20,
       images: ['https://images.unsplash.com/photo-1627123424574-724758594e93?w=400&h=500&fit=crop&crop=center'],
-      status: 'ACTIVE',
+      status: Status.ACTIVE,
     },
     {
       name: 'Silk Scarf',
@@ -187,7 +171,7 @@ async function main() {
       price: 999,
       stock: 50,
       images: ['https://images.unsplash.com/photo-1601924994987-69e26d50dc26?w=400&h=500&fit=crop&crop=center'],
-      status: 'ACTIVE',
+      status: Status.ACTIVE,
     },
   ]
 
