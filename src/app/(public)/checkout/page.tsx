@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useCart } from "@/components/cart/cart-context"
 import { useSession } from "next-auth/react"
-import { StripePayment } from "@/components/checkout/stripe-payment"
 
 type Address = {
   id: string
@@ -149,11 +148,6 @@ export default function CheckoutPage() {
         setOrderPlaced(true)
         clearCart()
         setStep(4)
-        
-        // If payment method is card, handle Stripe
-        if (formData.paymentMethod === "card" && data.clientSecret) {
-          // Stripe will handle the redirect
-        }
       } else {
         const error = await response.json()
         alert(error.error || "Failed to place order")
@@ -451,7 +445,7 @@ export default function CheckoutPage() {
                       </div>
                     </div>
 
-                    {/* Payment Method */}
+                    {/* Payment Method - Only COD and Bank Transfer */}
                     <div>
                       <h3 className="font-medium mb-2">Payment Method</h3>
                       <div className="space-y-2">
@@ -482,39 +476,6 @@ export default function CheckoutPage() {
                             <p className="text-sm text-secondary">Pay via bank transfer</p>
                           </div>
                         </label>
-                        
-                        <label className="flex items-center gap-3 p-3 border border-cream rounded-lg cursor-pointer hover:bg-cream/50 transition">
-                          <input
-                            type="radio"
-                            name="payment"
-                            value="card"
-                            checked={formData.paymentMethod === "card"}
-                            onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
-                          />
-                          <div>
-                            <p className="font-medium">Credit/Debit Card</p>
-                            <p className="text-sm text-secondary">Secure online payment</p>
-                          </div>
-                        </label>
-
-                        {/* Stripe Payment Form */}
-                        {formData.paymentMethod === "card" && (
-                          <div className="mt-4 p-4 border border-cream rounded-lg bg-cream/30">
-                            <StripePayment
-                              amount={grandTotal}
-                              onSuccess={(paymentIntentId) => {
-                                console.log("Payment successful:", paymentIntentId)
-                                // Store order number for confirmation page
-                                if (orderNumber) {
-                                  localStorage.setItem("last_order_number", orderNumber)
-                                }
-                              }}
-                              onError={(error) => {
-                                console.error("Payment error:", error)
-                              }}
-                            />
-                          </div>
-                        )}
                       </div>
                     </div>
 
@@ -526,15 +487,13 @@ export default function CheckoutPage() {
                       >
                         Back
                       </button>
-                      {formData.paymentMethod !== "card" && (
-                        <button
-                          type="submit"
-                          disabled={loading || !canProceed()}
-                          className="flex-1 bg-charcoal text-white py-3 rounded font-medium hover:bg-charcoal/80 transition disabled:opacity-50"
-                        >
-                          {loading ? "Placing Order..." : `Place Order • PKR ${grandTotal.toLocaleString()}`}
-                        </button>
-                      )}
+                      <button
+                        type="submit"
+                        disabled={loading || !canProceed()}
+                        className="flex-1 bg-charcoal text-white py-3 rounded font-medium hover:bg-charcoal/80 transition disabled:opacity-50"
+                      >
+                        {loading ? "Placing Order..." : `Place Order • PKR ${grandTotal.toLocaleString()}`}
+                      </button>
                     </div>
                   </div>
                 )}
