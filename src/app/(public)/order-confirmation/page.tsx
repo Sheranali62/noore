@@ -4,6 +4,9 @@ import { useEffect, useState } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import Link from "next/link"
 
+export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
+
 export default function OrderConfirmationPage() {
   const searchParams = useSearchParams()
   const router = useRouter()

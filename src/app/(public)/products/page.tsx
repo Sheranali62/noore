@@ -1,4 +1,4 @@
-﻿import Link from "next/link"
+import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { ProductCard } from "@/components/product/product-card"
 import { ProductFilters } from "@/components/product/product-filters"
@@ -150,3 +150,6 @@ export default async function ProductsPage({ searchParams }: PageProps) {
     </div>
   )
 }
+
+export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'

@@ -3,6 +3,9 @@
 import Link from "next/link"
 import { useCart } from "@/components/cart/cart-context"
 
+export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
+
 export default function CartPage() {
   const { items, removeItem, updateQuantity, total, count } = useCart()
 

@@ -1,5 +1,8 @@
 import { prisma } from "@/lib/prisma"
 
+export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
+
 export default async function AdminPage() {
   // Temporarily disabled auth for testing
   // const session = await auth()

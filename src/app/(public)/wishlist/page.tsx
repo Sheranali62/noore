@@ -5,6 +5,9 @@ import Link from "next/link"
 import { useSession } from "next-auth/react"
 import { useCart } from "@/components/cart/cart-context"
 
+export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
+
 type WishlistItem = {
   id: string
   productId: string

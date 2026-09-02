@@ -1,5 +1,8 @@
 import { prisma } from "@/lib/prisma"
 
+export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
+
 export default async function AdminCustomersPage() {
   const customers = await prisma.user.findMany({
     orderBy: { createdAt: "desc" },

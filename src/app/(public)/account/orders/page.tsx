@@ -3,6 +3,9 @@ import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
 
+export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
+
 // Define types (or use Prisma's generated types)
 type OrderWithItems = {
   id: string

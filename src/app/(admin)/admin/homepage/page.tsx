@@ -2,6 +2,9 @@
 
 import { useState } from "react"
 
+export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
+
 export default function AdminHomepagePage() {
   const [sections] = useState([
     { id: "hero", name: "Hero Slider", enabled: true, sortOrder: 1 },

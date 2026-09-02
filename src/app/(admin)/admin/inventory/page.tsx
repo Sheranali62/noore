@@ -1,13 +1,15 @@
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"  // ← Add this line
+
+export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 export default async function AdminInventoryPage() {
   const products = await prisma.product.findMany({
     orderBy: { stock: "asc" },
     where: { status: "ACTIVE" },
   })
-
-  const lowStockProducts = products.filter(p => p.stock < 5)
-  const outOfStockProducts = products.filter(p => p.stock === 0)
+    const lowStockProducts = products.filter((p: any) => p.stock < 5)
+    const outOfStockProducts = products.filter((p: any) => p.stock === 0)
 
   return (
     <div>
@@ -52,7 +54,7 @@ export default async function AdminInventoryPage() {
                   </td>
                 </tr>
               ) : (
-                products.map((product) => (
+                products.map((product: any) => (
                   <tr key={product.id} className="border-t border-cream hover:bg-cream/50 transition">
                     <td className="p-4 font-medium">{product.name}</td>
                     <td className="p-4 text-secondary">{product.sku}</td>
