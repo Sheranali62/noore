@@ -2,9 +2,6 @@ import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { ProductCard } from "@/components/product/product-card"
 
-export const dynamic = 'force-dynamic'
-export const fetchCache = 'force-no-store'
-
 type Product = {
   id: string
   name: string

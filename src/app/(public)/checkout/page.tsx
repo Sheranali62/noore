@@ -6,9 +6,6 @@ import Link from "next/link"
 import { useCart } from "@/components/cart/cart-context"
 import { useSession } from "next-auth/react"
 
-export const dynamic = 'force-dynamic'
-export const fetchCache = 'force-no-store'
-
 type Address = {
   id: string
   name: string

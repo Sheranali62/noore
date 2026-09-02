@@ -1,4 +1,6 @@
-import { PrismaClient, Status } from '@prisma/client'
+import { PrismaClient } from '../app/generated/prisma'
+
+const ACTIVE_STATUS = 'ACTIVE' as const
 
 const prisma = new PrismaClient()
 
@@ -16,7 +18,7 @@ async function main() {
       salePrice: 1999,
       stock: 50,
       images: ['https://images.unsplash.com/photo-1564257631407-4deb1f99d992?w=400&h=500&fit=crop&crop=center'],
-      status: Status.ACTIVE,
+      status: ACTIVE_STATUS,
     },
     {
       name: 'Aab-e-Rang Lawn',
@@ -29,7 +31,7 @@ async function main() {
       salePrice: 2999,
       stock: 35,
       images: ['https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=400&h=500&fit=crop&crop=center'],
-      status: Status.ACTIVE,
+      status: ACTIVE_STATUS,
     },
     {
       name: 'Zara Embroidered Lawn',
@@ -42,7 +44,7 @@ async function main() {
       salePrice: 3599,
       stock: 20,
       images: ['https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=400&h=500&fit=crop&crop=center'],
-      status: Status.ACTIVE,
+      status: ACTIVE_STATUS,
     },
     // Women - Ready to Wear
     {
@@ -56,7 +58,7 @@ async function main() {
       salePrice: 2799,
       stock: 30,
       images: ['https://images.unsplash.com/photo-1583394293214-28ded15ee548?w=400&h=500&fit=crop&crop=center'],
-      status: Status.ACTIVE,
+      status: ACTIVE_STATUS,
     },
     {
       name: 'Aira Cotton Co-Ord',
@@ -68,7 +70,7 @@ async function main() {
       price: 2999,
       stock: 45,
       images: ['https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=400&h=500&fit=crop&crop=center'],
-      status: Status.ACTIVE,
+      status: ACTIVE_STATUS,
     },
     {
       name: 'Zoya Printed Set',
@@ -81,7 +83,7 @@ async function main() {
       salePrice: 3899,
       stock: 25,
       images: ['https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=400&h=500&fit=crop&crop=center'],
-      status: Status.ACTIVE,
+      status: ACTIVE_STATUS,
     },
     // Luxury
     {
@@ -95,7 +97,7 @@ async function main() {
       salePrice: 6999,
       stock: 15,
       images: ['https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=400&h=500&fit=crop&crop=center'],
-      status: Status.ACTIVE,
+      status: ACTIVE_STATUS,
     },
     {
       name: 'Luxe Embroidered Ensemble',
@@ -108,7 +110,7 @@ async function main() {
       salePrice: 10999,
       stock: 8,
       images: ['https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=400&h=500&fit=crop&crop=center'],
-      status: Status.ACTIVE,
+      status: ACTIVE_STATUS,
     },
     // Men
     {
@@ -121,7 +123,7 @@ async function main() {
       price: 1999,
       stock: 40,
       images: ['https://images.unsplash.com/photo-1583394293214-28ded15ee548?w=400&h=500&fit=crop&crop=center'],
-      status: Status.ACTIVE,
+      status: ACTIVE_STATUS,
     },
     {
       name: "Men's Shalwar Kameez",
@@ -134,7 +136,7 @@ async function main() {
       salePrice: 2599,
       stock: 30,
       images: ['https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=400&h=500&fit=crop&crop=center'],
-      status: Status.ACTIVE,
+      status: ACTIVE_STATUS,
     },
     // Accessories
     {
@@ -147,7 +149,7 @@ async function main() {
       price: 2499,
       stock: 35,
       images: ['https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=400&h=500&fit=crop&crop=center'],
-      status: Status.ACTIVE,
+      status: ACTIVE_STATUS,
     },
     {
       name: 'Embroidered Clutch',
@@ -159,7 +161,7 @@ async function main() {
       price: 1899,
       stock: 20,
       images: ['https://images.unsplash.com/photo-1627123424574-724758594e93?w=400&h=500&fit=crop&crop=center'],
-      status: Status.ACTIVE,
+      status: ACTIVE_STATUS,
     },
     {
       name: 'Silk Scarf',
@@ -171,7 +173,7 @@ async function main() {
       price: 999,
       stock: 50,
       images: ['https://images.unsplash.com/photo-1601924994987-69e26d50dc26?w=400&h=500&fit=crop&crop=center'],
-      status: Status.ACTIVE,
+      status: ACTIVE_STATUS,
     },
   ]
 

@@ -3,9 +3,6 @@ import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
 
-export const dynamic = 'force-dynamic'
-export const fetchCache = 'force-no-store'
-
 export default async function AccountPage() {
   const session = await auth()
   

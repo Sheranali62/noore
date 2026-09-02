@@ -2,9 +2,6 @@ import { prisma } from "@/lib/prisma"
 import Link from "next/link"
 import { format } from "date-fns"
 
-export const dynamic = 'force-dynamic'
-export const fetchCache = 'force-no-store'
-
 export default async function BlogPage() {
   const posts = await prisma.blogPost.findMany({
     where: { published: true },

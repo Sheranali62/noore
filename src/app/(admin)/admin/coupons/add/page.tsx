@@ -3,9 +3,6 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 
-export const dynamic = 'force-dynamic'
-export const fetchCache = 'force-no-store'
-
 export default function AddCouponPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)

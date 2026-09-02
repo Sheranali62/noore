@@ -2,9 +2,6 @@
 
 import { useState } from "react"
 
-export const dynamic = 'force-dynamic'
-export const fetchCache = 'force-no-store'
-
 export default function AdminSettingsPage() {
   const [settings, setSettings] = useState({
     siteName: "NOORÉ",

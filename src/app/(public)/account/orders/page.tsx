@@ -1,35 +1,10 @@
-import { auth } from "@/lib/auth"
+import { authOptions } from "@/lib/auth"
+import { getServerSession } from "next-auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
-
-export const dynamic = 'force-dynamic'
-export const fetchCache = 'force-no-store'
-
-// Define types (or use Prisma's generated types)
-type OrderWithItems = {
-  id: string
-  orderNumber: string
-  createdAt: Date
-  total: number
-  status: string
-  paymentMethod: string
-  paymentStatus: string
-  trackingNumber: string | null
-  items: {
-    id: string
-    quantity: number
-    price: number
-    total: number
-    product: {
-      name: string
-      images: string[]
-    }
-  }[]
-}
-
 export default async function OrdersPage() {
-  const session = await auth()
+  const session = await getServerSession(authOptions)
   
   if (!session?.user) {
     redirect("/login")
@@ -45,7 +20,7 @@ export default async function OrdersPage() {
         },
       },
     },
-  }) as OrderWithItems[]  // Cast to type
+  })
 
   return (
     <div className="min-h-screen bg-cream py-8">
@@ -68,7 +43,7 @@ export default async function OrdersPage() {
           </div>
         ) : (
           <div className="space-y-6">
-            {orders.map((order: OrderWithItems) => (
+            {orders.map((order) => (
               <div key={order.id} className="bg-white rounded-lg border border-cream p-6">
                 <div className="flex flex-wrap justify-between items-start gap-4">
                   <div>

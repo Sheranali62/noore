@@ -5,9 +5,6 @@ import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 
-export const dynamic = 'force-dynamic'
-export const fetchCache = 'force-no-store'
-
 export default function LoginPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)

@@ -1,9 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
 
-export const dynamic = 'force-dynamic'
-export const fetchCache = 'force-no-store'
-
 export default async function AdminCouponsPage() {
   const coupons = await prisma.coupon.findMany({
     orderBy: { createdAt: "desc" },
