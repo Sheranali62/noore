@@ -24,7 +24,7 @@ export default function EditCouponForm({ coupon }: { coupon: any }) {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault(); setLoading(true)
     try {
-      const response = await fetch(`/api/coupons/${coupon.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, value: Number(form.value), minOrder: Number(form.minOrder), maxDiscount: form.maxDiscount ? Number(form.maxDiscount) : null, usageLimit: form.usageLimit ? Number(form.usageLimit) : null, perCustomer: form.perCustomer ? Number(form.perCustomer) : null, applicableCategories: form.applicableCategories.split(",").map(v => v.trim()).filter(Boolean), applicableProductIds: form.applicableProductIds.split(",").map(v => v.trim()).filter(Boolean) }) })
+      const response = await fetch(`/api/coupons/${coupon.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, value: Number(form.value), minOrder: Number(form.minOrder), maxDiscount: form.maxDiscount ? Number(form.maxDiscount) : null, usageLimit: form.usageLimit ? Number(form.usageLimit) : null, perCustomer: form.perCustomer ? Number(form.perCustomer) : null, applicableCategories: form.applicableCategories.split(",").map((v: string) => v.trim()).filter(Boolean), applicableProductIds: form.applicableProductIds.split(",").map((v: string) => v.trim()).filter(Boolean) }) })
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || "Failed to update coupon")
       router.push("/admin/coupons"); router.refresh()
