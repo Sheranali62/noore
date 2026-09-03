@@ -2,31 +2,17 @@
 
 import { useRouter, usePathname, useSearchParams } from "next/navigation"
 
-type ProductSortProps = {
-  currentSort: string
-}
-
-export function ProductSort({ currentSort }: ProductSortProps) {
+export function ProductSort({ currentSort }: { currentSort: string }) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
-
-  const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleChange = (value: string) => {
     const params = new URLSearchParams(searchParams?.toString() || "")
-    params.set("sort", e.target.value)
+    params.set("sort", value)
+    params.delete("page")
     router.push(`${pathname}?${params.toString()}`)
   }
-
-  return (
-    <select
-      defaultValue={currentSort}
-      onChange={handleSortChange}
-      className="border border-cream rounded px-3 py-2 text-sm bg-white focus:outline-none focus:border-charcoal"
-    >
-      <option value="newest">Newest</option>
-      <option value="price-low">Price: Low to High</option>
-      <option value="price-high">Price: High to Low</option>
-      <option value="best-selling">Best Selling</option>
-    </select>
-  )
+  return <select value={currentSort} onChange={(e) => handleChange(e.target.value)} className="border-0 border-b border-border bg-transparent px-1 py-2 text-[10px] font-semibold uppercase tracking-[0.16em] focus:outline-none">
+    <option value="newest">Newest</option><option value="popular">Popular</option><option value="price-low">Price: Low to High</option><option value="price-high">Price: High to Low</option>
+  </select>
 }
