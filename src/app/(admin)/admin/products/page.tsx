@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
+import { DeleteProductButton } from "@/components/admin/delete-product-button"
 
 export default async function AdminProductsPage() {
   const products = await prisma.product.findMany({
@@ -60,7 +61,7 @@ export default async function AdminProductsPage() {
                       <Link href={`/admin/products/edit/${product.id}`} className="text-blue-600 hover:text-blue-800 mr-3">
                         Edit
                       </Link>
-                      <button className="text-red-600 hover:text-red-800">Delete</button>
+                      <DeleteProductButton id={product.id} />
                     </td>
                   </tr>
                 ))

@@ -1,79 +1,162 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { auth } from "@/lib/auth"
+import { randomBytes } from "crypto"
 
 export const dynamic = "force-dynamic"
+
+function normalizeEmail(value: unknown) {
+  return String(value ?? "").trim().toLowerCase()
+}
+
+async function makeOrderNumber() {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const value = `NO-${new Date().getFullYear()}-${randomBytes(4).toString("hex").toUpperCase()}`
+    const exists = await prisma.order.findUnique({ where: { orderNumber: value }, select: { id: true } })
+    if (!exists) return value
+  }
+  throw new Error("Unable to generate a unique order number")
+}
 
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
-    const orderNumber = searchParams.get("orderNumber")
-    const email = searchParams.get("email")
+    const orderNumber = searchParams.get("orderNumber")?.trim()
+    const email = normalizeEmail(searchParams.get("email"))
 
-    if (!orderNumber || !email) {
-      return NextResponse.json(
-        { error: "Order number and email are required" },
-        { status: 400 }
-      )
-    }
+    if (!orderNumber || !email) return NextResponse.json({ error: "Order number and email are required" }, { status: 400 })
 
     const order = await prisma.order.findUnique({
       where: { orderNumber },
-      include: {
-        items: {
-          include: {
-            product: true,
-          },
-        },
-        user: {
-          select: {
-            email: true,
-          },
-        },
-      },
+      include: { items: { include: { product: true } }, user: { select: { email: true } }, address: true },
     })
-
-    if (!order) {
-      return NextResponse.json(
-        { error: "Order not found" },
-        { status: 404 }
-      )
-    }
-
-    // Verify email matches (for guest orders, check against address)
-    let isAuthorized = false
-    
-    if (order.user?.email === email) {
-      isAuthorized = true
-    } else {
-      // Check if email matches the order address (for guest checkout)
-      const address = await prisma.address.findUnique({
-        where: { id: order.addressId },
-      })
-      if (address && address.userId === "guest") {
-        // For guest orders, we store email in the address or we can check against the order
-        // Since we don't store email in address, check if we have a guest user with that email
-        const guestUser = await prisma.user.findUnique({
-          where: { email },
-        })
-        if (guestUser && guestUser.id === order.userId) {
-          isAuthorized = true
-        }
-      }
-    }
-
-    if (!isAuthorized) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      )
-    }
-
+    if (!order) return NextResponse.json({ error: "Order not found" }, { status: 404 })
+    if (normalizeEmail(order.user?.email) !== email) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     return NextResponse.json({ order })
   } catch (error) {
     console.error("Error tracking order:", error)
-    return NextResponse.json(
-      { error: "Failed to track order" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Failed to track order" }, { status: 500 })
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const customer = body.customer ?? {}
+    const address = body.address ?? {}
+    const email = normalizeEmail(customer.email)
+    const name = String(customer.name ?? "").trim()
+    const phone = String(customer.phone ?? "").trim()
+    const addressLine = String(address.address ?? "").trim()
+    const city = String(address.city ?? "").trim()
+    const province = String(address.province ?? "").trim()
+    const postal = String(address.postal ?? "").trim()
+    const paymentMethod = String(body.paymentMethod ?? "").toUpperCase()
+    const deliveryMethod = String(body.deliveryMethod ?? "standard").toLowerCase()
+    const items = Array.isArray(body.items) ? body.items : []
+
+    if (!name || !email || !email.includes("@") || !phone || !addressLine || !city || !province || !postal || !items.length) {
+      return NextResponse.json({ error: "Complete customer, address, and cart details are required" }, { status: 400 })
+    }
+    if (paymentMethod !== "COD") {
+      return NextResponse.json({ error: "Cash on Delivery is the only available payment method" }, { status: 400 })
+    }
+    if (!["standard", "express"].includes(deliveryMethod)) {
+      return NextResponse.json({ error: "Invalid delivery method" }, { status: 400 })
+    }
+
+    const session = await auth()
+    const subtotalInput = Number(body.subtotal)
+    const shippingInput = Number(body.shipping)
+    if (!Number.isFinite(subtotalInput) || !Number.isFinite(shippingInput)) {
+      return NextResponse.json({ error: "Invalid totals" }, { status: 400 })
+    }
+
+    const requested = items.map((item: any) => ({
+      productId: String(item.productId ?? ""),
+      variantId: item.variantId ? String(item.variantId) : null,
+      quantity: Number(item.quantity),
+    }))
+    if (requested.some((item: any) => !item.productId || !Number.isInteger(item.quantity) || item.quantity < 1)) {
+      return NextResponse.json({ error: "Invalid cart items" }, { status: 400 })
+    }
+
+    const productIds: string[] = Array.from(new Set(requested.map((item: any) => String(item.productId))))
+    const products: any[] = await prisma.product.findMany({
+      where: { id: { in: productIds } },
+      include: { variants: true },
+    })
+    const byId = new Map(products.map(p => [p.id, p]))
+    if (products.length !== productIds.length) return NextResponse.json({ error: "One or more products are no longer available" }, { status: 400 })
+
+    let subtotal = 0
+    const orderItems: { productId: string; variantId: string | null; quantity: number; price: number; total: number }[] = []
+    for (const item of requested) {
+      const product = byId.get(item.productId)!
+      if (product.status !== "ACTIVE") return NextResponse.json({ error: `${product.name} is no longer available` }, { status: 400 })
+      const variant = item.variantId ? product.variants.find((v: any) => v.id === item.variantId) : null
+      if (item.variantId && !variant) return NextResponse.json({ error: `Invalid variant for ${product.name}` }, { status: 400 })
+      const stock = variant?.stock ?? product.stock
+      if (item.quantity > stock) return NextResponse.json({ error: `Only ${stock} unit(s) of ${product.name} are available` }, { status: 409 })
+      const price = variant?.price ?? product.salePrice ?? product.price
+      const total = price * item.quantity
+      subtotal += total
+      orderItems.push({ productId: product.id, variantId: variant?.id ?? null, quantity: item.quantity, price, total })
+    }
+
+    const shipping = deliveryMethod === "express" ? 500 : subtotal > 5000 ? 0 : 250
+    if (Math.abs(shipping - shippingInput) > 0.01 || Math.abs(subtotal - subtotalInput) > 0.01) {
+      return NextResponse.json({ error: "Cart total changed. Please review your order and try again." }, { status: 409 })
+    }
+    const total = subtotal + shipping
+    const orderNumber = await makeOrderNumber()
+
+    const order = await prisma.$transaction(async tx => {
+      let userId = session?.user?.id
+      if (userId) {
+        const current = await tx.user.findUnique({ where: { id: userId }, select: { id: true } })
+        if (!current) userId = undefined
+      }
+      if (!userId) {
+        const existing = await tx.user.findUnique({ where: { email }, select: { id: true } })
+        if (existing) userId = existing.id
+        else {
+          const created = await tx.user.create({ data: { email, name, role: "CUSTOMER" }, select: { id: true } })
+          userId = created.id
+        }
+      }
+
+      const savedAddress = await tx.address.create({
+        data: { userId, name, phone, address: addressLine, city, province, postal, default: false },
+      })
+
+      for (const item of orderItems) {
+        if (item.variantId) {
+          const result = await tx.productVariant.updateMany({ where: { id: item.variantId, stock: { gte: item.quantity } }, data: { stock: { decrement: item.quantity } } })
+          if (result.count !== 1) throw new Error("Stock changed while placing the order")
+        } else {
+          const result = await tx.product.updateMany({ where: { id: item.productId, stock: { gte: item.quantity } }, data: { stock: { decrement: item.quantity } } })
+          if (result.count !== 1) throw new Error("Stock changed while placing the order")
+        }
+      }
+
+      return tx.order.create({
+        data: {
+          orderNumber, userId, addressId: savedAddress.id,
+          subtotal, shipping, total,
+          paymentMethod: paymentMethod as any,
+          paymentStatus: "UNPAID",
+          status: "PENDING",
+          notes: deliveryMethod === "express" ? "Express delivery" : "Standard delivery",
+          items: { create: orderItems },
+        },
+        select: { id: true, orderNumber: true, total: true, status: true },
+      })
+    })
+
+    return NextResponse.json(order, { status: 201 })
+  } catch (error) {
+    console.error("Error creating order:", error)
+    return NextResponse.json({ error: "Failed to place order. Please try again." }, { status: 500 })
   }
 }

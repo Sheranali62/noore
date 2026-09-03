@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { requireAdmin } from "@/lib/admin"
 
 // GET single coupon
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const { response } = await requireAdmin(["SUPER_ADMIN", "ADMIN"])
+  if (response) return response
+
   try {
     const coupon = await prisma.coupon.findUnique({
       where: { id: params.id },
@@ -33,6 +37,9 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const { response } = await requireAdmin(["SUPER_ADMIN", "ADMIN"])
+  if (response) return response
+
   try {
     const body = await request.json()
     
@@ -67,6 +74,9 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const { response } = await requireAdmin(["SUPER_ADMIN", "ADMIN"])
+  if (response) return response
+
   try {
     await prisma.coupon.delete({
       where: { id: params.id },

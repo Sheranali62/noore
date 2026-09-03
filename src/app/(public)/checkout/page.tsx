@@ -181,7 +181,7 @@ export default function CheckoutPage() {
               <p className="font-mono text-xl font-bold">#{orderNumber}</p>
             </div>
             <div className="mt-6 space-y-2">
-              <p className="text-sm text-secondary">We've sent a confirmation email with your order details.</p>
+              <p className="text-sm text-secondary">Your order has been received and is being prepared.</p>
               <p className="text-sm text-secondary">You can track your order status in your account.</p>
             </div>
             <div className="flex gap-4 justify-center mt-8">
@@ -445,37 +445,26 @@ export default function CheckoutPage() {
                       </div>
                     </div>
 
-                    {/* Payment Method - Only COD and Bank Transfer */}
+                    {/* Payment Method - Cash on Delivery only */}
                     <div>
                       <h3 className="font-medium mb-2">Payment Method</h3>
                       <div className="space-y-2">
-                        <label className="flex items-center gap-3 p-3 border border-cream rounded-lg cursor-pointer hover:bg-cream/50 transition">
+                        <label className="flex items-center gap-3 p-4 border-2 border-charcoal rounded-lg cursor-pointer bg-cream/30">
                           <input
                             type="radio"
                             name="payment"
                             value="cod"
                             checked={formData.paymentMethod === "cod"}
-                            onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
+                            onChange={() => setFormData({ ...formData, paymentMethod: "cod" })}
                           />
                           <div>
                             <p className="font-medium">Cash on Delivery</p>
-                            <p className="text-sm text-secondary">Pay when you receive</p>
+                            <p className="text-sm text-secondary">Pay when you receive your order</p>
                           </div>
                         </label>
-                        
-                        <label className="flex items-center gap-3 p-3 border border-cream rounded-lg cursor-pointer hover:bg-cream/50 transition">
-                          <input
-                            type="radio"
-                            name="payment"
-                            value="bank"
-                            checked={formData.paymentMethod === "bank"}
-                            onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
-                          />
-                          <div>
-                            <p className="font-medium">Bank Transfer</p>
-                            <p className="text-sm text-secondary">Pay via bank transfer</p>
-                          </div>
-                        </label>
+                        <p className="text-xs text-secondary mt-2">
+                          Online card and digital payment options will be added later.
+                        </p>
                       </div>
                     </div>
 

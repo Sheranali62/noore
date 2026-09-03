@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { requireAdmin } from "@/lib/admin"
 
 // GET all coupons
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
+  const { response } = await requireAdmin(["SUPER_ADMIN", "ADMIN"])
+  if (response) return response
+
   try {
     const coupons = await prisma.coupon.findMany({
       orderBy: { createdAt: "desc" },
@@ -19,6 +23,9 @@ export async function GET(request: NextRequest) {
 
 // POST new coupon
 export async function POST(request: NextRequest) {
+  const { response } = await requireAdmin(["SUPER_ADMIN", "ADMIN"])
+  if (response) return response
+
   try {
     const body = await request.json()
     
