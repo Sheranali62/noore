@@ -98,7 +98,7 @@ export default function PublicLayout({
         <div className="max-w-7xl mx-auto px-4 text-center">
           <div className="font-editorial text-2xl font-semibold text-white mb-4">{siteName}</div>
           <p className="text-sm text-white/60 max-w-md mx-auto">
-            Premium Pakistani fashion for the modern wardrobe. Timeless elegance, contemporary expression.
+            Premium Pakistani fashion for the modern wardrobe. Timeless elegance, contemporary expression — curated for you.
           </p>
           <div className="flex justify-center gap-4 mt-4">
             <a href="#" className="text-white/50 hover:text-white transition">Instagram</a>
