@@ -1,617 +1,171 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { ArrowLeft, ArrowRight, Check, ChevronDown, LockKeyhole, MapPin, Minus, Plus, ShieldCheck, Truck } from "lucide-react"
 import { useCart } from "@/components/cart/cart-context"
 import { useSession } from "next-auth/react"
 
-type Address = {
-  id: string
-  name: string
-  phone: string
-  address: string
-  city: string
-  province: string
-  postal: string
-  default: boolean
-}
+type Address = { id: string; name: string; phone: string; address: string; city: string; province: string; postal: string; default: boolean }
+
+type Coupon = { code: string; type: string; value: number; discount: number }
+
+const FALLBACK = { freeShippingThreshold: 5000, standardShipping: 250, expressShipping: 500 }
 
 export default function CheckoutPage() {
   const router = useRouter()
   const { data: session } = useSession()
   const { items, total, count, clearCart } = useCart()
-  const [loading, setLoading] = useState(false)
   const [step, setStep] = useState(1)
-  const [orderPlaced, setOrderPlaced] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [orderNumber, setOrderNumber] = useState("")
-  const [couponCode, setCouponCode] = useState("")
-  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null)
+  const [error, setError] = useState("")
+  const [addresses, setAddresses] = useState<Address[]>([])
+  const [settings, setSettings] = useState(FALLBACK)
+  const [couponInput, setCouponInput] = useState("")
+  const [coupon, setCoupon] = useState<Coupon | null>(null)
   const [couponLoading, setCouponLoading] = useState(false)
   const [couponMessage, setCouponMessage] = useState("")
-  const [shippingSettings, setShippingSettings] = useState({ freeShippingThreshold: 5000, standardShipping: 250, expressShipping: 500 })
+  const [formData, setFormData] = useState({ name: "", email: "", phone: "", address: "", city: "", province: "", postal: "", deliveryMethod: "standard", paymentMethod: "cod" })
 
-  const [formData, setFormData] = useState({
-    // Customer Info
-    name: "",
-    email: "",
-    phone: "",
-    
-    // Shipping Address
-    address: "",
-    city: "",
-    province: "",
-    postal: "",
-    
-    // Delivery Method
-    deliveryMethod: "standard",
-    
-    // Payment Method
-    paymentMethod: "cod",
-  })
-
-  const [addresses, setAddresses] = useState<Address[]>([])
-  const [useSavedAddress, setUseSavedAddress] = useState(false)
-  const [selectedAddressId, setSelectedAddressId] = useState("")
-
-  const provinces = [
-    "Punjab", "Sindh", "KPK", "Balochistan", 
-    "Islamabad", "Gilgit-Baltistan", "Azad Kashmir"
-  ]
-
-  const cities = [
-    "Lahore", "Karachi", "Islamabad", "Rawalpindi", 
-    "Faisalabad", "Multan", "Gujranwala", "Peshawar", 
-    "Quetta", "Sialkot", "Hyderabad"
-  ]
+  const provinces = ["Punjab", "Sindh", "KPK", "Balochistan", "Islamabad", "Gilgit-Baltistan", "Azad Kashmir"]
+  const cities = ["Lahore", "Karachi", "Islamabad", "Rawalpindi", "Faisalabad", "Multan", "Gujranwala", "Peshawar", "Quetta", "Sialkot", "Hyderabad"]
 
   useEffect(() => {
-    fetch("/api/settings", { cache: "no-store" }).then(res => res.json()).then(data => {
-      if (data.settings) setShippingSettings({ freeShippingThreshold: Number(data.settings.freeShippingThreshold), standardShipping: Number(data.settings.standardShipping), expressShipping: Number(data.settings.expressShipping) })
-    }).catch(() => {})
-  }, [])
-
-  // Calculate shipping
-  const shippingCost = formData.deliveryMethod === "express" ? shippingSettings.expressShipping : total >= shippingSettings.freeShippingThreshold ? 0 : shippingSettings.standardShipping
-  const discount = appliedCoupon?.discount ?? 0
-  const grandTotal = Math.max(0, total - discount + shippingCost)
-
-  const applyCoupon = async () => {
-    const code = couponCode.trim().toUpperCase()
-    if (!code) {
-      setCouponMessage("Enter a coupon code")
-      return
-    }
-    setCouponLoading(true)
-    setCouponMessage("")
-    try {
-      const response = await fetch("/api/coupons/validate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          code,
-          items: items.map(item => ({ productId: item.productId, variantId: item.variantId, quantity: item.quantity, price: item.price })),
-        }),
-      })
-      const data = await response.json()
-      if (!response.ok) {
-        setAppliedCoupon(null)
-        setCouponMessage(data.error || "Invalid coupon")
-        return
-      }
-      setCouponCode(data.code)
-      setAppliedCoupon({ code: data.code, discount: Number(data.discount) })
-      setCouponMessage(data.message || "Coupon applied")
-    } catch {
-      setAppliedCoupon(null)
-      setCouponMessage("Unable to validate coupon. Please try again.")
-    } finally {
-      setCouponLoading(false)
-    }
-  }
-
-  const removeCoupon = () => {
-    setAppliedCoupon(null)
-    setCouponCode("")
-    setCouponMessage("")
-  }
-
-  // Load user addresses if logged in
-  useEffect(() => {
-    if (session?.user) {
-      fetch("/api/addresses")
-        .then(res => res.json())
-        .then(data => {
-          if (data.addresses) {
-            setAddresses(data.addresses)
-            const defaultAddr = data.addresses.find((a: Address) => a.default)
-            if (defaultAddr) {
-              setSelectedAddressId(defaultAddr.id)
-              setUseSavedAddress(true)
-            }
-          }
+    Promise.allSettled([
+      fetch("/api/settings").then(r => r.ok ? r.json() : null),
+      session?.user ? fetch("/api/addresses").then(r => r.ok ? r.json() : null) : Promise.resolve(null),
+    ]).then(([settingsResult, addressesResult]) => {
+      if (settingsResult.status === "fulfilled" && settingsResult.value) {
+        const s = settingsResult.value.settings || settingsResult.value
+        setSettings({
+          freeShippingThreshold: Number(s.freeShippingThreshold ?? FALLBACK.freeShippingThreshold),
+          standardShipping: Number(s.standardShipping ?? FALLBACK.standardShipping),
+          expressShipping: Number(s.expressShipping ?? FALLBACK.expressShipping),
         })
-        .catch(() => {})
-    }
+      }
+      if (addressesResult.status === "fulfilled" && addressesResult.value?.addresses) {
+        const list = addressesResult.value.addresses as Address[]
+        setAddresses(list)
+        const preferred = list.find(a => a.default) || list[0]
+        if (preferred) selectAddress(preferred)
+      }
+    })
   }, [session])
 
-  // Redirect if cart is empty
   useEffect(() => {
-    if (items.length === 0 && !orderPlaced) {
-      router.push("/cart")
-    }
-  }, [items, router, orderPlaced])
+    if (!session?.user?.email) return
+    setFormData(prev => ({ ...prev, email: prev.email || session.user.email || "" }))
+  }, [session])
 
-  const handleAddressSelect = (addressId: string) => {
-    const addr = addresses.find(a => a.id === addressId)
-    if (addr) {
-      setSelectedAddressId(addressId)
-      setFormData({
-        ...formData,
-        name: addr.name,
-        phone: addr.phone,
-        address: addr.address,
-        city: addr.city,
-        province: addr.province,
-        postal: addr.postal,
-      })
-    }
+  useEffect(() => {
+    if (!items.length) router.replace("/cart")
+  }, [items.length, router])
+
+  const shipping = formData.deliveryMethod === "express" ? settings.expressShipping : (total >= settings.freeShippingThreshold ? 0 : settings.standardShipping)
+  const discount = coupon?.discount || 0
+  const grandTotal = Math.max(0, total - discount + shipping)
+  const freeShippingGap = Math.max(0, settings.freeShippingThreshold - total)
+
+  const update = (key: keyof typeof formData, value: string) => setFormData(prev => ({ ...prev, [key]: value }))
+
+  function selectAddress(address: Address) {
+    setFormData(prev => ({ ...prev, name: address.name, phone: address.phone, address: address.address, city: address.city, province: address.province, postal: address.postal }))
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+  const canContinue = useMemo(() => {
+    if (step === 1) return formData.name.trim().length >= 2 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && formData.phone.replace(/\D/g, "").length >= 10
+    if (step === 2) return formData.address.trim().length >= 8 && formData.city && formData.province && formData.postal.trim().length >= 4
+    return true
+  }, [formData, step])
 
+  const applyCoupon = async () => {
+    const code = couponInput.trim().toUpperCase()
+    if (!code) return
+    setCouponLoading(true); setCouponMessage(""); setError("")
+    try {
+      const response = await fetch("/api/coupons/validate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code, subtotal: total }) })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || "This coupon cannot be applied")
+      setCoupon({ code, type: data.coupon?.type || data.type, value: Number(data.coupon?.value ?? data.value ?? 0), discount: Number(data.discount || 0) })
+      setCouponMessage("Coupon applied successfully.")
+    } catch (e: any) {
+      setCoupon(null); setCouponMessage(e?.message || "Invalid coupon code")
+    } finally { setCouponLoading(false) }
+  }
+
+  const placeOrder = async (e: React.FormEvent) => {
+    e.preventDefault(); setLoading(true); setError("")
     try {
       const orderData = {
-        customer: {
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-        },
-        address: {
-          address: formData.address,
-          city: formData.city,
-          province: formData.province,
-          postal: formData.postal,
-        },
+        customer: { name: formData.name.trim(), email: formData.email.trim(), phone: formData.phone.trim() },
+        address: { address: formData.address.trim(), city: formData.city, province: formData.province, postal: formData.postal.trim() },
         deliveryMethod: formData.deliveryMethod,
-        paymentMethod: formData.paymentMethod,
-        couponCode: appliedCoupon?.code || undefined,
-        items: items.map(item => ({
-          productId: item.productId,
-          variantId: item.variantId,
-          quantity: item.quantity,
-          price: item.price,
-        })),
+        paymentMethod: "cod",
+        couponCode: coupon?.code || undefined,
+        discount,
+        items: items.map(item => ({ productId: item.productId, variantId: (item as any).variantId || undefined, quantity: item.quantity, price: item.price })),
         subtotal: total,
-        shipping: shippingCost,
+        shipping,
         total: grandTotal,
       }
-
-      const response = await fetch("/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(orderData),
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setOrderNumber(data.orderNumber)
-        localStorage.setItem("last_order_number", data.orderNumber)
-        setOrderPlaced(true)
-        clearCart()
-        setStep(4)
-      } else {
-        const error = await response.json()
-        alert(error.error || "Failed to place order")
-      }
-    } catch (error) {
-      alert("An error occurred. Please try again.")
-    } finally {
-      setLoading(false)
-    }
+      const response = await fetch("/api/orders", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(orderData) })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || "Unable to place your order. Please try again.")
+      setOrderNumber(data.orderNumber)
+      localStorage.setItem("last_order_number", data.orderNumber)
+      clearCart()
+      setStep(4)
+    } catch (e: any) { setError(e?.message || "Something went wrong. Please try again.") }
+    finally { setLoading(false) }
   }
 
-  const nextStep = () => {
-    setStep(step + 1)
+  if (!items.length && step !== 4) return null
+
+  if (step === 4) {
+    return <main className="min-h-[75vh] bg-[#faf9f6] flex items-center justify-center px-4 py-16"><div className="max-w-xl w-full bg-white border border-black/5 p-8 md:p-12 text-center">
+      <div className="mx-auto h-16 w-16 rounded-full bg-cream flex items-center justify-center"><Check size={28} /></div>
+      <p className="mt-6 text-[10px] uppercase tracking-[0.25em] text-secondary">Thank you for choosing NOORÉ</p>
+      <h1 className="font-editorial text-4xl font-semibold mt-2">Order confirmed</h1>
+      <p className="text-sm text-secondary mt-3">Your order has been received and will be prepared for delivery.</p>
+      <div className="mt-7 p-4 bg-[#faf9f6]"><p className="text-[10px] uppercase tracking-[0.18em] text-secondary">Order number</p><p className="font-mono text-xl font-semibold mt-1">#{orderNumber}</p><p className="text-xs text-secondary mt-2">Payment: Cash on Delivery</p></div>
+      <div className="grid sm:grid-cols-2 gap-3 mt-7"><Link href="/account/orders" className="py-3 border border-charcoal text-sm font-medium hover:bg-charcoal hover:text-white transition">View my orders</Link><Link href="/products" className="py-3 bg-charcoal text-white text-sm font-medium hover:bg-charcoal/90 transition">Continue shopping</Link></div>
+    </div></main>
   }
 
-  const prevStep = () => {
-    setStep(step - 1)
-  }
+  return <main className="min-h-screen bg-[#faf9f6]">
+    <div className="bg-white border-b border-black/5"><div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between"><Link href="/cart" className="inline-flex items-center gap-2 text-sm text-secondary hover:text-charcoal"><ArrowLeft size={16}/> Bag</Link><p className="text-xs uppercase tracking-[0.2em]">Secure checkout</p><div className="flex items-center gap-1 text-xs text-secondary"><LockKeyhole size={14}/> Secure</div></div></div>
+    <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
+      <div className="mb-8"><p className="text-[10px] uppercase tracking-[0.28em] text-secondary">NOORÉ checkout</p><h1 className="font-editorial text-4xl md:text-5xl font-semibold mt-2">Complete your order</h1></div>
+      <div className="grid lg:grid-cols-[1fr_390px] gap-8 lg:gap-12 items-start">
+        <section>
+          <div className="bg-white border border-black/5 p-4 mb-5"><div className="grid grid-cols-3 gap-2">{["Contact", "Delivery", "Payment"].map((label, i) => { const n=i+1; return <button key={label} type="button" onClick={() => n < step && setStep(n)} className={`text-left ${n < step ? "cursor-pointer" : "cursor-default"}`}><div className="flex items-center gap-2"><span className={`h-7 w-7 rounded-full flex items-center justify-center text-xs ${step===n?"bg-charcoal text-white":step>n?"bg-black text-white":"bg-cream text-secondary"}`}>{step>n?<Check size={13}/>:n}</span><span className={`hidden sm:block text-xs ${step===n?"font-medium":"text-secondary"}`}>{label}</span></div><div className="h-0.5 mt-3 bg-cream"><div className={`h-full bg-charcoal transition-all ${step>n?"w-full":step===n?"w-1/2":"w-0"}`}/></div></button>})}</div></div>
 
-  // Order Confirmation Page
-  if (orderPlaced) {
-    return (
-      <div className="min-h-screen bg-cream py-16">
-        <div className="max-w-2xl mx-auto px-4">
-          <div className="bg-white rounded-lg border border-cream p-8 text-center">
-            <div className="text-6xl mb-4">🎉</div>
-            <h1 className="font-editorial text-3xl font-semibold">Order Placed Successfully!</h1>
-            <p className="text-secondary mt-2">Thank you for your order</p>
-            <div className="bg-cream p-4 rounded-lg mt-6 inline-block">
-              <p className="text-sm text-secondary">Order Number</p>
-              <p className="font-mono text-xl font-bold">#{orderNumber}</p>
-            </div>
-            <div className="mt-6 space-y-2">
-              <p className="text-sm text-secondary">Your order has been received and is being prepared.</p>
-              <p className="text-sm text-secondary">You can track your order status in your account.</p>
-            </div>
-            <div className="flex gap-4 justify-center mt-8">
-              <Link href="/" className="bg-charcoal text-white px-6 py-3 rounded font-medium hover:bg-charcoal/80 transition">
-                Continue Shopping
-              </Link>
-              <Link href="/account/orders" className="border border-charcoal text-charcoal px-6 py-3 rounded font-medium hover:bg-charcoal hover:text-white transition">
-                View Orders
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
+          <form onSubmit={placeOrder} className="bg-white border border-black/5 p-5 md:p-7">
+            {step===1 && <div className="space-y-5"><div><h2 className="font-editorial text-2xl font-semibold">Contact information</h2><p className="text-sm text-secondary mt-1">We’ll use these details to confirm your order.</p></div><div className="grid sm:grid-cols-2 gap-4"><Field label="Full name" value={formData.name} onChange={v=>update("name",v)} placeholder="Your full name"/><Field label="Email address" type="email" value={formData.email} onChange={v=>update("email",v)} placeholder="you@example.com"/><Field label="Phone number" type="tel" value={formData.phone} onChange={v=>update("phone",v)} placeholder="03XX XXXXXXX"/><div className="hidden sm:block"/></div><div className="p-4 bg-[#faf9f6] flex gap-3"><ShieldCheck size={18} className="shrink-0 mt-0.5"/><p className="text-xs text-secondary">Your information is used only to process and deliver your order.</p></div><button type="button" disabled={!canContinue} onClick={()=>setStep(2)} className="w-full py-3.5 bg-charcoal text-white text-sm font-medium disabled:opacity-40">Continue to delivery <ArrowRight size={15} className="inline ml-2"/></button></div>}
 
-  // Check if step validation passes
-  const canProceed = () => {
-    if (step === 1) {
-      return formData.name && formData.email && formData.phone
-    }
-    if (step === 2) {
-      return formData.address && formData.city && formData.province && formData.postal
-    }
-    if (step === 3) {
-      return formData.deliveryMethod && formData.paymentMethod
-    }
-    return true
-  }
+            {step===2 && <div className="space-y-5"><div><h2 className="font-editorial text-2xl font-semibold">Delivery address</h2><p className="text-sm text-secondary mt-1">Where should we deliver your NOORÉ pieces?</p></div>{addresses.length>0 && <div><label className="text-xs font-medium">Saved addresses</label><select onChange={e=>{const a=addresses.find(x=>x.id===e.target.value); if(a) selectAddress(a)}} className="mt-2 w-full border border-black/10 px-4 py-3 text-sm bg-white focus:outline-none focus:border-charcoal"><option value="">Choose a saved address</option>{addresses.map(a=><option key={a.id} value={a.id}>{a.name} · {a.city}{a.default?" · Default":""}</option>)}</select></div>}<Field label="Street address" value={formData.address} onChange={v=>update("address",v)} placeholder="House / apartment / street"/><div className="grid sm:grid-cols-2 gap-4"><SelectField label="City" value={formData.city} onChange={v=>update("city",v)} options={cities}/><SelectField label="Province" value={formData.province} onChange={v=>update("province",v)} options={provinces}/><Field label="Postal code" value={formData.postal} onChange={v=>update("postal",v)} placeholder="54000"/></div><div className="flex gap-3"><button type="button" onClick={()=>setStep(1)} className="flex-1 py-3 border border-black/10 text-sm">Back</button><button type="button" disabled={!canContinue} onClick={()=>setStep(3)} className="flex-1 py-3 bg-charcoal text-white text-sm disabled:opacity-40">Continue to payment <ArrowRight size={15} className="inline ml-2"/></button></div></div>}
 
-  return (
-    <div className="min-h-screen bg-cream py-8">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center gap-4 mb-8">
-          <Link href="/cart" className="text-secondary hover:text-charcoal transition">
-            ← Back to Cart
-          </Link>
-          <h1 className="font-editorial text-3xl font-semibold">Checkout</h1>
-        </div>
+            {step===3 && <div className="space-y-6"><div><h2 className="font-editorial text-2xl font-semibold">Delivery & payment</h2><p className="text-sm text-secondary mt-1">Choose how you’d like your order delivered.</p></div><div><label className="text-xs font-medium uppercase tracking-wider">Delivery method</label><div className="mt-2 space-y-2">{[{id:"standard",name:"Standard delivery",desc:"2–4 business days",price:total>=settings.freeShippingThreshold?0:settings.standardShipping},{id:"express",name:"Express delivery",desc:"1–2 business days",price:settings.expressShipping}].map(option=><label key={option.id} className={`flex items-center gap-3 p-4 border cursor-pointer transition ${formData.deliveryMethod===option.id?"border-charcoal bg-[#faf9f6]":"border-black/10"}`}><input type="radio" name="delivery" value={option.id} checked={formData.deliveryMethod===option.id} onChange={e=>update("deliveryMethod",e.target.value)}/><Truck size={18}/><div className="flex-1"><p className="text-sm font-medium">{option.name}</p><p className="text-xs text-secondary mt-1">{option.desc}</p></div><span className="text-sm font-medium">{option.price===0?"FREE":`PKR ${option.price.toLocaleString()}`}</span></label>)}</div></div><div><label className="text-xs font-medium uppercase tracking-wider">Payment method</label><div className="mt-2 p-4 border border-charcoal bg-[#faf9f6] flex items-center gap-3"><div className="h-5 w-5 rounded-full border-[5px] border-charcoal"/><div className="flex-1"><p className="text-sm font-medium">Cash on Delivery</p><p className="text-xs text-secondary mt-1">Pay when your order arrives. No online payment required.</p></div><span className="text-[10px] uppercase tracking-wider border border-black/10 px-2 py-1">COD</span></div></div><div className="flex gap-3"><button type="button" onClick={()=>setStep(2)} className="flex-1 py-3 border border-black/10 text-sm">Back</button><button type="submit" disabled={loading} className="flex-1 py-3.5 bg-charcoal text-white text-sm font-medium disabled:opacity-50">{loading?"Placing order…":`Place order · PKR ${grandTotal.toLocaleString()}`}</button></div>{error&&<div className="p-3 bg-red-50 text-red-700 text-xs">{error}</div>}</div>}
+          </form>
+        </section>
 
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Checkout Form */}
-          <div className="flex-1">
-            {/* Steps Progress */}
-            <div className="flex items-center gap-4 mb-8">
-              {[1, 2, 3].map((s) => (
-                <div key={s} className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                    s === step ? "bg-charcoal text-white" :
-                    s < step ? "bg-green-500 text-white" :
-                    "bg-cream text-secondary border border-cream"
-                  }`}>
-                    {s < step ? "✓" : s}
-                  </div>
-                  <span className={`text-sm ${s === step ? "font-medium" : "text-secondary"}`}>
-                    {s === 1 ? "Info" : s === 2 ? "Address" : "Payment"}
-                  </span>
-                  {s < 3 && <span className="text-secondary">→</span>}
-                </div>
-              ))}
-            </div>
-
-            <div className="bg-white rounded-lg border border-cream p-6">
-              <form onSubmit={handleSubmit}>
-                {/* Step 1: Customer Info */}
-                {step === 1 && (
-                  <div className="space-y-4">
-                    <h2 className="text-xl font-semibold">Customer Information</h2>
-                    
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Full Name *</label>
-                      <input
-                        type="text"
-                        required
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="w-full px-4 py-2 border border-cream rounded focus:outline-none focus:border-charcoal"
-                        placeholder="Your Name"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Email *</label>
-                      <input
-                        type="email"
-                        required
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="w-full px-4 py-2 border border-cream rounded focus:outline-none focus:border-charcoal"
-                        placeholder="you@example.com"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Phone *</label>
-                      <input
-                        type="tel"
-                        required
-                        value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        className="w-full px-4 py-2 border border-cream rounded focus:outline-none focus:border-charcoal"
-                        placeholder="+92 300 1234567"
-                      />
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={nextStep}
-                      disabled={!canProceed()}
-                      className="w-full bg-charcoal text-white py-3 rounded font-medium hover:bg-charcoal/80 transition disabled:opacity-50"
-                    >
-                      Continue to Address
-                    </button>
-                  </div>
-                )}
-
-                {/* Step 2: Shipping Address */}
-                {step === 2 && (
-                  <div className="space-y-4">
-                    <h2 className="text-xl font-semibold">Shipping Address</h2>
-
-                    {session && addresses.length > 0 && (
-                      <div className="bg-cream p-4 rounded-lg">
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={useSavedAddress}
-                            onChange={(e) => setUseSavedAddress(e.target.checked)}
-                          />
-                          <span className="text-sm font-medium">Use saved address</span>
-                        </label>
-
-                        {useSavedAddress && (
-                          <select
-                            value={selectedAddressId}
-                            onChange={(e) => handleAddressSelect(e.target.value)}
-                            className="w-full mt-2 px-3 py-2 border border-cream rounded focus:outline-none focus:border-charcoal"
-                          >
-                            {addresses.map((addr) => (
-                              <option key={addr.id} value={addr.id}>
-                                {addr.name} - {addr.address}, {addr.city}
-                              </option>
-                            ))}
-                          </select>
-                        )}
-                      </div>
-                    )}
-
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Address *</label>
-                      <input
-                        type="text"
-                        required
-                        value={formData.address}
-                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                        className="w-full px-4 py-2 border border-cream rounded focus:outline-none focus:border-charcoal"
-                        placeholder="Street, House/Office No."
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-1">City *</label>
-                      <select
-                        required
-                        value={formData.city}
-                        onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                        className="w-full px-4 py-2 border border-cream rounded focus:outline-none focus:border-charcoal"
-                      >
-                        <option value="">Select City</option>
-                        {cities.map((city) => (
-                          <option key={city} value={city}>{city}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Province *</label>
-                      <select
-                        required
-                        value={formData.province}
-                        onChange={(e) => setFormData({ ...formData, province: e.target.value })}
-                        className="w-full px-4 py-2 border border-cream rounded focus:outline-none focus:border-charcoal"
-                      >
-                        <option value="">Select Province</option>
-                        {provinces.map((prov) => (
-                          <option key={prov} value={prov}>{prov}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Postal Code *</label>
-                      <input
-                        type="text"
-                        required
-                        value={formData.postal}
-                        onChange={(e) => setFormData({ ...formData, postal: e.target.value })}
-                        className="w-full px-4 py-2 border border-cream rounded focus:outline-none focus:border-charcoal"
-                        placeholder="54000"
-                      />
-                    </div>
-
-                    <div className="flex gap-4">
-                      <button
-                        type="button"
-                        onClick={prevStep}
-                        className="flex-1 border border-cream py-3 rounded font-medium hover:bg-cream transition"
-                      >
-                        Back
-                      </button>
-                      <button
-                        type="button"
-                        onClick={nextStep}
-                        disabled={!canProceed()}
-                        className="flex-1 bg-charcoal text-white py-3 rounded font-medium hover:bg-charcoal/80 transition disabled:opacity-50"
-                      >
-                        Continue to Payment
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Step 3: Payment */}
-                {step === 3 && (
-                  <div className="space-y-6">
-                    <h2 className="text-xl font-semibold">Payment Method</h2>
-
-                    {/* Delivery Method */}
-                    <div>
-                      <h3 className="font-medium mb-2">Delivery Method</h3>
-                      <div className="space-y-2">
-                        <label className="flex items-center gap-3 p-3 border border-cream rounded-lg cursor-pointer hover:bg-cream/50 transition">
-                          <input
-                            type="radio"
-                            name="delivery"
-                            value="standard"
-                            checked={formData.deliveryMethod === "standard"}
-                            onChange={(e) => setFormData({ ...formData, deliveryMethod: e.target.value })}
-                          />
-                          <div>
-                            <p className="font-medium">Standard Delivery</p>
-                            <p className="text-sm text-secondary">2-3 business days</p>
-                          </div>
-                          <span className="ml-auto font-medium">PKR {shippingSettings.standardShipping.toLocaleString()}</span>
-                        </label>
-                        
-                        <label className="flex items-center gap-3 p-3 border border-cream rounded-lg cursor-pointer hover:bg-cream/50 transition">
-                          <input
-                            type="radio"
-                            name="delivery"
-                            value="express"
-                            checked={formData.deliveryMethod === "express"}
-                            onChange={(e) => setFormData({ ...formData, deliveryMethod: e.target.value })}
-                          />
-                          <div>
-                            <p className="font-medium">Express Delivery</p>
-                            <p className="text-sm text-secondary">1-2 business days</p>
-                          </div>
-                          <span className="ml-auto font-medium">PKR {shippingSettings.expressShipping.toLocaleString()}</span>
-                        </label>
-                      </div>
-                    </div>
-
-                    {/* Payment Method - Cash on Delivery only */}
-                    <div>
-                      <h3 className="font-medium mb-2">Payment Method</h3>
-                      <div className="space-y-2">
-                        <label className="flex items-center gap-3 p-4 border-2 border-charcoal rounded-lg cursor-pointer bg-cream/30">
-                          <input
-                            type="radio"
-                            name="payment"
-                            value="cod"
-                            checked={formData.paymentMethod === "cod"}
-                            onChange={() => setFormData({ ...formData, paymentMethod: "cod" })}
-                          />
-                          <div>
-                            <p className="font-medium">Cash on Delivery</p>
-                            <p className="text-sm text-secondary">Pay when you receive your order</p>
-                          </div>
-                        </label>
-                        <p className="text-xs text-secondary mt-2">
-                          Online card and digital payment options will be added later.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-4">
-                      <button
-                        type="button"
-                        onClick={prevStep}
-                        className="flex-1 border border-cream py-3 rounded font-medium hover:bg-cream transition"
-                      >
-                        Back
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={loading || !canProceed()}
-                        className="flex-1 bg-charcoal text-white py-3 rounded font-medium hover:bg-charcoal/80 transition disabled:opacity-50"
-                      >
-                        {loading ? "Placing Order..." : `Place Order • PKR ${grandTotal.toLocaleString()}`}
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </form>
-            </div>
-          </div>
-
-          {/* Order Summary */}
-          <div className="lg:w-80">
-            <div className="bg-white rounded-lg border border-cream p-6 sticky top-20">
-              <h2 className="font-semibold text-lg mb-4">Order Summary</h2>
-              
-              <div className="space-y-3 max-h-60 overflow-y-auto">
-                {items.map((item) => (
-                  <div key={item.id} className="flex gap-3">
-                    <img src={item.image} alt={item.name} className="w-12 h-12 object-cover rounded" />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium truncate">{item.name}</p>
-                      <p className="text-xs text-secondary">Qty: {item.quantity}</p>
-                    </div>
-                    <p className="text-sm font-medium">PKR {(item.price * item.quantity).toLocaleString()}</p>
-                  </div>
-                ))}
-              </div>
-
-              <div className="border-t border-cream mt-4 pt-4 space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-secondary">Subtotal ({count} items)</span>
-                  <span>PKR {total.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-secondary">Shipping</span>
-                  <span>{shippingCost === 0 ? "FREE" : "PKR " + shippingCost.toLocaleString()}</span>
-                </div>
-                {formData.deliveryMethod === "standard" && total < shippingSettings.freeShippingThreshold && (
-                  <p className="text-xs text-amber-600">
-                    Add PKR {(shippingSettings.freeShippingThreshold - total).toLocaleString()} more for FREE shipping
-                  </p>
-                )}
-                <div className="border-t border-cream mt-4 pt-4">
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={couponCode}
-                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                      disabled={!!appliedCoupon || couponLoading}
-                      placeholder="Coupon code"
-                      className="min-w-0 flex-1 px-3 py-2 border border-cream rounded focus:outline-none focus:border-charcoal uppercase"
-                    />
-                    {appliedCoupon ? (
-                      <button type="button" onClick={removeCoupon} className="px-3 py-2 border border-cream rounded text-sm hover:bg-cream transition">Remove</button>
-                    ) : (
-                      <button type="button" onClick={applyCoupon} disabled={couponLoading || !couponCode.trim()} className="px-3 py-2 bg-charcoal text-white rounded text-sm disabled:opacity-50">{couponLoading ? "..." : "Apply"}</button>
-                    )}
-                  </div>
-                  {couponMessage && <p className={`text-xs mt-2 ${appliedCoupon ? "text-green-700" : "text-red-600"}`}>{couponMessage}</p>}
-                </div>
-                {appliedCoupon && (
-                  <div className="flex justify-between text-sm text-green-700">
-                    <span>Discount ({appliedCoupon.code})</span>
-                    <span>- PKR {discount.toLocaleString()}</span>
-                  </div>
-                )}
-
-                <div className="border-t border-cream pt-2 mt-2">
-                  <div className="flex justify-between font-semibold text-base">
-                    <span>Total</span>
-                    <span>PKR {grandTotal.toLocaleString()}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <aside className="lg:sticky lg:top-24 space-y-4">
+          <div className="bg-white border border-black/5 p-5 md:p-6"><div className="flex items-center justify-between"><h2 className="font-editorial text-2xl font-semibold">Your order</h2><Link href="/cart" className="text-xs underline">Edit bag</Link></div><div className="mt-5 max-h-64 overflow-y-auto space-y-4">{items.map(item=><div key={item.id||item.productId} className="flex gap-3"><img src={item.image} alt={item.name} className="w-16 h-20 object-cover bg-cream"/><div className="min-w-0 flex-1"><p className="text-sm font-medium truncate">{item.name}</p>{(item as any).variantLabel&&<p className="text-[11px] text-secondary mt-1">{(item as any).variantLabel}</p>}<p className="text-xs text-secondary mt-1">Qty {item.quantity}</p></div><p className="text-sm font-medium">PKR {(item.price*item.quantity).toLocaleString()}</p></div>)}</div><div className="mt-5 pt-5 border-t border-black/5 space-y-3 text-sm"><div className="flex justify-between"><span className="text-secondary">Subtotal</span><span>PKR {total.toLocaleString()}</span></div>{discount>0&&<div className="flex justify-between"><span className="text-secondary">Discount {coupon&&`(${coupon.code})`}</span><span>- PKR {discount.toLocaleString()}</span></div>}<div className="flex justify-between"><span className="text-secondary">Shipping</span><span>{shipping===0?"FREE":`PKR ${shipping.toLocaleString()}`}</span></div><div className="pt-4 mt-2 border-t border-black/5 flex justify-between font-semibold"><span>Total</span><span>PKR {grandTotal.toLocaleString()}</span></div></div></div>
+          <div className="bg-white border border-black/5 p-5"><label className="text-xs uppercase tracking-[0.18em] font-medium">Promo code</label><div className="mt-3 flex gap-2"><input value={couponInput} onChange={e=>setCouponInput(e.target.value.toUpperCase())} placeholder="ENTER CODE" className="flex-1 min-w-0 border border-black/10 px-3 py-2.5 text-xs tracking-wider focus:outline-none focus:border-charcoal"/><button type="button" onClick={applyCoupon} disabled={couponLoading} className="px-4 bg-cream text-xs font-medium disabled:opacity-50">{couponLoading?"…":"Apply"}</button></div>{couponMessage&&<p className={`mt-2 text-xs ${coupon?.discount?"text-green-700":"text-secondary"}`}>{couponMessage}</p>}</div>
+          {freeShippingGap>0&&formData.deliveryMethod==="standard"&&<div className="bg-charcoal text-white p-5"><p className="text-xs uppercase tracking-wider">Almost there</p><p className="font-editorial text-xl mt-1">Add PKR {freeShippingGap.toLocaleString()} for free standard shipping.</p></div>}
+          <div className="flex gap-3 text-xs text-secondary"><MapPin size={15}/><span>Pakistan-wide delivery · Cash on Delivery</span></div>
+        </aside>
       </div>
     </div>
-  )
+  </main>
+}
+
+function Field({ label, value, onChange, placeholder, type="text" }: { label:string; value:string; onChange:(v:string)=>void; placeholder?:string; type?:string }) {
+  return <label className="block"><span className="text-xs font-medium">{label} *</span><input required type={type} value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} className="mt-2 w-full border border-black/10 px-4 py-3 text-sm focus:outline-none focus:border-charcoal"/></label>
+}
+
+function SelectField({ label, value, onChange, options }: { label:string; value:string; onChange:(v:string)=>void; options:string[] }) {
+  return <label className="block relative"><span className="text-xs font-medium">{label} *</span><select required value={value} onChange={e=>onChange(e.target.value)} className="mt-2 appearance-none w-full border border-black/10 px-4 py-3 text-sm bg-white focus:outline-none focus:border-charcoal"><option value="">Select {label.toLowerCase()}</option>{options.map(o=><option key={o} value={o}>{o}</option>)}</select><ChevronDown size={15} className="absolute right-3 bottom-3.5 pointer-events-none text-secondary"/></label>
 }
