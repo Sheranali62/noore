@@ -138,3 +138,116 @@ html {
 @media (max-width: 767px) {
   .product-card { transform: none !important; box-shadow: none !important; }
 }
+
+/* NOORÉ automatic local day/night storefront theme. The mode is selected from
+   the visitor's browser-local clock, so each visitor sees the correct local mode. */
+:root {
+  --noore-page: #faf9f6;
+  --noore-surface: #ffffff;
+  --noore-surface-muted: #f4f2ee;
+  --noore-text: #171717;
+  --noore-text-muted: #6b6b6b;
+  --noore-border: #e7e4df;
+}
+
+html.dark {
+  --noore-page: #11100f;
+  --noore-surface: #1a1917;
+  --noore-surface-muted: #24221f;
+  --noore-text: #f6f3ed;
+  --noore-text-muted: #b8b2aa;
+  --noore-border: #37332f;
+}
+
+html.dark body {
+  background-color: var(--noore-page);
+  color: var(--noore-text);
+}
+
+/* Theme the common storefront utility colors while preserving editorial imagery. */
+html.dark .bg-background,
+html.dark .bg-cream {
+  background-color: var(--noore-page) !important;
+}
+html.dark .bg-white {
+  background-color: var(--noore-surface) !important;
+}
+html.dark .bg-gray-50,
+html.dark .bg-gray-100,
+html.dark .bg-stone-50,
+html.dark .bg-stone-100 {
+  background-color: var(--noore-surface-muted) !important;
+}
+html.dark .text-gray-500,
+html.dark .text-gray-600,
+html.dark .text-gray-700,
+html.dark .text-gray-800 {
+  color: var(--noore-text-muted) !important;
+}
+html.dark .border-gray-100,
+html.dark .border-gray-200,
+html.dark .border-gray-300 {
+  border-color: var(--noore-border) !important;
+}
+html.dark .text-charcoal,
+html.dark .text-foreground {
+  color: var(--noore-text) !important;
+}
+html.dark .text-secondary,
+html.dark .text-charcoal\/80,
+html.dark .text-charcoal\/70,
+html.dark .text-charcoal\/60 {
+  color: var(--noore-text-muted) !important;
+}
+html.dark .border-border,
+html.dark .border-charcoal,
+html.dark .border-black\/10,
+html.dark .border-black\/5 {
+  border-color: var(--noore-border) !important;
+}
+html.dark .nav-link {
+  color: rgba(246, 243, 237, .78);
+}
+html.dark .nav-link:hover {
+  color: var(--noore-text);
+}
+html.dark .icon-button:hover {
+  background-color: rgba(255,255,255,.07);
+}
+html.dark .btn-secondary {
+  border-color: var(--noore-text);
+  color: var(--noore-text);
+}
+html.dark .btn-secondary:hover {
+  background-color: var(--noore-text);
+  color: #171717;
+}
+html.dark .btn-primary {
+  background-color: #f6f3ed;
+  color: #171717;
+}
+html.dark .btn-primary:hover {
+  background-color: #ffffff;
+}
+html.dark input,
+html.dark textarea,
+html.dark select {
+  background-color: var(--noore-surface);
+  color: var(--noore-text);
+  border-color: var(--noore-border);
+}
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #8e8982;
+}
+html.dark ::-webkit-scrollbar-track {
+  background: #1a1917;
+}
+html.dark ::-webkit-scrollbar-thumb {
+  background: #6b665f;
+}
+
+/* Avoid a flash of the wrong palette after the theme has been resolved. */
+html[data-noore-theme="night"] {
+  background: var(--noore-page);
+}

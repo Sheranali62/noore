@@ -5,6 +5,7 @@ import { Providers } from "./providers"
 import { Toaster } from "@/components/ui/toaster"
 import { cn } from "@/lib/utils"
 import { GoogleAnalytics } from "@/components/analytics/google-analytics"
+import { AutoDayNightTheme } from "@/components/theme/auto-day-night"
 
 const inter = Inter({ 
   subsets: ["latin"], 
@@ -95,6 +96,12 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <head>
+        <meta name="theme-color" content="#FAF9F6" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var h=new Date().getHours();var dark=h<7||h>=19;var r=document.documentElement;r.classList.toggle("dark",dark);r.setAttribute("data-noore-theme",dark?"night":"day");r.style.colorScheme=dark?"dark":"light";var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",dark?"#11100F":"#FAF9F6")}catch(e){}})()`,
+          }}
+        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
@@ -103,6 +110,7 @@ export default function RootLayout({
         {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && <GoogleAnalytics />}
         
         <Providers>
+          <AutoDayNightTheme />
           {children}
           <Toaster />
         </Providers>
