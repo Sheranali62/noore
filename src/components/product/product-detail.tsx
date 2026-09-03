@@ -28,6 +28,7 @@ export function ProductDetail({ product, relatedProducts }: Props) {
   const [wishlistBusy, setWishlistBusy] = useState(false)
   const [openInfo, setOpenInfo] = useState<string | null>("details")
   const [notice, setNotice] = useState("")
+  const [recentlyViewed, setRecentlyViewed] = useState<any[]>([])
 
   const colors = useMemo(() => Array.from(new Set(product.variants.map(v => v.color))), [product.variants])
   const sizes = useMemo(() => Array.from(new Set(product.variants.map(v => v.size))), [product.variants])
@@ -47,6 +48,16 @@ export function ProductDetail({ product, relatedProducts }: Props) {
     setSelectedImage(0)
     setQuantity(1)
   }, [selectedVariant?.id])
+
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("noore_recently_viewed") || "[]")
+      const previous = Array.isArray(stored) ? stored.filter((item: any) => item?.id && item.id !== product.id) : []
+      setRecentlyViewed(previous.slice(0, 4))
+      const current = { id: product.id, name: product.name, slug: product.slug, price: product.price, salePrice: product.salePrice, image: product.images[0] || "/placeholder.jpg", hoverImage: product.images[1], category: product.category, stock: product.stock }
+      localStorage.setItem("noore_recently_viewed", JSON.stringify([current, ...previous].slice(0, 8)))
+    } catch {}
+  }, [product.id, product.name, product.slug, product.price, product.salePrice, product.images, product.category, product.stock])
 
   useEffect(() => {
     fetch("/api/wishlist")
@@ -199,6 +210,10 @@ export function ProductDetail({ product, relatedProducts }: Props) {
       {reviewCount > 0 && <section className="mt-20 border-t border-border pt-12"><div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><p className="text-xs uppercase tracking-[0.2em] text-secondary">Customer feedback</p><h2 className="mt-2 font-editorial text-3xl">Reviews</h2></div><div className="text-sm">★ <strong>{averageRating.toFixed(1)}</strong> / 5 · {reviewCount} reviews</div></div><div className="mt-8 grid gap-5 md:grid-cols-3">{product.reviews.slice(0, 3).map(review => <article key={review.id} className="border border-border p-6"><div className="text-sm">{"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)}</div><p className="mt-4 text-sm leading-6 text-secondary">{review.comment || "Beautiful product."}</p>{review.verified && <p className="mt-4 text-xs uppercase tracking-wider">✓ Verified purchase</p>}</article>)}</div></section>}
 
       {relatedProducts.length > 0 && <section className="mt-20 border-t border-border pt-12"><p className="text-xs uppercase tracking-[0.2em] text-secondary">Complete your wardrobe</p><h2 className="mt-2 font-editorial text-3xl">You May Also Like</h2><div className="mt-7 grid grid-cols-2 gap-4 md:grid-cols-4">{relatedProducts.map(p => <ProductCard key={p.id} id={p.id} name={p.name} slug={p.slug} price={p.price} salePrice={p.salePrice} image={p.images[0] || "/placeholder.jpg"} hoverImage={p.images[1]} category={p.category} stock={p.stock} />)}</div></section>}
+
+      {recentlyViewed.length > 0 && <section className="mt-20 border-t border-border pt-12"><p className="text-xs uppercase tracking-[0.2em] text-secondary">For your next visit</p><h2 className="mt-2 font-editorial text-3xl">Recently viewed</h2><div className="mt-7 grid grid-cols-2 gap-4 md:grid-cols-4">{recentlyViewed.map(p => <ProductCard key={p.id} {...p} />)}</div></section>}
+
+      {inStock && <div className="fixed inset-x-0 bottom-0 z-40 border-t border-black/10 bg-white/95 p-3 shadow-2xl backdrop-blur md:hidden"><div className="flex items-center gap-3"><div className="min-w-0 flex-1"><p className="truncate text-xs font-medium">{product.name}</p><p className="text-[11px] text-secondary">{money(currentPrice)} · {selectedVariant ? `${selectedVariant.color} / ${selectedVariant.size}` : "Ready to ship"}</p></div><button type="button" onClick={handleAddToCart} className="flex h-11 shrink-0 items-center gap-2 bg-charcoal px-5 text-[10px] font-semibold uppercase tracking-[.16em] text-white"><ShoppingBag className="h-4 w-4" /> Add to Bag</button></div></div>}
 
       {zoomOpen && <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4" role="dialog" aria-modal="true" onClick={() => setZoomOpen(false)}><button type="button" onClick={() => setZoomOpen(false)} className="absolute right-5 top-5 rounded-full bg-white p-2" aria-label="Close"><X className="h-5 w-5" /></button><img src={images[selectedImage] || "/placeholder.jpg"} alt={product.name} className="max-h-[92vh] max-w-[92vw] object-contain" onClick={e => e.stopPropagation()} /></div>}
     </div>

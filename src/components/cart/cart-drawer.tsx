@@ -3,17 +3,26 @@
 import Link from "next/link"
 import { ArrowRight, Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react"
 import { useCart } from "@/components/cart/cart-context"
+import { useEffect, useState } from "react"
 
 const FREE_SHIPPING_THRESHOLD = 5000
 const STANDARD_SHIPPING = 250
 
 export function CartDrawer() {
   const { items, removeItem, updateQuantity, total, count, isOpen, closeCart } = useCart()
+  const [shippingSettings, setShippingSettings] = useState({ freeShippingThreshold: FREE_SHIPPING_THRESHOLD, standardShipping: STANDARD_SHIPPING })
+  useEffect(() => {
+    if (!isOpen) return
+    fetch("/api/settings").then(r => r.ok ? r.json() : null).then(data => {
+      const s = data?.settings || data
+      if (s) setShippingSettings({ freeShippingThreshold: Number(s.freeShippingThreshold ?? FREE_SHIPPING_THRESHOLD), standardShipping: Number(s.standardShipping ?? STANDARD_SHIPPING) })
+    }).catch(() => {})
+  }, [isOpen])
   if (!isOpen) return null
 
-  const remaining = Math.max(0, FREE_SHIPPING_THRESHOLD - total)
-  const progress = Math.min(100, (total / FREE_SHIPPING_THRESHOLD) * 100)
-  const shipping = total >= FREE_SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING
+  const remaining = Math.max(0, shippingSettings.freeShippingThreshold - total)
+  const progress = Math.min(100, (total / shippingSettings.freeShippingThreshold) * 100)
+  const shipping = total >= shippingSettings.freeShippingThreshold ? 0 : shippingSettings.standardShipping
 
   return (
     <>
@@ -57,7 +66,8 @@ export function CartDrawer() {
                 )
               })}
             </div>
-            <div className="border-t border-black/5 p-5 bg-[#faf9f6]">
+            <div className="border-t border-black/5 bg-[#faf9f6] p-5">
+              <div className="mb-4 grid grid-cols-3 gap-2 text-center text-[9px] uppercase tracking-[.12em] text-secondary"><span>COD</span><span>Easy exchange</span><span>Secure checkout</span></div>
               <div className="flex justify-between text-sm"><span className="text-secondary">Subtotal</span><span>PKR {total.toLocaleString()}</span></div>
               <div className="flex justify-between text-sm mt-2"><span className="text-secondary">Shipping</span><span>{shipping ? `PKR ${shipping.toLocaleString()}` : "FREE"}</span></div>
               <div className="flex justify-between font-semibold mt-4 pt-4 border-t border-black/5"><span>Total</span><span>PKR {(total + shipping).toLocaleString()}</span></div>

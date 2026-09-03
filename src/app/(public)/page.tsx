@@ -16,11 +16,11 @@ const editorial = [
 ]
 
 export default async function HomePage() {
-  const featuredProducts = await prisma.product.findMany({
-    where: { status: "ACTIVE" },
-    take: 8,
-    orderBy: { createdAt: "desc" },
-  })
+  const [featuredProducts, saleProducts, limitedProducts] = await Promise.all([
+    prisma.product.findMany({ where: { status: "ACTIVE" }, take: 8, orderBy: { createdAt: "desc" } }),
+    prisma.product.findMany({ where: { status: "ACTIVE", salePrice: { not: null } }, take: 4, orderBy: { createdAt: "desc" } }),
+    prisma.product.findMany({ where: { status: "ACTIVE", stock: { gt: 0, lte: 5 } }, take: 4, orderBy: { stock: "asc" } }),
+  ])
 
   return (
     <div className="bg-cream text-charcoal">
@@ -98,6 +98,36 @@ export default async function HomePage() {
         </section>
       )}
 
+      {/* Limited edit */}
+      {limitedProducts.length > 0 && (
+        <section className="border-y border-black/5 bg-[#f4f0e8] py-16 md:py-20">
+          <div className="mx-auto max-w-7xl px-5">
+            <div className="mb-9 flex items-end justify-between gap-4">
+              <div><p className="text-[10px] uppercase tracking-[0.3em] text-black/45">Limited quantities</p><h2 className="mt-2 font-editorial text-4xl md:text-5xl">Almost gone</h2><p className="mt-2 text-sm text-black/50">The pieces customers are reaching for now.</p></div>
+              <Link href="/products" className="text-xs font-semibold uppercase tracking-[0.15em] underline underline-offset-4">View all</Link>
+            </div>
+            <div className="grid grid-cols-2 gap-x-3 gap-y-8 md:grid-cols-4 md:gap-x-5">
+              {limitedProducts.map((product: any) => <ProductCard key={product.id} id={product.id} name={product.name} slug={product.slug} price={product.price} salePrice={product.salePrice} image={product.images[0] || "/placeholder.jpg"} hoverImage={product.images[1]} category={product.category} stock={product.stock} />)}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Sale edit */}
+      {saleProducts.length > 0 && (
+        <section className="bg-charcoal py-16 text-white md:py-20">
+          <div className="mx-auto max-w-7xl px-5">
+            <div className="mb-9 flex items-end justify-between gap-4">
+              <div><p className="text-[10px] uppercase tracking-[0.3em] text-white/45">The price edit</p><h2 className="mt-2 font-editorial text-4xl md:text-5xl">Selected on sale</h2><p className="mt-2 text-sm text-white/55">A considered selection, available while it lasts.</p></div>
+              <Link href="/products?sale=1" className="text-xs font-semibold uppercase tracking-[0.15em] underline underline-offset-4">Shop sale</Link>
+            </div>
+            <div className="grid grid-cols-2 gap-x-3 gap-y-8 md:grid-cols-4 md:gap-x-5">
+              {saleProducts.map((product: any) => <ProductCard key={product.id} id={product.id} name={product.name} slug={product.slug} price={product.price} salePrice={product.salePrice} image={product.images[0] || "/placeholder.jpg"} hoverImage={product.images[1]} category={product.category} stock={product.stock} />)}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Editorial banners */}
       <section className="mx-auto max-w-7xl px-5 py-16 md:py-24">
         <div className="grid gap-5 md:grid-cols-2">
@@ -124,10 +154,7 @@ export default async function HomePage() {
         <p className="text-[10px] uppercase tracking-[0.35em] text-black/45">Stay in the know</p>
         <h2 className="mt-3 font-editorial text-4xl md:text-5xl">A little more NOORÉ.</h2>
         <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-black/50">Be first to discover new collections, exclusive edits and private offers.</p>
-        <form className="mx-auto mt-7 flex max-w-lg border-b border-black/30">
-          <input type="email" placeholder="Your email address" className="min-w-0 flex-1 bg-transparent px-1 py-3 text-sm outline-none placeholder:text-black/35" required />
-          <button type="submit" className="px-1 py-3 text-[10px] font-semibold uppercase tracking-[0.18em]">Subscribe →</button>
-        </form>
+        <Link href="/products" className="mt-7 inline-flex bg-charcoal px-7 py-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-white">Explore the collection</Link>
       </section>
     </div>
   )

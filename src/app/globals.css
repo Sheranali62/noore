@@ -129,3 +129,12 @@ html {
     transform: translateX(0);
   }
 }
+@layer components {
+  .nav-link { @apply text-[11px] font-semibold uppercase tracking-[0.12em] text-charcoal/80 transition hover:text-charcoal; }
+  .icon-button { @apply relative grid h-10 w-10 place-items-center transition hover:bg-white/70; }
+  .eyebrow { @apply text-[9px] font-semibold uppercase tracking-[0.24em] text-secondary; }
+}
+
+@media (max-width: 767px) {
+  .product-card { transform: none !important; box-shadow: none !important; }
+}

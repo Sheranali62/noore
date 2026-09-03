@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { ArrowLeft, ArrowRight, Check, Minus, Plus, ShieldCheck, Trash2, Truck } from "lucide-react"
 import { useCart } from "@/components/cart/cart-context"
 
@@ -10,9 +10,16 @@ const STANDARD_SHIPPING = 250
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, total, count } = useCart()
-  const remainingForFreeShipping = Math.max(0, FREE_SHIPPING_THRESHOLD - total)
-  const shipping = total >= FREE_SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING
-  const progress = Math.min(100, (total / FREE_SHIPPING_THRESHOLD) * 100)
+  const [shippingSettings, setShippingSettings] = useState({ freeShippingThreshold: FREE_SHIPPING_THRESHOLD, standardShipping: STANDARD_SHIPPING })
+  useEffect(() => {
+    fetch("/api/settings").then(r => r.ok ? r.json() : null).then(data => {
+      const s = data?.settings || data
+      if (s) setShippingSettings({ freeShippingThreshold: Number(s.freeShippingThreshold ?? FREE_SHIPPING_THRESHOLD), standardShipping: Number(s.standardShipping ?? STANDARD_SHIPPING) })
+    }).catch(() => {})
+  }, [])
+  const remainingForFreeShipping = Math.max(0, shippingSettings.freeShippingThreshold - total)
+  const shipping = total >= shippingSettings.freeShippingThreshold ? 0 : shippingSettings.standardShipping
+  const progress = Math.min(100, (total / shippingSettings.freeShippingThreshold) * 100)
 
   const itemCountLabel = useMemo(() => `${count} ${count === 1 ? "item" : "items"}`, [count])
 

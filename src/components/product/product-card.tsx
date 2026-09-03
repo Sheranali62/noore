@@ -22,6 +22,8 @@ export function ProductCard({ id, name, slug, price, salePrice, image, hoverImag
   const { addItem } = useCart()
   const [liked, setLiked] = useState(false)
   const [added, setAdded] = useState(false)
+  const [wishlistBusy, setWishlistBusy] = useState(false)
+  const [notice, setNotice] = useState("")
   const isOnSale = typeof salePrice === "number" && salePrice < price
   const displayPrice = isOnSale ? salePrice : price
   const discount = isOnSale ? Math.round(((price - salePrice) / price) * 100) : 0
@@ -51,12 +53,23 @@ export function ProductCard({ id, name, slug, price, salePrice, image, hoverImag
 
         <button
           type="button"
-          onClick={() => setLiked((value) => !value)}
+          disabled={wishlistBusy}
+          onClick={async () => {
+            setWishlistBusy(true)
+            try {
+              const response = await fetch("/api/wishlist", { method: liked ? "DELETE" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ productId: id }) })
+              if (response.status === 401) setNotice("Sign in to save favourites")
+              else if (response.ok) setLiked(value => !value)
+            } catch {}
+            setWishlistBusy(false)
+            window.setTimeout(() => setNotice(""), 1800)
+          }}
           aria-label={liked ? "Remove from wishlist" : "Add to wishlist"}
-          className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white/90 backdrop-blur transition hover:bg-white"
+          className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white/90 backdrop-blur transition hover:bg-white disabled:opacity-60"
         >
           <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} />
         </button>
+        {notice && <span className="absolute right-3 top-14 bg-charcoal px-3 py-2 text-[9px] font-semibold uppercase tracking-wider text-white">{notice}</span>}
 
         <div className="absolute inset-x-3 bottom-3 translate-y-2 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
           <button type="button" onClick={handleAddToCart} disabled={stock === 0} className="flex w-full items-center justify-center gap-2 bg-charcoal px-4 py-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-white transition hover:bg-black disabled:cursor-not-allowed disabled:bg-white/90 disabled:text-secondary">
