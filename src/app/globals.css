@@ -166,11 +166,28 @@ html.dark body {
 
 /* Theme the common storefront utility colors while preserving editorial imagery. */
 html.dark .bg-background,
-html.dark .bg-cream {
+html.dark .bg-cream,
+html.dark .bg-cream\/95 {
   background-color: var(--noore-page) !important;
 }
-html.dark .bg-white {
+html.dark .bg-white,
+html.dark .bg-white\/95 {
   background-color: var(--noore-surface) !important;
+}
+html.dark .bg-white\/90 {
+  background-color: rgba(246, 243, 237, .96) !important;
+}
+html.dark .hover\:bg-white\/70:hover {
+  background-color: rgba(255,255,255,.07) !important;
+}
+html.dark .hover\:bg-white:hover {
+  background-color: var(--noore-text) !important;
+}
+html.dark .hover\:bg-cream:hover {
+  background-color: var(--noore-surface-muted) !important;
+}
+html.dark .hover\:bg-black\/5:hover {
+  background-color: rgba(255,255,255,.06) !important;
 }
 html.dark .bg-gray-50,
 html.dark .bg-gray-100,
@@ -178,6 +195,13 @@ html.dark .bg-stone-50,
 html.dark .bg-stone-100 {
   background-color: var(--noore-surface-muted) !important;
 }
+html.dark .text-black\/45,
+html.dark .text-black\/50,
+html.dark .text-black\/55,
+html.dark .text-black\/65,
+html.dark .text-black\/40,
+html.dark .text-black\/35,
+html.dark .text-black\/30,
 html.dark .text-gray-500,
 html.dark .text-gray-600,
 html.dark .text-gray-700,
@@ -199,10 +223,11 @@ html.dark .text-charcoal\/70,
 html.dark .text-charcoal\/60 {
   color: var(--noore-text-muted) !important;
 }
-html.dark .border-border,
-html.dark .border-charcoal,
+html.dark .border-black\/5,
 html.dark .border-black\/10,
-html.dark .border-black\/5 {
+html.dark .divide-black\/5,
+html.dark .border-border,
+html.dark .border-charcoal {
   border-color: var(--noore-border) !important;
 }
 html.dark .nav-link {
@@ -245,6 +270,48 @@ html.dark ::-webkit-scrollbar-track {
 }
 html.dark ::-webkit-scrollbar-thumb {
   background: #6b665f;
+}
+
+/* Theme-aware controls and surfaces. These are intentionally class-based so
+   existing Tailwind utility components also adapt to the automatic theme. */
+html.dark .bg-[#f4f0e8] {
+  background-color: var(--noore-surface-muted) !important;
+}
+html.dark .text-black {
+  color: var(--noore-text) !important;
+}
+html.dark .btn-primary {
+  background-color: var(--noore-text) !important;
+  color: #171717 !important;
+}
+html.dark .btn-primary:hover {
+  background-color: #ffffff !important;
+}
+html.dark .btn-secondary {
+  border-color: var(--noore-text) !important;
+  color: var(--noore-text) !important;
+}
+html.dark .btn-secondary:hover {
+  background-color: var(--noore-text) !important;
+  color: #171717 !important;
+}
+
+/* Hero CTA buttons intentionally invert with the storefront palette while
+   preserving the dark editorial image treatment. */
+html.dark .hero-primary {
+  background-color: #f6f3ed !important;
+  color: #171717 !important;
+}
+html.dark .hero-primary:hover {
+  background-color: #ffffff !important;
+}
+html.dark .hero-secondary {
+  border-color: rgba(246,243,237,.72) !important;
+  color: #f6f3ed !important;
+}
+html.dark .hero-secondary:hover {
+  background-color: #f6f3ed !important;
+  color: #171717 !important;
 }
 
 /* Avoid a flash of the wrong palette after the theme has been resolved. */

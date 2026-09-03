@@ -40,8 +40,8 @@ export default async function HomePage() {
             <h1 className="mt-5 font-editorial text-5xl font-medium leading-[0.98] md:text-7xl lg:text-8xl">The art of everyday elegance.</h1>
             <p className="mt-6 max-w-lg text-sm leading-6 text-white/75 md:text-base">Contemporary Pakistani fashion, thoughtfully curated for the moments that become memories.</p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/products" className="bg-white px-7 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-charcoal transition hover:bg-white/90">Shop New Arrivals</Link>
-              <Link href="/products?category=Luxury" className="border border-white/60 px-7 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-white transition hover:bg-white hover:text-charcoal">Explore Luxury</Link>
+              <Link href="/products" className="hero-primary bg-white px-7 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-charcoal transition hover:bg-white/90">Shop New Arrivals</Link>
+              <Link href="/products?category=Luxury" className="hero-secondary border border-white/60 px-7 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-white transition hover:bg-white hover:text-charcoal">Explore Luxury</Link>
             </div>
           </div>
         </div>

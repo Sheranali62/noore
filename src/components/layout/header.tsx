@@ -125,7 +125,7 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-black/5 bg-cream/95 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 border-b border-black/5 bg-cream/95 text-charcoal backdrop-blur-xl">
       <div className="mx-auto flex h-[68px] max-w-7xl items-center justify-between px-4 sm:px-5">
         <button className="mr-3 md:hidden" onClick={() => setMobileOpen(true)} aria-label="Open menu"><Menu className="h-5 w-5" /></button>
         <Link href="/" className="font-editorial text-[28px] font-semibold tracking-tight">NOORÉ</Link>
