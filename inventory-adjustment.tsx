@@ -1,0 +1,13 @@
+"use client"
+import { useState } from "react"
+
+export function InventoryAdjustment({ productId, variants }: { productId: string; variants: { id: string; color: string; size: string; stock: number }[] }) {
+  const [variantId, setVariantId] = useState("")
+  const [change, setChange] = useState("")
+  const [reason, setReason] = useState("Restock")
+  const [note, setNote] = useState("")
+  const [message, setMessage] = useState("")
+  const [saving, setSaving] = useState(false)
+  async function submit(e: React.FormEvent) { e.preventDefault(); setSaving(true); setMessage(""); try { const res = await fetch("/api/admin/inventory/adjust", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ productId, variantId: variantId || null, change: Number(change), reason, note }) }); const data = await res.json(); if (!res.ok) throw new Error(data.error || "Adjustment failed"); setMessage(`Stock updated: ${data.beforeStock} → ${data.afterStock}`); setChange(""); setNote(""); } catch (e) { setMessage(e instanceof Error ? e.message : "Adjustment failed") } finally { setSaving(false) } }
+  return <form onSubmit={submit} className="bg-white border border-cream p-5 space-y-4"><div><h3 className="font-medium">Quick stock adjustment</h3><p className="text-xs text-secondary mt-1">Use positive numbers to add stock and negative numbers to remove it.</p></div>{variants.length > 0 && <label className="block text-sm">Variant<select value={variantId} onChange={e=>setVariantId(e.target.value)} className="mt-1 w-full border border-cream px-3 py-2 bg-white"><option value="">Base product stock</option>{variants.map(v=><option key={v.id} value={v.id}>{v.color} / {v.size} — {v.stock}</option>)}</select></label>}<div className="grid grid-cols-1 sm:grid-cols-2 gap-3"><label className="text-sm">Change<input required type="number" step="1" value={change} onChange={e=>setChange(e.target.value)} placeholder="+10 or -2" className="mt-1 w-full border border-cream px-3 py-2" /></label><label className="text-sm">Reason<select value={reason} onChange={e=>setReason(e.target.value)} className="mt-1 w-full border border-cream px-3 py-2 bg-white"><option>Restock</option><option>Correction</option><option>Damaged</option><option>Returned</option><option>Manual sale</option></select></label></div><label className="block text-sm">Note<textarea value={note} onChange={e=>setNote(e.target.value)} rows={2} className="mt-1 w-full border border-cream px-3 py-2" /></label><button disabled={saving} className="bg-charcoal text-white px-4 py-2 text-sm disabled:opacity-50">{saving ? "Saving…" : "Adjust stock"}</button>{message && <p className="text-sm text-secondary">{message}</p>}</form>
+}
