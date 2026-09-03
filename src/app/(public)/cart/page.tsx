@@ -2,9 +2,13 @@
 
 import Link from "next/link"
 import { useCart } from "@/components/cart/cart-context"
+import { useEffect, useState } from "react"
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, total, count } = useCart()
+  const [freeShippingThreshold, setFreeShippingThreshold] = useState(5000)
+  const [standardShipping, setStandardShipping] = useState(250)
+  useEffect(() => { fetch("/api/settings", { cache: "no-store" }).then(res => res.json()).then(data => { if (data.settings) { setFreeShippingThreshold(Number(data.settings.freeShippingThreshold)); setStandardShipping(Number(data.settings.standardShipping)) } }).catch(() => {}) }, [])
 
   if (items.length === 0) {
     return (
@@ -82,12 +86,12 @@ export default function CartPage() {
               </div>
               <div className="flex justify-between">
                 <span className="text-secondary">Shipping</span>
-                <span>{total > 5000 ? "Free" : "PKR 250"}</span>
+                <span>{total >= freeShippingThreshold ? "Free" : `PKR ${standardShipping.toLocaleString()}`}</span>
               </div>
               <div className="border-t border-cream pt-2 mt-2">
                 <div className="flex justify-between font-semibold text-base">
                   <span>Total</span>
-                  <span>PKR {(total + (total > 5000 ? 0 : 250)).toLocaleString()}</span>
+                  <span>PKR {(total + (total >= freeShippingThreshold ? 0 : standardShipping)).toLocaleString()}</span>
                 </div>
               </div>
             </div>

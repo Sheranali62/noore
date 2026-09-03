@@ -29,6 +29,7 @@ export default function CheckoutPage() {
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null)
   const [couponLoading, setCouponLoading] = useState(false)
   const [couponMessage, setCouponMessage] = useState("")
+  const [shippingSettings, setShippingSettings] = useState({ freeShippingThreshold: 5000, standardShipping: 250, expressShipping: 500 })
 
   const [formData, setFormData] = useState({
     // Customer Info
@@ -64,8 +65,14 @@ export default function CheckoutPage() {
     "Quetta", "Sialkot", "Hyderabad"
   ]
 
+  useEffect(() => {
+    fetch("/api/settings", { cache: "no-store" }).then(res => res.json()).then(data => {
+      if (data.settings) setShippingSettings({ freeShippingThreshold: Number(data.settings.freeShippingThreshold), standardShipping: Number(data.settings.standardShipping), expressShipping: Number(data.settings.expressShipping) })
+    }).catch(() => {})
+  }, [])
+
   // Calculate shipping
-  const shippingCost = formData.deliveryMethod === "express" ? 500 : total > 5000 ? 0 : 250
+  const shippingCost = formData.deliveryMethod === "express" ? shippingSettings.expressShipping : total >= shippingSettings.freeShippingThreshold ? 0 : shippingSettings.standardShipping
   const discount = appliedCoupon?.discount ?? 0
   const grandTotal = Math.max(0, total - discount + shippingCost)
 
@@ -472,7 +479,7 @@ export default function CheckoutPage() {
                             <p className="font-medium">Standard Delivery</p>
                             <p className="text-sm text-secondary">2-3 business days</p>
                           </div>
-                          <span className="ml-auto font-medium">PKR 250</span>
+                          <span className="ml-auto font-medium">PKR {shippingSettings.standardShipping.toLocaleString()}</span>
                         </label>
                         
                         <label className="flex items-center gap-3 p-3 border border-cream rounded-lg cursor-pointer hover:bg-cream/50 transition">
@@ -487,7 +494,7 @@ export default function CheckoutPage() {
                             <p className="font-medium">Express Delivery</p>
                             <p className="text-sm text-secondary">1-2 business days</p>
                           </div>
-                          <span className="ml-auto font-medium">PKR 500</span>
+                          <span className="ml-auto font-medium">PKR {shippingSettings.expressShipping.toLocaleString()}</span>
                         </label>
                       </div>
                     </div>
@@ -564,9 +571,9 @@ export default function CheckoutPage() {
                   <span className="text-secondary">Shipping</span>
                   <span>{shippingCost === 0 ? "FREE" : "PKR " + shippingCost.toLocaleString()}</span>
                 </div>
-                {formData.deliveryMethod === "standard" && total < 5000 && (
+                {formData.deliveryMethod === "standard" && total < shippingSettings.freeShippingThreshold && (
                   <p className="text-xs text-amber-600">
-                    Add PKR {(5000 - total).toLocaleString()} more for FREE shipping
+                    Add PKR {(shippingSettings.freeShippingThreshold - total).toLocaleString()} more for FREE shipping
                   </p>
                 )}
                 <div className="border-t border-cream mt-4 pt-4">

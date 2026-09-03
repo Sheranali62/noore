@@ -1,6 +1,7 @@
 "use client"
 
 import { useSession, signOut } from "next-auth/react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useCart } from "@/components/cart/cart-context"
 import { CartDrawer } from "@/components/cart/cart-drawer"
@@ -12,19 +13,28 @@ export default function PublicLayout({
 }) {
   const { data: session } = useSession()
   const { count, toggleCart } = useCart()
+  const [announcement, setAnnouncement] = useState("{announcement}")
+  const [siteName, setSiteName] = useState("NOORÉ")
+
+  useEffect(() => {
+    fetch("/api/settings", { cache: "no-store" }).then(res => res.json()).then(data => {
+      if (data.settings?.announcementText) setAnnouncement(data.settings.announcementText)
+      if (data.settings?.siteName) setSiteName(data.settings.siteName)
+    }).catch(() => {})
+  }, [])
 
   return (
     <>
       {/* Announcement Bar */}
       <div className="bg-charcoal text-white text-center text-xs py-2 tracking-wider">
-        FREE SHIPPING ON ORDERS ABOVE PKR 5,000
+        {announcement}
       </div>
       
       {/* Header */}
       <header className="sticky top-0 z-50 bg-cream/90 backdrop-blur border-b border-cream">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="font-editorial text-2xl font-semibold hover:opacity-70 transition">
-            NOORÉ
+            {siteName}
           </Link>
           
           <nav className="hidden md:flex gap-6 text-sm">
@@ -86,7 +96,7 @@ export default function PublicLayout({
       {/* Footer */}
       <footer className="bg-charcoal text-white/80 border-t border-white/10 py-12">
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <div className="font-editorial text-2xl font-semibold text-white mb-4">NOORÉ</div>
+          <div className="font-editorial text-2xl font-semibold text-white mb-4">{siteName}</div>
           <p className="text-sm text-white/60 max-w-md mx-auto">
             Premium Pakistani fashion for the modern wardrobe. Timeless elegance, contemporary expression.
           </p>

@@ -84,7 +84,10 @@ export async function POST(request: NextRequest) {
       orderItems.push({ productId: product.id, variantId: variant?.id ?? null, quantity: item.quantity, price, total })
     }
 
-    const shipping = deliveryMethod === "express" ? 500 : subtotal > 5000 ? 0 : 250
+    const shippingSettings = await prisma.setting.findMany({ where: { key: { in: ["freeShippingThreshold", "standardShipping", "expressShipping"] } } })
+    const shippingValues: Record<string, number> = { freeShippingThreshold: 5000, standardShipping: 250, expressShipping: 500 }
+    for (const setting of shippingSettings) shippingValues[setting.key] = Number(setting.value)
+    const shipping = deliveryMethod === "express" ? shippingValues.expressShipping : subtotal >= shippingValues.freeShippingThreshold ? 0 : shippingValues.standardShipping
     if (Math.abs(shipping - shippingInput) > 0.01 || Math.abs(subtotal - subtotalInput) > 0.01) return NextResponse.json({ error: "Cart total changed. Please review your order and try again." }, { status: 409 })
     const orderNumber = await makeOrderNumber()
 
