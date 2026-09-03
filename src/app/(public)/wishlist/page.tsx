@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useSession } from "next-auth/react"
 import { useCart } from "@/components/cart/cart-context"
+import { RecommendationShelf } from "@/components/product/recommendation-shelf"
 
 type WishlistItem = {
   id: string
@@ -177,6 +178,7 @@ export default function WishlistPage() {
             })}
           </div>
         )}
+        {items.length > 0 && <RecommendationShelf title="More to love" eyebrow="Because you saved a favourite" exclude={items.map(item => item.productId)} />}
       </div>
     </div>
   )

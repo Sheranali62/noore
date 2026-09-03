@@ -19,11 +19,16 @@ const editorial = [
 ]
 
 export default async function HomePage() {
-  const [featuredProducts, saleProducts, limitedProducts] = await Promise.all([
+  const [featuredProducts, saleProducts, limitedProducts, popularGroups] = await Promise.all([
     prisma.product.findMany({ where: { status: "ACTIVE" }, take: 8, orderBy: { createdAt: "desc" } }),
     prisma.product.findMany({ where: { status: "ACTIVE", salePrice: { not: null } }, take: 4, orderBy: { createdAt: "desc" } }),
     prisma.product.findMany({ where: { status: "ACTIVE", stock: { gt: 0, lte: 5 } }, take: 4, orderBy: { stock: "asc" } }),
+    prisma.orderItem.groupBy({ by: ["productId"], _sum: { quantity: true }, orderBy: { _sum: { quantity: "desc" } }, take: 4 }),
   ])
+  const popularIds = popularGroups.map((x: any) => x.productId)
+  const popularProducts = popularIds.length ? await prisma.product.findMany({ where: { id: { in: popularIds }, status: "ACTIVE" } }) : []
+  const popularMap = new Map(popularProducts.map((p) => [p.id, p]))
+  const trendingProducts = popularIds.map((id: string) => popularMap.get(id)).filter(Boolean) as typeof popularProducts
 
   return (
     <div className="bg-cream text-charcoal">
@@ -66,6 +71,18 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
+
+      {/* Trending / best sellers */}
+      {trendingProducts.length > 0 && (
+        <section className="bg-[#f4f0e8] py-16 md:py-24">
+          <div className="mx-auto max-w-7xl px-5">
+            <div className="mb-9 flex items-end justify-between gap-4"><div><p className="text-[10px] uppercase tracking-[0.3em] text-black/45">Loved by NOORÉ customers</p><h2 className="mt-2 font-editorial text-4xl md:text-5xl">Trending now</h2></div><Link href="/products?sort=popular" className="text-xs font-semibold uppercase tracking-[0.15em] underline underline-offset-4">Shop trending</Link></div>
+            <div className="grid grid-cols-2 gap-x-3 gap-y-8 md:grid-cols-4 md:gap-x-5">
+              {trendingProducts.map((p) => <ProductCard key={p.id} id={p.id} name={p.name} slug={p.slug} price={p.price} salePrice={p.salePrice} image={p.images[0] || "/placeholder.jpg"} hoverImage={p.images[1]} category={p.category} stock={p.stock} />)}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Categories */}
       <section className="mx-auto max-w-7xl px-5 py-16 md:py-24">

@@ -1,8 +1,9 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowRight, Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react"
+import { ArrowRight, Minus, Plus, ShoppingBag, Trash2, X, Sparkles } from "lucide-react"
 import { useCart } from "@/components/cart/cart-context"
+import { ProductCard } from "@/components/product/product-card"
 import { useEffect, useState } from "react"
 
 const FREE_SHIPPING_THRESHOLD = 5000
@@ -11,6 +12,7 @@ const STANDARD_SHIPPING = 250
 export function CartDrawer() {
   const { items, removeItem, updateQuantity, total, count, isOpen, closeCart } = useCart()
   const [shippingSettings, setShippingSettings] = useState({ freeShippingThreshold: FREE_SHIPPING_THRESHOLD, standardShipping: STANDARD_SHIPPING })
+  const [recommendations, setRecommendations] = useState<any[]>([])
   useEffect(() => {
     if (!isOpen) return
     fetch("/api/settings").then(r => r.ok ? r.json() : null).then(data => {
@@ -18,6 +20,11 @@ export function CartDrawer() {
       if (s) setShippingSettings({ freeShippingThreshold: Number(s.freeShippingThreshold ?? FREE_SHIPPING_THRESHOLD), standardShipping: Number(s.standardShipping ?? STANDARD_SHIPPING) })
     }).catch(() => {})
   }, [isOpen])
+  useEffect(() => {
+    if (!isOpen || !items[0]) { setRecommendations([]); return }
+    const exclude = items.map(i => i.productId).join(",")
+    fetch(`/api/recommendations?productId=${encodeURIComponent(items[0].productId)}&exclude=${encodeURIComponent(exclude)}`).then(r => r.ok ? r.json() : null).then(d => setRecommendations((d?.products || []).slice(0, 2))).catch(() => {})
+  }, [isOpen, items.map(i => i.productId).join(",")])
   if (!isOpen) return null
 
   const remaining = Math.max(0, shippingSettings.freeShippingThreshold - total)
@@ -66,6 +73,7 @@ export function CartDrawer() {
                 )
               })}
             </div>
+            {recommendations.length > 0 && <div className="border-t border-black/5 px-5 py-5"><div className="mb-4 flex items-center gap-2"><Sparkles size={14} /><div><p className="text-[9px] uppercase tracking-[.2em] text-secondary">Curated for your bag</p><h3 className="font-editorial text-xl">Complete the look</h3></div></div><div className="grid grid-cols-2 gap-3">{recommendations.map(p => <ProductCard key={p.id} id={p.id} name={p.name} slug={p.slug} price={p.price} salePrice={p.salePrice} image={p.images[0] || "/placeholder.jpg"} category={p.category} stock={p.stock} />)}</div></div>}
             <div className="border-t border-black/5 bg-[#faf9f6] p-5">
               <div className="mb-4 grid grid-cols-3 gap-2 text-center text-[9px] uppercase tracking-[.12em] text-secondary"><span>COD</span><span>Easy exchange</span><span>Secure checkout</span></div>
               <div className="flex justify-between text-sm"><span className="text-secondary">Subtotal</span><span>PKR {total.toLocaleString()}</span></div>

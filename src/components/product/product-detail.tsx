@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import { ChevronDown, ChevronLeft, ChevronRight, Heart, Minus, Plus, Ruler, Share2, ShoppingBag, Truck, RotateCcw, ShieldCheck, X, ZoomIn } from "lucide-react"
 import { useCart } from "@/components/cart/cart-context"
 import { ProductCard } from "./product-card"
+import { RecommendationShelf } from "./recommendation-shelf"
 
 type Variant = { id: string; color: string; size: string; sku: string; price: number | null; stock: number; images: string[] }
 type Review = { id: string; rating: number; comment: string | null; verified: boolean; createdAt: string }
@@ -209,7 +210,8 @@ export function ProductDetail({ product, relatedProducts }: Props) {
 
       {reviewCount > 0 && <section className="mt-20 border-t border-border pt-12"><div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><p className="text-xs uppercase tracking-[0.2em] text-secondary">Customer feedback</p><h2 className="mt-2 font-editorial text-3xl">Reviews</h2></div><div className="text-sm">★ <strong>{averageRating.toFixed(1)}</strong> / 5 · {reviewCount} reviews</div></div><div className="mt-8 grid gap-5 md:grid-cols-3">{product.reviews.slice(0, 3).map(review => <article key={review.id} className="border border-border p-6"><div className="text-sm">{"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)}</div><p className="mt-4 text-sm leading-6 text-secondary">{review.comment || "Beautiful product."}</p>{review.verified && <p className="mt-4 text-xs uppercase tracking-wider">✓ Verified purchase</p>}</article>)}</div></section>}
 
-      {relatedProducts.length > 0 && <section className="mt-20 border-t border-border pt-12"><p className="text-xs uppercase tracking-[0.2em] text-secondary">Complete your wardrobe</p><h2 className="mt-2 font-editorial text-3xl">You May Also Like</h2><div className="mt-7 grid grid-cols-2 gap-4 md:grid-cols-4">{relatedProducts.map(p => <ProductCard key={p.id} id={p.id} name={p.name} slug={p.slug} price={p.price} salePrice={p.salePrice} image={p.images[0] || "/placeholder.jpg"} hoverImage={p.images[1]} category={p.category} stock={p.stock} />)}</div></section>}
+      <RecommendationShelf productId={product.id} title="You May Also Like" eyebrow="Complete your wardrobe" exclude={[product.id, ...relatedProducts.map(p => p.id)]} />
+      <RecommendationShelf productId={product.id} title="Complete the Look" eyebrow="Style it together" exclude={[product.id]} />
 
       {recentlyViewed.length > 0 && <section className="mt-20 border-t border-border pt-12"><p className="text-xs uppercase tracking-[0.2em] text-secondary">For your next visit</p><h2 className="mt-2 font-editorial text-3xl">Recently viewed</h2><div className="mt-7 grid grid-cols-2 gap-4 md:grid-cols-4">{recentlyViewed.map(p => <ProductCard key={p.id} {...p} />)}</div></section>}
 

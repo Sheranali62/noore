@@ -3,7 +3,8 @@ import { notFound } from "next/navigation"
 import { ProductDetail } from "@/components/product/product-detail"
 import { productJsonLd } from "@/lib/structured-data"
 
-export const revalidate = 300
+export const dynamic = "force-dynamic"
+export const revalidate = 0
 
 export async function generateMetadata({
   params,
