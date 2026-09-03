@@ -72,6 +72,19 @@ export default function WishlistPage() {
     await removeFromWishlist(item.productId)
   }
 
+  if (!session) {
+    return (
+      <div className="min-h-screen bg-cream py-16 px-4">
+        <div className="max-w-xl mx-auto bg-white border border-cream rounded-2xl p-10 text-center">
+          <div className="text-5xl">♡</div>
+          <h1 className="font-editorial text-3xl mt-4">Your wishlist is personal</h1>
+          <p className="text-secondary mt-2">Sign in to save your favourite NOORÉ pieces and access them from any device.</p>
+          <div className="flex justify-center gap-3 mt-6"><Link href="/login" className="bg-charcoal text-white rounded-lg px-6 py-3">Sign in</Link><Link href="/register" className="border border-cream rounded-lg px-6 py-3">Create account</Link></div>
+        </div>
+      </div>
+    )
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-cream flex items-center justify-center">

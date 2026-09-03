@@ -1,114 +1,14 @@
-import { authOptions } from "@/lib/auth"
-import { getServerSession } from "next-auth"
-import { redirect } from "next/navigation"
-import { prisma } from "@/lib/prisma"
 import Link from "next/link"
-export default async function OrdersPage() {
-  const session = await getServerSession(authOptions)
-  
-  if (!session?.user) {
-    redirect("/login")
-  }
+import { redirect } from "next/navigation"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
 
-  const orders = await prisma.order.findMany({
-    where: { userId: session.user.id },
-    orderBy: { createdAt: "desc" },
-    include: {
-      items: {
-        include: {
-          product: true,
-        },
-      },
-    },
-  })
-
-  return (
-    <div className="min-h-screen bg-cream py-8">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center gap-4 mb-8">
-          <Link href="/account" className="text-secondary hover:text-charcoal transition">
-            ← Back to Account
-          </Link>
-          <h1 className="font-editorial text-4xl font-semibold">My Orders</h1>
-        </div>
-
-        {orders.length === 0 ? (
-          <div className="bg-white rounded-lg border border-cream p-12 text-center">
-            <div className="text-6xl mb-4">📦</div>
-            <h2 className="font-editorial text-2xl font-semibold">No Orders Yet</h2>
-            <p className="text-secondary mt-2">Start shopping to see your orders here.</p>
-            <Link href="/products" className="inline-block mt-6 bg-charcoal text-white px-6 py-3 rounded-md hover:bg-charcoal/80 transition">
-              Start Shopping
-            </Link>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {orders.map((order) => (
-              <div key={order.id} className="bg-white rounded-lg border border-cream p-6">
-                <div className="flex flex-wrap justify-between items-start gap-4">
-                  <div>
-                    <p className="font-semibold text-lg">Order #{order.orderNumber}</p>
-                    <p className="text-sm text-secondary">{new Date(order.createdAt).toLocaleDateString()}</p>
-                    <p className="text-sm text-secondary mt-1">
-                      {order.items.length} item{order.items.length > 1 ? "s" : ""}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-lg font-semibold">PKR {order.total.toLocaleString()}</p>
-                    <span className={`inline-block px-3 py-1 rounded text-sm ${
-                      order.status === "DELIVERED" ? "bg-green-100 text-green-800" :
-                      order.status === "PENDING" ? "bg-yellow-100 text-yellow-800" :
-                      order.status === "CANCELLED" ? "bg-red-100 text-red-800" :
-                      order.status === "SHIPPED" ? "bg-blue-100 text-blue-800" :
-                      "bg-gray-100 text-gray-800"
-                    }`}>
-                      {order.status}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Order Items */}
-                <div className="mt-4 pt-4 border-t border-cream">
-                  <div className="space-y-2">
-                    {order.items.map((item) => (
-                      <div key={item.id} className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-cream rounded overflow-hidden flex-shrink-0">
-                          {item.product.images[0] && (
-                            <img 
-                              src={item.product.images[0]} 
-                              alt={item.product.name}
-                              className="w-full h-full object-cover"
-                            />
-                          )}
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-medium text-sm">{item.product.name}</p>
-                          <p className="text-xs text-secondary">Qty: {item.quantity} × PKR {item.price.toLocaleString()}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-semibold">PKR {item.total.toLocaleString()}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="mt-4 pt-4 border-t border-cream flex justify-between items-center">
-                  <div>
-                    <p className="text-sm text-secondary">Payment: {order.paymentMethod}</p>
-                    <p className="text-sm text-secondary">Status: {order.paymentStatus}</p>
-                  </div>
-                  {order.trackingNumber && (
-                    <p className="text-sm text-secondary">
-                      Tracking: {order.trackingNumber}
-                    </p>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  )
+const statusClass=(status:string)=>status==="DELIVERED"?"bg-green-100 text-green-800":status==="CANCELLED"?"bg-red-100 text-red-800":status==="SHIPPED"?"bg-blue-100 text-blue-800":"bg-amber-100 text-amber-800"
+export default async function OrdersPage(){
+ const session=await getServerSession(authOptions); if(!session?.user?.id) redirect("/login?callbackUrl=/account/orders")
+ const orders=await prisma.order.findMany({where:{userId:session.user.id},orderBy:{createdAt:"desc"},include:{items:{include:{product:true,variant:true}}}})
+ return <div className="min-h-screen bg-cream py-10"><div className="max-w-5xl mx-auto px-4"><Link href="/account" className="text-sm text-secondary hover:text-charcoal">← Back to account</Link><div className="mt-6 flex justify-between items-end"><div><p className="text-xs uppercase tracking-[0.22em] text-secondary">Your purchases</p><h1 className="font-editorial text-4xl mt-2">My orders</h1></div><span className="text-sm text-secondary">{orders.length} order{orders.length===1?"":"s"}</span></div>
+ {orders.length===0?<div className="bg-white border border-cream rounded-2xl p-12 text-center mt-8"><div className="text-5xl">□</div><h2 className="font-editorial text-2xl mt-4">No orders yet</h2><p className="text-secondary mt-2">Your completed purchases will appear here.</p><Link href="/products" className="inline-block mt-6 bg-charcoal text-white rounded-lg px-6 py-3">Start shopping</Link></div>:<div className="space-y-5 mt-8">{orders.map(order=><div key={order.id} className="bg-white border border-cream rounded-2xl p-5 md:p-6"><div className="flex flex-wrap justify-between gap-4"><div><p className="font-semibold">#{order.orderNumber}</p><p className="text-sm text-secondary mt-1">{new Date(order.createdAt).toLocaleDateString()} · {order.items.length} item{order.items.length===1?"":"s"}</p></div><div className="flex items-center gap-3"><span className={`rounded-full px-3 py-1 text-xs font-medium ${statusClass(order.status)}`}>{order.status.replaceAll("_"," ")}</span><p className="font-semibold">PKR {order.total.toLocaleString()}</p></div></div><div className="mt-5 grid sm:grid-cols-2 gap-3">{order.items.slice(0,4).map(item=><div key={item.id} className="flex gap-3 bg-cream/60 rounded-xl p-3"><div className="w-14 h-16 bg-cream rounded-lg overflow-hidden shrink-0"><img src={item.product.images[0]||"/placeholder.jpg"} alt={item.product.name} className="w-full h-full object-cover"/></div><div className="min-w-0"><p className="text-sm font-medium truncate">{item.product.name}</p>{item.variant&&<p className="text-xs text-secondary mt-1">{item.variant.color} / {item.variant.size}</p>}<p className="text-xs text-secondary mt-1">Qty {item.quantity}</p></div></div>)}</div><div className="mt-5 pt-4 border-t border-cream flex justify-between items-center"><p className="text-xs text-secondary">Cash on Delivery · {order.paymentStatus}</p><Link href={`/account/orders/${order.id}`} className="text-sm font-medium hover:underline">View order →</Link></div></div>)}</div>}
+ </div></div>
 }
