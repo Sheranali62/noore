@@ -25,6 +25,10 @@ export default function CheckoutPage() {
   const [step, setStep] = useState(1)
   const [orderPlaced, setOrderPlaced] = useState(false)
   const [orderNumber, setOrderNumber] = useState("")
+  const [couponCode, setCouponCode] = useState("")
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null)
+  const [couponLoading, setCouponLoading] = useState(false)
+  const [couponMessage, setCouponMessage] = useState("")
 
   const [formData, setFormData] = useState({
     // Customer Info
@@ -61,8 +65,49 @@ export default function CheckoutPage() {
   ]
 
   // Calculate shipping
-  const shippingCost = total > 5000 ? 0 : 250
-  const grandTotal = total + shippingCost
+  const shippingCost = formData.deliveryMethod === "express" ? 500 : total > 5000 ? 0 : 250
+  const discount = appliedCoupon?.discount ?? 0
+  const grandTotal = Math.max(0, total - discount + shippingCost)
+
+  const applyCoupon = async () => {
+    const code = couponCode.trim().toUpperCase()
+    if (!code) {
+      setCouponMessage("Enter a coupon code")
+      return
+    }
+    setCouponLoading(true)
+    setCouponMessage("")
+    try {
+      const response = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code,
+          items: items.map(item => ({ productId: item.productId, quantity: item.quantity, price: item.price })),
+        }),
+      })
+      const data = await response.json()
+      if (!response.ok) {
+        setAppliedCoupon(null)
+        setCouponMessage(data.error || "Invalid coupon")
+        return
+      }
+      setCouponCode(data.code)
+      setAppliedCoupon({ code: data.code, discount: Number(data.discount) })
+      setCouponMessage(data.message || "Coupon applied")
+    } catch {
+      setAppliedCoupon(null)
+      setCouponMessage("Unable to validate coupon. Please try again.")
+    } finally {
+      setCouponLoading(false)
+    }
+  }
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null)
+    setCouponCode("")
+    setCouponMessage("")
+  }
 
   // Load user addresses if logged in
   useEffect(() => {
@@ -125,6 +170,7 @@ export default function CheckoutPage() {
         },
         deliveryMethod: formData.deliveryMethod,
         paymentMethod: formData.paymentMethod,
+        couponCode: appliedCoupon?.code || undefined,
         items: items.map(item => ({
           productId: item.id,
           quantity: item.quantity,
@@ -517,11 +563,36 @@ export default function CheckoutPage() {
                   <span className="text-secondary">Shipping</span>
                   <span>{shippingCost === 0 ? "FREE" : "PKR " + shippingCost.toLocaleString()}</span>
                 </div>
-                {total < 5000 && (
+                {formData.deliveryMethod === "standard" && total < 5000 && (
                   <p className="text-xs text-amber-600">
                     Add PKR {(5000 - total).toLocaleString()} more for FREE shipping
                   </p>
                 )}
+                <div className="border-t border-cream mt-4 pt-4">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                      disabled={!!appliedCoupon || couponLoading}
+                      placeholder="Coupon code"
+                      className="min-w-0 flex-1 px-3 py-2 border border-cream rounded focus:outline-none focus:border-charcoal uppercase"
+                    />
+                    {appliedCoupon ? (
+                      <button type="button" onClick={removeCoupon} className="px-3 py-2 border border-cream rounded text-sm hover:bg-cream transition">Remove</button>
+                    ) : (
+                      <button type="button" onClick={applyCoupon} disabled={couponLoading || !couponCode.trim()} className="px-3 py-2 bg-charcoal text-white rounded text-sm disabled:opacity-50">{couponLoading ? "..." : "Apply"}</button>
+                    )}
+                  </div>
+                  {couponMessage && <p className={`text-xs mt-2 ${appliedCoupon ? "text-green-700" : "text-red-600"}`}>{couponMessage}</p>}
+                </div>
+                {appliedCoupon && (
+                  <div className="flex justify-between text-sm text-green-700">
+                    <span>Discount ({appliedCoupon.code})</span>
+                    <span>- PKR {discount.toLocaleString()}</span>
+                  </div>
+                )}
+
                 <div className="border-t border-cream pt-2 mt-2">
                   <div className="flex justify-between font-semibold text-base">
                     <span>Total</span>

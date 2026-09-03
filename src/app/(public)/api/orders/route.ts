@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
+import { calculateCouponDiscount } from "@/lib/coupons"
 import { randomBytes } from "crypto"
 
 export const dynamic = "force-dynamic"
 
-function normalizeEmail(value: unknown) {
-  return String(value ?? "").trim().toLowerCase()
-}
+function normalizeEmail(value: unknown) { return String(value ?? "").trim().toLowerCase() }
 
 async function makeOrderNumber() {
   for (let attempt = 0; attempt < 5; attempt++) {
@@ -23,13 +22,8 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     const orderNumber = searchParams.get("orderNumber")?.trim()
     const email = normalizeEmail(searchParams.get("email"))
-
     if (!orderNumber || !email) return NextResponse.json({ error: "Order number and email are required" }, { status: 400 })
-
-    const order = await prisma.order.findUnique({
-      where: { orderNumber },
-      include: { items: { include: { product: true } }, user: { select: { email: true } }, address: true },
-    })
+    const order = await prisma.order.findUnique({ where: { orderNumber }, include: { items: { include: { product: true } }, user: { select: { email: true } }, address: true } })
     if (!order) return NextResponse.json({ error: "Order not found" }, { status: 404 })
     if (normalizeEmail(order.user?.email) !== email) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     return NextResponse.json({ order })
@@ -53,62 +47,45 @@ export async function POST(request: NextRequest) {
     const postal = String(address.postal ?? "").trim()
     const paymentMethod = String(body.paymentMethod ?? "").toUpperCase()
     const deliveryMethod = String(body.deliveryMethod ?? "standard").toLowerCase()
+    const couponCode = String(body.couponCode ?? "").trim().toUpperCase() || null
     const items = Array.isArray(body.items) ? body.items : []
 
-    if (!name || !email || !email.includes("@") || !phone || !addressLine || !city || !province || !postal || !items.length) {
-      return NextResponse.json({ error: "Complete customer, address, and cart details are required" }, { status: 400 })
-    }
-    if (paymentMethod !== "COD") {
-      return NextResponse.json({ error: "Cash on Delivery is the only available payment method" }, { status: 400 })
-    }
-    if (!["standard", "express"].includes(deliveryMethod)) {
-      return NextResponse.json({ error: "Invalid delivery method" }, { status: 400 })
-    }
+    if (!name || !email || !email.includes("@") || !phone || !addressLine || !city || !province || !postal || !items.length) return NextResponse.json({ error: "Complete customer, address, and cart details are required" }, { status: 400 })
+    if (paymentMethod !== "COD") return NextResponse.json({ error: "Cash on Delivery is the only available payment method" }, { status: 400 })
+    if (!["standard", "express"].includes(deliveryMethod)) return NextResponse.json({ error: "Invalid delivery method" }, { status: 400 })
 
     const session = await auth()
     const subtotalInput = Number(body.subtotal)
     const shippingInput = Number(body.shipping)
-    if (!Number.isFinite(subtotalInput) || !Number.isFinite(shippingInput)) {
-      return NextResponse.json({ error: "Invalid totals" }, { status: 400 })
-    }
+    if (!Number.isFinite(subtotalInput) || !Number.isFinite(shippingInput)) return NextResponse.json({ error: "Invalid totals" }, { status: 400 })
 
-    const requested = items.map((item: any) => ({
-      productId: String(item.productId ?? ""),
-      variantId: item.variantId ? String(item.variantId) : null,
-      quantity: Number(item.quantity),
-    }))
-    if (requested.some((item: any) => !item.productId || !Number.isInteger(item.quantity) || item.quantity < 1)) {
-      return NextResponse.json({ error: "Invalid cart items" }, { status: 400 })
-    }
+    const requested = items.map((item: any) => ({ productId: String(item.productId ?? ""), variantId: item.variantId ? String(item.variantId) : null, quantity: Number(item.quantity) }))
+    if (requested.some((item: any) => !item.productId || !Number.isInteger(item.quantity) || item.quantity < 1)) return NextResponse.json({ error: "Invalid cart items" }, { status: 400 })
 
-    const productIds: string[] = Array.from(new Set(requested.map((item: any) => String(item.productId))))
-    const products: any[] = await prisma.product.findMany({
-      where: { id: { in: productIds } },
-      include: { variants: true },
-    })
-    const byId = new Map(products.map(p => [p.id, p]))
+    const productIds = Array.from(new Set(requested.map((item: any) => item.productId)))
+    const products = await prisma.product.findMany({ where: { id: { in: productIds } }, include: { variants: true } })
+    const byId = new Map(products.map(product => [product.id, product]))
     if (products.length !== productIds.length) return NextResponse.json({ error: "One or more products are no longer available" }, { status: 400 })
 
     let subtotal = 0
+    const couponItems: { productId: string; quantity: number; price: number; category: string }[] = []
     const orderItems: { productId: string; variantId: string | null; quantity: number; price: number; total: number }[] = []
     for (const item of requested) {
       const product = byId.get(item.productId)!
       if (product.status !== "ACTIVE") return NextResponse.json({ error: `${product.name} is no longer available` }, { status: 400 })
-      const variant = item.variantId ? product.variants.find((v: any) => v.id === item.variantId) : null
+      const variant = item.variantId ? product.variants.find(v => v.id === item.variantId) : null
       if (item.variantId && !variant) return NextResponse.json({ error: `Invalid variant for ${product.name}` }, { status: 400 })
       const stock = variant?.stock ?? product.stock
       if (item.quantity > stock) return NextResponse.json({ error: `Only ${stock} unit(s) of ${product.name} are available` }, { status: 409 })
       const price = variant?.price ?? product.salePrice ?? product.price
       const total = price * item.quantity
       subtotal += total
+      couponItems.push({ productId: product.id, quantity: item.quantity, price, category: product.category })
       orderItems.push({ productId: product.id, variantId: variant?.id ?? null, quantity: item.quantity, price, total })
     }
 
     const shipping = deliveryMethod === "express" ? 500 : subtotal > 5000 ? 0 : 250
-    if (Math.abs(shipping - shippingInput) > 0.01 || Math.abs(subtotal - subtotalInput) > 0.01) {
-      return NextResponse.json({ error: "Cart total changed. Please review your order and try again." }, { status: 409 })
-    }
-    const total = subtotal + shipping
+    if (Math.abs(shipping - shippingInput) > 0.01 || Math.abs(subtotal - subtotalInput) > 0.01) return NextResponse.json({ error: "Cart total changed. Please review your order and try again." }, { status: 409 })
     const orderNumber = await makeOrderNumber()
 
     const order = await prisma.$transaction(async tx => {
@@ -126,10 +103,26 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      const savedAddress = await tx.address.create({
-        data: { userId, name, phone, address: addressLine, city, province, postal, default: false },
-      })
+      let discount = 0
+      let appliedCoupon: any = null
+      if (couponCode) {
+        appliedCoupon = await tx.coupon.findUnique({ where: { code: couponCode } })
+        if (!appliedCoupon) throw new Error("Invalid coupon code")
+        const existingCustomerUsage = await tx.couponUsage.count({ where: { couponId: appliedCoupon.id, userId } })
+        if (appliedCoupon.perCustomer != null && existingCustomerUsage >= appliedCoupon.perCustomer) throw new Error("You have reached the usage limit for this coupon")
+        if (appliedCoupon.usageLimit != null && appliedCoupon.usedCount >= appliedCoupon.usageLimit) throw new Error("This coupon has reached its usage limit")
+        const result = calculateCouponDiscount(appliedCoupon, couponItems)
+        discount = result.discount
 
+        if (appliedCoupon.usageLimit != null) {
+          const claimed = await tx.coupon.updateMany({ where: { id: appliedCoupon.id, active: true, usedCount: { lt: appliedCoupon.usageLimit } }, data: { usedCount: { increment: 1 } } })
+          if (claimed.count !== 1) throw new Error("This coupon has just reached its usage limit")
+        } else {
+          await tx.coupon.update({ where: { id: appliedCoupon.id }, data: { usedCount: { increment: 1 } } })
+        }
+      }
+
+      const savedAddress = await tx.address.create({ data: { userId, name, phone, address: addressLine, city, province, postal, default: false } })
       for (const item of orderItems) {
         if (item.variantId) {
           const result = await tx.productVariant.updateMany({ where: { id: item.variantId, stock: { gte: item.quantity } }, data: { stock: { decrement: item.quantity } } })
@@ -140,23 +133,19 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      return tx.order.create({
-        data: {
-          orderNumber, userId, addressId: savedAddress.id,
-          subtotal, shipping, total,
-          paymentMethod: paymentMethod as any,
-          paymentStatus: "UNPAID",
-          status: "PENDING",
-          notes: deliveryMethod === "express" ? "Express delivery" : "Standard delivery",
-          items: { create: orderItems },
-        },
-        select: { id: true, orderNumber: true, total: true, status: true },
+      const total = Math.max(0, subtotal - discount + shipping)
+      const createdOrder = await tx.order.create({
+        data: { orderNumber, userId, addressId: savedAddress.id, subtotal, discount, shipping, total, couponCode: appliedCoupon?.code ?? null, paymentMethod: "COD", paymentStatus: "UNPAID", status: "PENDING", notes: deliveryMethod === "express" ? "Express delivery" : "Standard delivery", items: { create: orderItems } },
+        select: { id: true, orderNumber: true, total: true, discount: true, status: true },
       })
+      if (appliedCoupon) await tx.couponUsage.create({ data: { couponId: appliedCoupon.id, userId, orderId: createdOrder.id } })
+      return createdOrder
     })
 
     return NextResponse.json(order, { status: 201 })
   } catch (error) {
     console.error("Error creating order:", error)
-    return NextResponse.json({ error: "Failed to place order. Please try again." }, { status: 500 })
+    const message = error instanceof Error ? error.message : "Failed to place order. Please try again."
+    return NextResponse.json({ error: message }, { status: 400 })
   }
 }

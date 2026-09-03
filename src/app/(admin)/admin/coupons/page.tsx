@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
+import { CouponActions } from "@/components/admin/coupon-actions"
 
 export default async function AdminCouponsPage() {
   const coupons = await prisma.coupon.findMany({
@@ -27,12 +28,13 @@ export default async function AdminCouponsPage() {
                 <th className="text-left p-4 text-sm font-medium">Uses</th>
                 <th className="text-left p-4 text-sm font-medium">Expires</th>
                 <th className="text-left p-4 text-sm font-medium">Status</th>
+                <th className="text-left p-4 text-sm font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
               {coupons.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center p-8 text-secondary">
+                  <td colSpan={8} className="text-center p-8 text-secondary">
                     No coupons created yet.
                   </td>
                 </tr>
@@ -52,6 +54,7 @@ export default async function AdminCouponsPage() {
                         {coupon.active ? "Active" : "Inactive"}
                       </span>
                     </td>
+                    <td className="p-4"><CouponActions id={coupon.id} active={coupon.active} /></td>
                   </tr>
                 ))
               )}

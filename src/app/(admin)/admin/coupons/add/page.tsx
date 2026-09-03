@@ -16,6 +16,8 @@ export default function AddCouponPage() {
     expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
     usageLimit: "",
     perCustomer: "",
+    applicableCategories: "",
+    applicableProductIds: "",
     active: true,
   })
 
@@ -34,6 +36,8 @@ export default function AddCouponPage() {
           maxDiscount: formData.maxDiscount ? parseFloat(formData.maxDiscount) : null,
           usageLimit: formData.usageLimit ? parseInt(formData.usageLimit) : null,
           perCustomer: formData.perCustomer ? parseInt(formData.perCustomer) : null,
+          applicableCategories: formData.applicableCategories.split(",").map(v => v.trim()).filter(Boolean),
+          applicableProductIds: formData.applicableProductIds.split(",").map(v => v.trim()).filter(Boolean),
           startDate: new Date(formData.startDate),
           expiryDate: new Date(formData.expiryDate),
         }),
@@ -189,6 +193,31 @@ export default function AddCouponPage() {
                 placeholder="1"
               />
               <p className="text-xs text-secondary mt-1">Max times per customer (leave empty for unlimited)</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Applicable Categories</label>
+              <input
+                type="text"
+                value={formData.applicableCategories}
+                onChange={(e) => setFormData({ ...formData, applicableCategories: e.target.value })}
+                className="w-full px-3 py-2 border border-cream rounded focus:outline-none focus:border-charcoal"
+                placeholder="Unstitched, Ready to Wear"
+              />
+              <p className="text-xs text-secondary mt-1">Optional. Comma-separated. Leave empty for all categories.</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Applicable Product IDs</label>
+              <input
+                type="text"
+                value={formData.applicableProductIds}
+                onChange={(e) => setFormData({ ...formData, applicableProductIds: e.target.value })}
+                className="w-full px-3 py-2 border border-cream rounded focus:outline-none focus:border-charcoal"
+                placeholder="product-id-1, product-id-2"
+              />
+              <p className="text-xs text-secondary mt-1">Optional. Comma-separated product IDs. Leave empty for all products.</p>
             </div>
           </div>
 
