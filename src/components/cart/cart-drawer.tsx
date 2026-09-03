@@ -60,20 +60,20 @@ export function CartDrawer() {
                     <p className="text-sm text-secondary">PKR {item.price.toLocaleString()}</p>
                     <div className="flex items-center gap-2 mt-1">
                       <button 
-                        onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
                         className="w-6 h-6 border border-cream rounded flex items-center justify-center text-sm hover:bg-cream transition"
                       >
                         -
                       </button>
                       <span className="text-sm w-6 text-center">{item.quantity}</span>
                       <button 
-                        onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
                         className="w-6 h-6 border border-cream rounded flex items-center justify-center text-sm hover:bg-cream transition"
                       >
                         +
                       </button>
                       <button 
-                        onClick={() => removeItem(item.productId)}
+                        onClick={() => removeItem(item.id)}
                         className="text-xs text-red-600 hover:text-red-800 transition ml-2"
                       >
                         Remove

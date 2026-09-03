@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     const coupon = await prisma.coupon.findUnique({ where: { code } })
     if (!coupon) return NextResponse.json({ error: "Invalid coupon code" }, { status: 404 })
 
-    const ids: string[] = Array.from(new Set(requested.map((item: any) => item.productId)))
+    const ids = Array.from(new Set(requested.map((item: any) => item.productId)))
     const products = await prisma.product.findMany({ where: { id: { in: ids } }, include: { variants: true } })
     const byId = new Map(products.map(product => [product.id, product]))
     if (products.length !== ids.length) return NextResponse.json({ error: "One or more cart products are unavailable" }, { status: 400 })

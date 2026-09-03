@@ -83,7 +83,7 @@ export default function CheckoutPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           code,
-          items: items.map(item => ({ productId: item.productId, quantity: item.quantity, price: item.price })),
+          items: items.map(item => ({ productId: item.productId, variantId: item.variantId, quantity: item.quantity, price: item.price })),
         }),
       })
       const data = await response.json()
@@ -172,7 +172,8 @@ export default function CheckoutPage() {
         paymentMethod: formData.paymentMethod,
         couponCode: appliedCoupon?.code || undefined,
         items: items.map(item => ({
-          productId: item.id,
+          productId: item.productId,
+          variantId: item.variantId,
           quantity: item.quantity,
           price: item.price,
         })),

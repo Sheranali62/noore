@@ -42,21 +42,21 @@ export default function CartPage() {
                 <div className="flex items-center gap-4 mt-2">
                   <div className="flex border border-cream rounded">
                     <button
-                      onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
                       className="px-3 py-1 hover:bg-cream transition"
                     >
                       -
                     </button>
                     <span className="px-4 py-1 min-w-[40px] text-center">{item.quantity}</span>
                     <button
-                      onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
                       className="px-3 py-1 hover:bg-cream transition"
                     >
                       +
                     </button>
                   </div>
                   <button
-                    onClick={() => removeItem(item.productId)}
+                    onClick={() => removeItem(item.id)}
                     className="text-sm text-red-600 hover:text-red-800 transition"
                   >
                     Remove

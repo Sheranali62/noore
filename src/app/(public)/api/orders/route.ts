@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     const requested = items.map((item: any) => ({ productId: String(item.productId ?? ""), variantId: item.variantId ? String(item.variantId) : null, quantity: Number(item.quantity) }))
     if (requested.some((item: any) => !item.productId || !Number.isInteger(item.quantity) || item.quantity < 1)) return NextResponse.json({ error: "Invalid cart items" }, { status: 400 })
 
-    const productIds: string[] = Array.from(new Set(requested.map((item: any) => item.productId)))
+    const productIds = Array.from(new Set(requested.map((item: any) => item.productId)))
     const products = await prisma.product.findMany({ where: { id: { in: productIds } }, include: { variants: true } })
     const byId = new Map(products.map(product => [product.id, product]))
     if (products.length !== productIds.length) return NextResponse.json({ error: "One or more products are no longer available" }, { status: 400 })

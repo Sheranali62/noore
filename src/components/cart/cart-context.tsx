@@ -10,13 +10,15 @@ export type CartItem = {
   image: string
   quantity: number
   slug: string
+  variantId?: string
+  variantLabel?: string
 }
 
 type CartContextType = {
   items: CartItem[]
-  addItem: (item: Omit<CartItem, "quantity">) => void
-  removeItem: (productId: string) => void
-  updateQuantity: (productId: string, quantity: number) => void
+  addItem: (item: Omit<CartItem, "quantity"> & { quantity?: number }) => void
+  removeItem: (itemId: string) => void
+  updateQuantity: (itemId: string, quantity: number) => void
   clearCart: () => void
   total: number
   count: number
@@ -49,35 +51,31 @@ export function CartProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("noore_cart", JSON.stringify(items))
   }, [items])
 
-  const addItem = (item: Omit<CartItem, "quantity">) => {
+  const addItem = (item: Omit<CartItem, "quantity"> & { quantity?: number }) => {
     setItems(prev => {
-      const existing = prev.find(i => i.productId === item.productId)
+      const existing = prev.find(i => i.id === item.id)
       if (existing) {
         return prev.map(i =>
-          i.productId === item.productId
-            ? { ...i, quantity: i.quantity + 1 }
+          i.id === item.id
+            ? { ...i, quantity: i.quantity + (item.quantity ?? 1) }
             : i
         )
       }
-      return [...prev, { ...item, quantity: 1 }]
+      return [...prev, { ...item, quantity: item.quantity ?? 1 }]
     })
     setIsOpen(true) // Open cart drawer when adding
   }
 
-  const removeItem = (productId: string) => {
-    setItems(prev => prev.filter(i => i.productId !== productId))
+  const removeItem = (itemId: string) => {
+    setItems(prev => prev.filter(i => i.id !== itemId))
   }
 
-  const updateQuantity = (productId: string, quantity: number) => {
+  const updateQuantity = (itemId: string, quantity: number) => {
     if (quantity < 1) {
-      removeItem(productId)
+      removeItem(itemId)
       return
     }
-    setItems(prev =>
-      prev.map(i =>
-        i.productId === productId ? { ...i, quantity } : i
-      )
-    )
+    setItems(prev => prev.map(i => i.id === itemId ? { ...i, quantity } : i))
   }
 
   const clearCart = () => setItems([])
