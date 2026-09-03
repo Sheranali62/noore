@@ -36,6 +36,7 @@ export function Header() {
   const [results, setResults] = useState<SearchProduct[]>([])
   const [loading, setLoading] = useState(false)
   const [recentSearches, setRecentSearches] = useState<string[]>([])
+  const [activeIndex, setActiveIndex] = useState(-1)
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -54,10 +55,23 @@ export function Header() {
         window.setTimeout(() => inputRef.current?.focus(), 0)
       }
       if (event.key === "Escape") setSearchOpen(false)
+      if (!searchOpen || !results.length) return
+      if (event.key === "ArrowDown") { event.preventDefault(); setActiveIndex(index => Math.min(index + 1, results.length - 1)) }
+      if (event.key === "ArrowUp") { event.preventDefault(); setActiveIndex(index => Math.max(index - 1, 0)) }
+      if (event.key === "Enter" && activeIndex >= 0) {
+        event.preventDefault()
+        const product = results[activeIndex]
+        saveRecent(query)
+        window.location.href = `/product/${product.slug}`
+      }
     }
     window.addEventListener("keydown", onKeyDown)
     return () => window.removeEventListener("keydown", onKeyDown)
-  }, [])
+  }, [searchOpen, results, activeIndex, query])
+
+  useEffect(() => {
+    setActiveIndex(-1)
+  }, [query])
 
   useEffect(() => {
     if (!searchOpen) return
@@ -75,6 +89,7 @@ export function Header() {
         if (!response.ok) throw new Error("Search failed")
         const data = await response.json()
         setResults(Array.isArray(data.products) ? data.products : [])
+        setActiveIndex(-1)
       } catch (error) {
         if ((error as Error).name !== "AbortError") setResults([])
       } finally {
@@ -141,16 +156,16 @@ export function Header() {
             <div className="overflow-hidden rounded-2xl bg-white shadow-2xl">
               <form onSubmit={submitSearch} className="flex items-center gap-3 border-b border-black/10 px-4 py-3 sm:px-5">
                 <Search className="h-5 w-5 shrink-0 text-secondary" />
-                <input ref={inputRef} autoFocus value={query} onChange={event => setQuery(event.target.value)} placeholder="Search dresses, shirts, fabrics, collections..." className="min-w-0 flex-1 bg-transparent py-3 text-base outline-none" aria-label="Search NOORÉ" />
+                <input ref={inputRef} autoFocus value={query} onChange={event => setQuery(event.target.value)} placeholder="Try ‘black cotton under 5000’…" className="min-w-0 flex-1 bg-transparent py-3 text-base outline-none" aria-label="Search NOORÉ" aria-controls="noore-search-results" aria-activedescendant={activeIndex >= 0 ? `noore-result-${activeIndex}` : undefined} />
                 <kbd className="hidden rounded-md border border-black/10 px-2 py-1 text-[10px] text-secondary sm:block">ESC</kbd>
                 <button type="button" onClick={() => setSearchOpen(false)} className="rounded-full p-2 hover:bg-black/5" aria-label="Close search"><X className="h-4 w-4" /></button>
               </form>
 
-              <div className="max-h-[70vh] overflow-y-auto p-4 sm:p-5">
+              <div id="noore-search-results" className="max-h-[70vh] overflow-y-auto p-4 sm:p-5">
                 {!query.trim() ? (
                   <div className="grid gap-6 sm:grid-cols-2">
                     <div>
-                      <div className="mb-3 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[.18em] text-secondary"><Command className="h-3 w-3" /> Popular searches</div>
+                      <div className="mb-3 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[.18em] text-secondary"><Command className="h-3 w-3" /> Popular searches</div><p className="mb-2 text-xs text-secondary">Search naturally by product, fabric, color, size or budget.</p>
                       <div className="space-y-1">{popularSearches.map(item => <button key={item} type="button" onClick={() => chooseSuggestion(item)} className="flex w-full items-center justify-between rounded-lg px-3 py-3 text-left text-sm hover:bg-cream"><span>{item}</span><ArrowUpRight className="h-3.5 w-3.5 text-secondary" /></button>)}</div>
                     </div>
                     <div>
@@ -163,7 +178,7 @@ export function Header() {
                 ) : results.length ? (
                   <div>
                     <div className="mb-3 flex items-center justify-between"><p className="text-[10px] font-semibold uppercase tracking-[.18em] text-secondary">Products</p><button type="button" onClick={() => submitSearch()} className="text-[10px] font-semibold uppercase tracking-[.15em] underline underline-offset-4">View all</button></div>
-                    <div className="grid gap-1">{results.map(product => <Link key={product.id} href={`/product/${product.slug}`} onClick={() => { saveRecent(query); setSearchOpen(false) }} className="group flex items-center gap-3 rounded-xl p-2 transition hover:bg-cream"><div className="h-16 w-14 shrink-0 overflow-hidden bg-cream">{product.images?.[0] ? <img src={product.images[0]} alt="" className="h-full w-full object-cover transition duration-300 group-hover:scale-105" /> : null}</div><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{product.name}</p><p className="mt-1 text-[10px] uppercase tracking-[.12em] text-secondary">{product.category}</p></div><div className="text-right text-sm">{product.salePrice != null ? <><span className="block font-medium">PKR {product.salePrice.toLocaleString()}</span><span className="text-xs text-secondary line-through">PKR {product.price.toLocaleString()}</span></> : <span>PKR {product.price.toLocaleString()}</span>}</div><ArrowUpRight className="mr-1 h-4 w-4 text-secondary" /></Link>)}</div>
+                    <div className="grid gap-1">{results.map((product, index) => <Link key={product.id} id={`noore-result-${index}`} href={`/product/${product.slug}`} onClick={() => { saveRecent(query); setSearchOpen(false) }} className={`group flex items-center gap-3 rounded-xl p-2 transition hover:bg-cream ${activeIndex === index ? "bg-cream" : ""}`}><div className="h-16 w-14 shrink-0 overflow-hidden bg-cream">{product.images?.[0] ? <img src={product.images[0]} alt="" className="h-full w-full object-cover transition duration-300 group-hover:scale-105" /> : null}</div><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{product.name}</p><p className="mt-1 text-[10px] uppercase tracking-[.12em] text-secondary">{product.category}</p></div><div className="text-right text-sm">{product.salePrice != null ? <><span className="block font-medium">PKR {product.salePrice.toLocaleString()}</span><span className="text-xs text-secondary line-through">PKR {product.price.toLocaleString()}</span></> : <span>PKR {product.price.toLocaleString()}</span>}</div><ArrowUpRight className="mr-1 h-4 w-4 text-secondary" /></Link>)}</div>
                   </div>
                 ) : (
                   <div className="py-12 text-center"><Search className="mx-auto h-6 w-6 text-secondary" /><p className="mt-3 font-editorial text-2xl">No pieces found</p><p className="mt-1 text-sm text-secondary">Try a different product, category, fabric or SKU.</p></div>

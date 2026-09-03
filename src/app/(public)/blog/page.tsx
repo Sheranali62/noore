@@ -1,3 +1,6 @@
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
 import { format } from "date-fns"
