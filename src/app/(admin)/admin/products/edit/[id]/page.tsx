@@ -1,41 +1,60 @@
-"use client"
+import { notFound } from "next/navigation"
+import { prisma } from "@/lib/prisma"
+import ProductForm, { ProductFormData } from "@/components/admin/product-form"
 
-import { useState, useEffect } from "react"
-import { useRouter, useParams } from "next/navigation"
-import ProductVariantsForm from "@/components/admin/product-variants-form"
+export const dynamic = "force-dynamic"
 
-type Variant = { id?: string; color: string; size: string; sku: string; price: string; stock: string; images: string[] }
+export default async function EditProductPage({ params }: { params: { id: string } }) {
+  const product = await prisma.product.findUnique({
+    where: { id: params.id },
+    include: { variants: true },
+  })
 
-export default function EditProductPage() {
-  const router = useRouter(); const params = useParams(); const id = params?.id as string
-  const [loading, setLoading] = useState(true); const [saving, setSaving] = useState(false); const [variants, setVariants] = useState<Variant[]>([])
-  const [formData, setFormData] = useState({ name:"", slug:"", sku:"", description:"", category:"", subcategory:"", price:"", salePrice:"", stock:"", status:"DRAFT", images:[""] })
-  useEffect(() => { if (!id) return; fetch(`/api/products/${id}`).then(r=>r.json()).then(data=>{ setFormData({name:data.name||"",slug:data.slug||"",sku:data.sku||"",description:data.description||"",category:data.category||"",subcategory:data.subcategory||"",price:data.price?.toString()||"",salePrice:data.salePrice?.toString()||"",stock:data.stock?.toString()||"",status:data.status||"DRAFT",images:data.images?.length?data.images:[""]}); setVariants((data.variants||[]).map((v:any)=>({id:v.id,color:v.color||"",size:v.size||"",sku:v.sku||"",price:v.price?.toString()||"",stock:v.stock?.toString()||"",images:v.images||[]}))); setLoading(false) }).catch(e=>{console.error(e);setLoading(false)}) },[id])
-  const handleSubmit = async (e:React.FormEvent) => { e.preventDefault(); setSaving(true); try { const response=await fetch(`/api/products/${id}`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({...formData,price:parseFloat(formData.price),salePrice:formData.salePrice?parseFloat(formData.salePrice):null,stock:parseInt(formData.stock||"0"),images:formData.images.filter((img:string)=>img.trim()!==""),variants:variants.map(v=>({id:v.id,color:v.color,size:v.size,sku:v.sku,price:v.price?parseFloat(v.price):null,stock:parseInt(v.stock||"0"),images:v.images.filter(Boolean)}))})}); if(response.ok){router.push("/admin/products");router.refresh()}else{const d=await response.json().catch(()=>null);alert(d?.error||"Failed to update product")}}catch(e){console.error(e);alert("An error occurred")}finally{setSaving(false)} }
-  const setImage=(i:number,value:string)=>setFormData({...formData,images:formData.images.map((x,j)=>j===i?value:x)})
-  if(loading)return <div className="flex items-center justify-center h-64"><p className="text-secondary">Loading product...</p></div>
-  return <div>
-    <div className="flex justify-between items-center mb-8"><h1 className="text-3xl font-semibold">Edit Product</h1><button onClick={()=>router.back()} className="border border-cream px-4 py-2 rounded">Cancel</button></div>
-    <form onSubmit={handleSubmit} className="bg-white rounded-lg border border-cream p-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-4">
-          <div><label className="block text-sm font-medium mb-1">Product Name *</label><input required value={formData.name} onChange={e=>setFormData({...formData,name:e.target.value})} className="w-full px-3 py-2 border border-cream rounded" /></div>
-          <div><label className="block text-sm font-medium mb-1">Slug *</label><input required value={formData.slug} onChange={e=>setFormData({...formData,slug:e.target.value.toLowerCase().replace(/\s+/g,"-")})} className="w-full px-3 py-2 border border-cream rounded" /></div>
-          <div><label className="block text-sm font-medium mb-1">Product SKU *</label><input required value={formData.sku} onChange={e=>setFormData({...formData,sku:e.target.value.toUpperCase()})} className="w-full px-3 py-2 border border-cream rounded" /></div>
-          <div><label className="block text-sm font-medium mb-1">Category *</label><select required value={formData.category} onChange={e=>setFormData({...formData,category:e.target.value})} className="w-full px-3 py-2 border border-cream rounded"><option value="">Select Category</option><option>Women</option><option>Men</option><option>Luxury</option><option>Accessories</option></select></div>
-          <div><label className="block text-sm font-medium mb-1">Subcategory</label><input value={formData.subcategory} onChange={e=>setFormData({...formData,subcategory:e.target.value})} className="w-full px-3 py-2 border border-cream rounded" /></div>
-          <div><label className="block text-sm font-medium mb-1">Status</label><select value={formData.status} onChange={e=>setFormData({...formData,status:e.target.value})} className="w-full px-3 py-2 border border-cream rounded"><option value="DRAFT">Draft</option><option value="ACTIVE">Active</option><option value="ARCHIVED">Archived</option><option value="OUT_OF_STOCK">Out of Stock</option></select></div>
-        </div>
-        <div className="space-y-4">
-          <div><label className="block text-sm font-medium mb-1">Price (PKR) *</label><input required type="number" min="0" step="0.01" value={formData.price} onChange={e=>setFormData({...formData,price:e.target.value})} className="w-full px-3 py-2 border border-cream rounded" /></div>
-          <div><label className="block text-sm font-medium mb-1">Sale Price (PKR)</label><input type="number" min="0" step="0.01" value={formData.salePrice} onChange={e=>setFormData({...formData,salePrice:e.target.value})} className="w-full px-3 py-2 border border-cream rounded" /></div>
-          <div><label className="block text-sm font-medium mb-1">Stock Quantity *</label><input required type="number" min="0" value={formData.stock} onChange={e=>setFormData({...formData,stock:e.target.value})} disabled={variants.length>0} className="w-full px-3 py-2 border border-cream rounded disabled:bg-cream/50" /><p className="text-xs text-secondary mt-1">With variants, total stock is calculated from variant stock.</p></div>
-          <div><label className="block text-sm font-medium mb-1">Description</label><textarea rows={5} value={formData.description} onChange={e=>setFormData({...formData,description:e.target.value})} className="w-full px-3 py-2 border border-cream rounded resize-none" /></div>
-          <div><label className="block text-sm font-medium mb-1">Images (URLs)</label>{formData.images.map((image,index)=><div key={index} className="flex gap-2 mb-2"><input type="url" value={image} onChange={e=>setImage(index,e.target.value)} className="flex-1 px-3 py-2 border border-cream rounded" placeholder="https://..." />{formData.images.length>1&&<button type="button" onClick={()=>setFormData({...formData,images:formData.images.filter((_,i)=>i!==index)})} className="px-3 py-2 bg-red-100 text-red-600 rounded">×</button>}</div>)}<button type="button" onClick={()=>setFormData({...formData,images:[...formData.images,""]})} className="text-sm text-blue-600">+ Add Image URL</button></div>
-        </div>
+  if (!product) notFound()
+
+  const initialData: ProductFormData = {
+    name: product.name,
+    slug: product.slug,
+    sku: product.sku,
+    description: product.description || "",
+    category: product.category,
+    subcategory: product.subcategory || "",
+    collection: product.collection || "",
+    gender: product.gender || "",
+    type: product.type || "",
+    fabric: product.fabric || "",
+    pieces: product.pieces?.toString() || "",
+    costPrice: product.costPrice?.toString() || "",
+    price: product.price.toString(),
+    salePrice: product.salePrice?.toString() || "",
+    stock: product.stock.toString(),
+    lowStock: product.lowStock.toString(),
+    status: product.status,
+    video: product.video || "",
+    tags: product.tags.join(", "),
+    seoTitle: product.seoTitle || "",
+    seoDesc: product.seoDesc || "",
+    images: product.images.length ? product.images : [""],
+  }
+
+  const initialVariants = product.variants.map(variant => ({
+    id: variant.id,
+    color: variant.color,
+    size: variant.size,
+    sku: variant.sku,
+    price: variant.price?.toString() || "",
+    stock: variant.stock.toString(),
+    images: variant.images,
+  }))
+
+  return (
+    <div className="max-w-6xl">
+      <div className="mb-8">
+        <p className="text-xs uppercase tracking-[0.22em] text-secondary">Catalog / Edit</p>
+        <h1 className="mt-2 text-3xl font-semibold">Edit Product</h1>
+        <p className="mt-2 text-sm text-secondary">Update the full product record without dropping existing merchandising fields.</p>
       </div>
-      <ProductVariantsForm value={variants} onChange={setVariants} />
-      <div className="flex gap-4 mt-8 pt-6 border-t border-cream"><button type="submit" disabled={saving} className="bg-charcoal text-white px-6 py-2 rounded disabled:opacity-50">{saving?"Saving...":"Save Changes"}</button><button type="button" onClick={()=>router.back()} className="border border-cream px-6 py-2 rounded">Cancel</button></div>
-    </form>
-  </div>
+      <ProductForm mode="edit" productId={product.id} initialData={initialData} initialVariants={initialVariants} />
+    </div>
+  )
 }
