@@ -1,6 +1,5 @@
 import type { Metadata } from "next"
 import { Inter, Playfair_Display } from "next/font/google"
-// @ts-expect-error Next.js handles this global CSS side-effect import at build time.
 import "./globals.css"
 import { Providers } from "./providers"
 import { Toaster } from "@/components/ui/toaster"
