@@ -16,9 +16,10 @@ type ProductCardProps = {
   category: string
   stock: number
   colors?: string[]
+  gender?: string | null
 }
 
-export function ProductCard({ id, name, slug, price, salePrice, image, hoverImage, category, stock, colors = [] }: ProductCardProps) {
+export function ProductCard({ id, name, slug, price, salePrice, image, hoverImage, category, stock, colors = [], gender }: ProductCardProps) {
   const { addItem } = useCart()
   const [liked, setLiked] = useState(false)
   const [added, setAdded] = useState(false)
@@ -38,7 +39,7 @@ export function ProductCard({ id, name, slug, price, salePrice, image, hoverImag
   return (
     <article className="group">
       <div className="relative overflow-hidden bg-[#f1eee8] aspect-[3/4]">
-        <Link href={`/product/${slug}`} className="block h-full" aria-label={`View ${name}`}>
+        <Link href={`/product/${slug}`} data-noore-gender={gender || ""} className="block h-full" aria-label={`View ${name}`}>
           <img src={image || "/placeholder.jpg"} alt={name} className="h-full w-full object-cover transition-all duration-700 group-hover:scale-[1.035]" />
           {hoverImage && (
             <img src={hoverImage} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
@@ -83,11 +84,11 @@ export function ProductCard({ id, name, slug, price, salePrice, image, hoverImag
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[9px] uppercase tracking-[0.2em] text-secondary">{category}</p>
-            <Link href={`/product/${slug}`} className="mt-1 block">
+            <Link href={`/product/${slug}`} data-noore-gender={gender || ""} className="mt-1 block">
               <h3 className="truncate text-sm font-medium tracking-wide text-charcoal transition group-hover:underline group-hover:underline-offset-4">{name}</h3>
             </Link>
           </div>
-          <Link href={`/product/${slug}`} aria-label={`Open ${name}`} className="mt-1 shrink-0 opacity-40 transition group-hover:opacity-100">
+          <Link href={`/product/${slug}`} data-noore-gender={gender || ""} aria-label={`Open ${name}`} className="mt-1 shrink-0 opacity-40 transition group-hover:opacity-100">
             <ArrowUpRight className="h-4 w-4" />
           </Link>
         </div>

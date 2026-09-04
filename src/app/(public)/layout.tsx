@@ -6,6 +6,7 @@ import Link from "next/link"
 import { Header } from "@/components/layout/header"
 import { useCart } from "@/components/cart/cart-context"
 import { CartDrawer } from "@/components/cart/cart-drawer"
+import { InterestTracker } from "@/components/personalization/interest-tracker"
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession()
@@ -24,6 +25,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
   return <>
     <div className="bg-charcoal px-4 py-2 text-center text-[9px] font-semibold uppercase tracking-[.2em] text-white sm:text-[10px]">{announcement}</div>
     <Header />
+    <InterestTracker />
     <main id="main-content">{children}</main>
     <footer className="border-t border-white/10 bg-charcoal text-white/75">
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 md:grid-cols-4">

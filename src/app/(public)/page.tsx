@@ -4,6 +4,8 @@ export const revalidate = 0
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { ProductCard } from "@/components/product/product-card"
+import { cookies } from "next/headers"
+import { getDominantInterest, PERSONALIZATION_COOKIE, scoreProductInterest, type InterestSegment } from "@/lib/personalization"
 
 const categories = [
   { name: "Unstitched", image: "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=900&auto=format&fit=crop", position: "center" },
@@ -18,20 +20,57 @@ const editorial = [
   { eyebrow: "Festive 2026", title: "Moments worth dressing for.", copy: "Discover statement pieces for celebrations, evenings and everything between.", image: "https://images.unsplash.com/photo-1591369822096-ffd140ec948f?w=1600&auto=format&fit=crop", href: "/products?category=Luxury" },
 ]
 
+function readInterest(): { segment: InterestSegment | null; scores: Record<InterestSegment, number> } {
+  try {
+    const raw = cookies().get(PERSONALIZATION_COOKIE)?.value
+    if (!raw) return { segment: null, scores: { women: 0, men: 0, kids: 0 } }
+    const parsed = JSON.parse(decodeURIComponent(raw))
+    const scores = {
+      women: Number(parsed?.women) || 0,
+      men: Number(parsed?.men) || 0,
+      kids: Number(parsed?.kids) || 0,
+    }
+    return { segment: getDominantInterest(scores), scores }
+  } catch {
+    return { segment: null, scores: { women: 0, men: 0, kids: 0 } }
+  }
+}
+
+function personalize<T extends { gender?: string | null; category?: string | null; subcategory?: string | null; type?: string | null; tags?: string[]; name?: string | null }>(products: T[], segment: InterestSegment | null) {
+  if (!segment) return products
+  return [...products].sort((a, b) => scoreProductInterest(b)[segment] - scoreProductInterest(a)[segment])
+}
+
 export default async function HomePage() {
-  const [featuredProducts, saleProducts, limitedProducts, popularGroups] = await Promise.all([
-    prisma.product.findMany({ where: { status: "ACTIVE" }, take: 8, orderBy: { createdAt: "desc" } }),
-    prisma.product.findMany({ where: { status: "ACTIVE", salePrice: { not: null } }, take: 4, orderBy: { createdAt: "desc" } }),
-    prisma.product.findMany({ where: { status: "ACTIVE", stock: { gt: 0, lte: 5 } }, take: 4, orderBy: { stock: "asc" } }),
-    prisma.orderItem.groupBy({ by: ["productId"], _sum: { quantity: true }, orderBy: { _sum: { quantity: "desc" } }, take: 4 }),
+  const { segment: interest } = readInterest()
+  const [featuredRaw, saleRaw, limitedRaw, popularGroups] = await Promise.all([
+    prisma.product.findMany({ where: { status: "ACTIVE" }, take: 24, orderBy: { createdAt: "desc" } }),
+    prisma.product.findMany({ where: { status: "ACTIVE", salePrice: { not: null } }, take: 12, orderBy: { createdAt: "desc" } }),
+    prisma.product.findMany({ where: { status: "ACTIVE", stock: { gt: 0, lte: 5 } }, take: 12, orderBy: { stock: "asc" } }),
+    prisma.orderItem.groupBy({ by: ["productId"], _sum: { quantity: true }, orderBy: { _sum: { quantity: "desc" } }, take: 8 }),
   ])
+  const featuredProducts = personalize(featuredRaw, interest).slice(0, 8)
+  const saleProducts = personalize(saleRaw, interest).slice(0, 4)
+  const limitedProducts = personalize(limitedRaw, interest).slice(0, 4)
   const popularIds = popularGroups.map((x: any) => x.productId)
   const popularProducts = popularIds.length ? await prisma.product.findMany({ where: { id: { in: popularIds }, status: "ACTIVE" } }) : []
   const popularMap = new Map(popularProducts.map((p) => [p.id, p]))
-  const trendingProducts = popularIds.map((id: string) => popularMap.get(id)).filter(Boolean) as typeof popularProducts
+  const trendingProducts = personalize(popularIds.map((id: string) => popularMap.get(id)).filter(Boolean) as typeof popularProducts, interest)
+
+  const interestLabel = interest === "women" ? "Your edit · Women" : interest === "men" ? "Your edit · Men" : interest === "kids" ? "Your edit · Kids" : null
 
   return (
     <div className="bg-cream text-charcoal">
+      {/* Adaptive personalization */}
+      {interestLabel && (
+        <section className="border-b border-black/5 bg-white">
+          <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-charcoal">{interestLabel}</p>
+            <Link href={`/products?gender=${interest}`} className="text-[9px] font-semibold uppercase tracking-[0.16em] underline underline-offset-4">Shop your edit</Link>
+          </div>
+        </section>
+      )}
+
       {/* Editorial hero */}
       <section className="relative min-h-[72vh] md:min-h-[82vh] overflow-hidden bg-charcoal text-white">
         <div
@@ -41,7 +80,7 @@ export default async function HomePage() {
         <div className="absolute inset-0 bg-gradient-to-r from-black/65 via-black/30 to-black/10" />
         <div className="relative z-10 mx-auto flex min-h-[72vh] md:min-h-[82vh] max-w-7xl items-end px-5 pb-16 md:items-center md:pb-0">
           <div className="max-w-2xl">
-            <p className="text-[10px] uppercase tracking-[0.35em] text-white/75 md:text-xs">NOORÉ — New Season</p>
+            <p className="text-[10px] uppercase tracking-[0.35em] text-white/75 md:text-xs">{interestLabel || "NOORÉ — New Season"}</p>
             <h1 className="mt-5 font-editorial text-5xl font-medium leading-[0.98] md:text-7xl lg:text-8xl">The art of everyday elegance.</h1>
             <p className="mt-6 max-w-lg text-sm leading-6 text-white/75 md:text-base">Contemporary Pakistani fashion, thoughtfully curated for the moments that become memories.</p>
             <div className="mt-8 flex flex-wrap gap-3">
@@ -111,7 +150,7 @@ export default async function HomePage() {
             </div>
             <div className="grid grid-cols-2 gap-x-3 gap-y-8 md:grid-cols-4 md:gap-x-5 md:gap-y-10">
               {featuredProducts.slice(0, 8).map((product: any) => (
-                <ProductCard key={product.id} id={product.id} name={product.name} slug={product.slug} price={product.price} salePrice={product.salePrice} image={product.images[0] || "/placeholder.jpg"} category={product.category} stock={product.stock} />
+                <ProductCard key={product.id} id={product.id} name={product.name} slug={product.slug} price={product.price} salePrice={product.salePrice} image={product.images[0] || "/placeholder.jpg"} category={product.category} stock={product.stock} gender={product.gender} />
               ))}
             </div>
           </div>
@@ -127,7 +166,7 @@ export default async function HomePage() {
               <Link href="/products" className="text-xs font-semibold uppercase tracking-[0.15em] underline underline-offset-4">View all</Link>
             </div>
             <div className="grid grid-cols-2 gap-x-3 gap-y-8 md:grid-cols-4 md:gap-x-5">
-              {limitedProducts.map((product: any) => <ProductCard key={product.id} id={product.id} name={product.name} slug={product.slug} price={product.price} salePrice={product.salePrice} image={product.images[0] || "/placeholder.jpg"} hoverImage={product.images[1]} category={product.category} stock={product.stock} />)}
+              {limitedProducts.map((product: any) => <ProductCard key={product.id} id={product.id} name={product.name} slug={product.slug} price={product.price} salePrice={product.salePrice} image={product.images[0] || "/placeholder.jpg"} hoverImage={product.images[1]} category={product.category} stock={product.stock} gender={product.gender} />)}
             </div>
           </div>
         </section>
@@ -142,7 +181,7 @@ export default async function HomePage() {
               <Link href="/products?sale=1" className="text-xs font-semibold uppercase tracking-[0.15em] underline underline-offset-4">Shop sale</Link>
             </div>
             <div className="grid grid-cols-2 gap-x-3 gap-y-8 md:grid-cols-4 md:gap-x-5">
-              {saleProducts.map((product: any) => <ProductCard key={product.id} id={product.id} name={product.name} slug={product.slug} price={product.price} salePrice={product.salePrice} image={product.images[0] || "/placeholder.jpg"} hoverImage={product.images[1]} category={product.category} stock={product.stock} />)}
+              {saleProducts.map((product: any) => <ProductCard key={product.id} id={product.id} name={product.name} slug={product.slug} price={product.price} salePrice={product.salePrice} image={product.images[0] || "/placeholder.jpg"} hoverImage={product.images[1]} category={product.category} stock={product.stock} gender={product.gender} />)}
             </div>
           </div>
         </section>

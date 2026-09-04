@@ -68,7 +68,7 @@ export default async function ProductsPage({ searchParams }: { searchParams?: Re
       </div>
 
       {products.length === 0 ? <div className="py-24 text-center"><h2 className="font-editorial text-3xl">Nothing here yet.</h2><p className="mt-2 text-sm text-secondary">Try another category or clear your filters.</p><Link href="/products" className="mt-7 inline-block bg-charcoal px-7 py-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-white">Shop all</Link></div> : <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 md:gap-x-6 md:gap-y-14">
-        {products.map((product) => <ProductCard key={product.id} id={product.id} name={product.name} slug={product.slug} price={product.price} salePrice={product.salePrice} image={product.images[0] || "/placeholder.jpg"} hoverImage={product.images[1]} category={product.category} stock={product.stock} colors={product.variants.map((variant) => variant.color)} />)}
+        {products.map((product) => <ProductCard key={product.id} id={product.id} name={product.name} slug={product.slug} price={product.price} salePrice={product.salePrice} image={product.images[0] || "/placeholder.jpg"} hoverImage={product.images[1]} category={product.category} stock={product.stock} gender={product.gender} colors={product.variants.map((variant) => variant.color)} />)}
       </div>}
 
       {totalPages > 1 && <nav className="mt-14 flex items-center justify-center gap-2" aria-label="Pagination">{Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => <Link key={p} href={makePageUrl(p)} className={`grid h-9 w-9 place-items-center text-xs ${p === page ? "bg-charcoal text-white" : "border border-border hover:border-charcoal"}`}>{p}</Link>)}</nav>}
