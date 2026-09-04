@@ -12,7 +12,8 @@ export default async function AdminInventoryPage() {
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-semibold">Inventory</h1>
+        <div><p className="text-xs uppercase tracking-[0.2em] text-secondary">Stock control</p><h1 className="text-3xl font-semibold mt-2">Inventory</h1></div>
+        <div className="flex gap-2"><Link href="/admin/inventory/history" className="border border-cream bg-white rounded-lg px-4 py-2 text-sm">History</Link><a href="/api/admin/reports?type=inventory" className="bg-charcoal text-white rounded-lg px-4 py-2 text-sm">Export CSV</a></div>
       </div>
 
       {/* Stats */}

@@ -274,7 +274,7 @@ html.dark ::-webkit-scrollbar-thumb {
 
 /* Theme-aware controls and surfaces. These are intentionally class-based so
    existing Tailwind utility components also adapt to the automatic theme. */
-html.dark .bg-[#f4f0e8] {
+html.dark .bg-\[\#f4f0e8\] {
   background-color: var(--noore-surface-muted) !important;
 }
 html.dark .text-black {
@@ -317,4 +317,50 @@ html.dark .hero-secondary:hover {
 /* Avoid a flash of the wrong palette after the theme has been resolved. */
 html[data-noore-theme="night"] {
   background: var(--noore-page);
+}
+
+
+/* Production accessibility and motion polish */
+:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
+.skip-link {
+  position: fixed;
+  left: 1rem;
+  top: 1rem;
+  z-index: 9999;
+  transform: translateY(-180%);
+  background: #171717;
+  color: #fff;
+  padding: .7rem 1rem;
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  transition: transform .2s ease;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+button, a, input, textarea, select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+::selection {
+  background: #171717;
+  color: #fff;
 }

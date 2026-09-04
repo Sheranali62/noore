@@ -1,7 +1,7 @@
-export type OrderNotificationStatus = "CONFIRMED" | "PROCESSING" | "PACKED" | "SHIPPED" | "OUT_FOR_DELIVERY" | "DELIVERED" | "CANCELLED"
+export type OrderNotificationStatus = "PENDING" | "CONFIRMED" | "PROCESSING" | "PACKED" | "SHIPPED" | "OUT_FOR_DELIVERY" | "DELIVERED" | "CANCELLED"
 
 const labels: Record<OrderNotificationStatus, string> = {
-  CONFIRMED: "confirmed", PROCESSING: "being prepared", PACKED: "packed", SHIPPED: "shipped", OUT_FOR_DELIVERY: "out for delivery", DELIVERED: "delivered", CANCELLED: "cancelled",
+  PENDING: "received", CONFIRMED: "confirmed", PROCESSING: "being prepared", PACKED: "packed", SHIPPED: "shipped", OUT_FOR_DELIVERY: "out for delivery", DELIVERED: "delivered", CANCELLED: "cancelled",
 }
 
 export async function sendOrderStatusEmail(input: { to: string; customerName?: string | null; orderNumber: string; status: OrderNotificationStatus; trackingNumber?: string | null; courier?: string | null }) {

@@ -1,0 +1,11 @@
+{
+  "name": "NOORÉ",
+  "short_name": "NOORÉ",
+  "description": "Premium Pakistani fashion for the modern wardrobe.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAF9F6",
+  "theme_color": "#FAF9F6",
+  "lang": "en",
+  "icons": []
+}

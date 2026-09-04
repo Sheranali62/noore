@@ -1,9 +1,9 @@
 import type { Metadata } from "next"
 import { Inter, Playfair_Display } from "next/font/google"
+// @ts-expect-error Next.js handles this global CSS side-effect import at build time.
 import "./globals.css"
 import { Providers } from "./providers"
 import { Toaster } from "@/components/ui/toaster"
-import { cn } from "@/lib/utils"
 import { GoogleAnalytics } from "@/components/analytics/google-analytics"
 import { AutoDayNightTheme } from "@/components/theme/auto-day-night"
 
@@ -86,6 +86,7 @@ export const metadata: Metadata = {
     yandex: process.env.YANDEX_VERIFICATION || "",
   },
   category: "fashion",
+  alternates: { canonical: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000" },
 }
 
 export default function RootLayout({
@@ -106,6 +107,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body className="min-h-screen bg-background font-sans antialiased">
+        <a href="#main-content" className="skip-link">Skip to content</a>
         {/* Google Analytics */}
         {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && <GoogleAnalytics />}
         

@@ -1,75 +1,28 @@
-# NOORÉ — Premium Pakistani Fashion E-Commerce
+# NOORE — 7-Phase Production Master Hardening
 
-![NOORÉ](https://via.placeholder.com/1200x630/171717/FAF9F6?text=NOOR%C3%89)
+This patch targets the current NOORE build after the existing premium storefront/admin work. It does not seed, delete, or modify product/customer/order data.
 
-## 🏷️ Description
+## Applied across the 7 phases
+- Storefront resilience: global loading, error and 404 states.
+- UX/accessibility: skip link, visible focus states, reduced-motion support and touch polish.
+- Responsive search shortcut: Ctrl K on Windows/Linux, Command K on Apple devices.
+- SEO: canonical metadata and dynamic robots route using `NEXT_PUBLIC_SITE_URL`.
+- Sitemap resilience when the database is temporarily unavailable.
+- Valid site web manifest matching the declared metadata manifest.
+- Read-only `/api/health` endpoint for deployment/database checks; no secrets are returned.
+- Public layout exposes the skip-link target.
+- COD-only checkout behavior remains enforced.
 
-NOORÉ is a complete, production-ready premium Pakistani fashion e-commerce platform built with Next.js 14, TypeScript, PostgreSQL, and Prisma. It features a modern, elegant design inspired by premium Pakistani fashion brands.
+## Apply
+Copy the included `src` and `public` files over the matching files in your repository.
+Delete the old `public/robots.txt` if it exists, because `src/app/robots.ts` is now the canonical dynamic robots route.
 
-## ✨ Features
+Do NOT replace `.env`, `.env.local`, `.env.production`, Prisma data, or existing catalog data.
 
-### 🛍️ Customer Features
-- Premium responsive design with editorial feel
-- Product browsing with advanced filtering & sorting
-- Product detail with image gallery
-- Shopping cart with persistence
-- Wishlist functionality
-- Order tracking
-- Blog system
-- Newsletters
+## Verify
+npm run build
 
-### 🔐 Authentication
-- Email/Password registration & login
-- Google OAuth integration
-- Password reset
-- Secure session management
-- Customer account dashboard
+Then open:
+https://YOUR-DOMAIN/api/health
 
-### 💳 Payments
-- Cash on Delivery
-- Bank Transfer
-- Credit/Debit Card (Stripe integration)
-- Multi-step checkout
-- Order confirmation
-
-### 👑 Admin Panel
-- Dashboard with analytics
-- Product management (CRUD)
-- Order management
-- Customer management
-- Coupon management
-- Inventory management
-- Homepage builder
-
-### 📈 SEO & Marketing
-- SEO meta tags & Open Graph
-- Sitemap generation
-- Robots.txt
-- Google Analytics
-- JSON-LD Schema
-- Social media integration
-
-## 🛠️ Tech Stack
-
-- **Framework:** Next.js 14 (App Router)
-- **Language:** TypeScript
-- **Styling:** Tailwind CSS
-- **Database:** PostgreSQL
-- **ORM:** Prisma
-- **Authentication:** NextAuth.js
-- **Payments:** Stripe
-- **Icons:** Lucide React
-
-## 🚀 Getting Started
-
-### Prerequisites
-- Node.js 18+
-- PostgreSQL
-- Stripe Account (for payments)
-
-### Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/noore.git
-cd noore
+Healthy response should contain `"ok":true` and `"database":"connected"`.

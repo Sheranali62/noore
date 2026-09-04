@@ -124,5 +124,14 @@ export async function GET(request: NextRequest) {
     sizes: Array.from(new Set(products.flatMap((p) => p.variants.map((v) => v.size)))).slice(0, 20),
   }
 
+ return NextResponse.json({
+  products,
+  total,
+  page,
+  pages: Math.ceil(total / take),
+  detectedFilters: smart.detected,
+  facets: facetValues,
+})
+
   return NextResponse.json({ products, total, page, pages: Math.ceil(total / take), detectedFilters: smart.detected, facets: facetValues })
 }

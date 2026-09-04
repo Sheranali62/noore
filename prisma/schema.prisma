@@ -21,6 +21,7 @@ model User {
   couponUsage   CouponUsage[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  inventoryMovements InventoryMovement[]
 }
 
 model Address {
@@ -68,6 +69,7 @@ model Product {
   orderItems     OrderItem[]
   wishlistItems  WishlistItem[]
   cartItems      CartItem[]
+  inventoryMovements InventoryMovement[]
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }
@@ -84,6 +86,7 @@ model ProductVariant {
   images     String[]
   cartItems  CartItem[]
   orderItems OrderItem[]
+  inventoryMovements InventoryMovement[]
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
@@ -215,6 +218,36 @@ model CouponUsage {
   orderId   String?  @unique
   order     Order?   @relation(fields: [orderId], references: [id])
   usedAt    DateTime @default(now())
+}
+
+model SearchEvent {
+  id         String   @id @default(cuid())
+  query      String
+  resultCount Int     @default(0)
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([query])
+}
+
+model InventoryMovement {
+  id         String          @id @default(cuid())
+  productId  String
+  product    Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variantId  String?
+  variant    ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  userId     String?
+  user       User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  change     Int
+  beforeStock Int
+  afterStock  Int
+  reason     String
+  note       String?
+  createdAt  DateTime @default(now())
+
+  @@index([productId, createdAt])
+  @@index([variantId, createdAt])
+  @@index([createdAt])
 }
 
 model Store {

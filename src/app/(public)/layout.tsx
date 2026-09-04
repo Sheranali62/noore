@@ -24,7 +24,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
   return <>
     <div className="bg-charcoal px-4 py-2 text-center text-[9px] font-semibold uppercase tracking-[.2em] text-white sm:text-[10px]">{announcement}</div>
     <Header />
-    <main>{children}</main>
+    <main id="main-content">{children}</main>
     <footer className="border-t border-white/10 bg-charcoal text-white/75">
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 md:grid-cols-4">
         <div className="md:col-span-2"><Link href="/" className="font-editorial text-3xl font-semibold text-white">{siteName}</Link><p className="mt-4 max-w-md text-sm leading-6 text-white/55">Premium Pakistani fashion for the modern wardrobe — considered pieces, contemporary silhouettes and timeless elegance.</p><div className="mt-6 flex flex-wrap gap-4 text-[10px] uppercase tracking-[.16em]"><a href="#" className="hover:text-white">Instagram</a><a href="#" className="hover:text-white">Facebook</a><a href="#" className="hover:text-white">YouTube</a></div></div>

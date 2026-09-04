@@ -28,10 +28,15 @@ export default async function sitemap() {
   }))
 
   // Blog posts
-  const posts = await prisma.blogPost.findMany({
+  let posts: { slug: string; updatedAt: Date }[] = []
+  try {
+    posts = await prisma.blogPost.findMany({
     where: { published: true },
     select: { slug: true, updatedAt: true },
-  })
+    })
+  } catch (error) {
+    console.error("Sitemap blog query failed:", error)
+  }
 
   const blogPages = posts.map((post) => ({
     url: `${baseUrl}/blog/${post.slug}`,
@@ -41,10 +46,15 @@ export default async function sitemap() {
   }))
 
   // Product pages
-  const products = await prisma.product.findMany({
+  let products: { slug: string; updatedAt: Date }[] = []
+  try {
+    products = await prisma.product.findMany({
     where: { status: "ACTIVE" },
     select: { slug: true, updatedAt: true },
-  })
+    })
+  } catch (error) {
+    console.error("Sitemap product query failed:", error)
+  }
 
   const productPages = products.map((product) => ({
     url: `${baseUrl}/product/${product.slug}`,

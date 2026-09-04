@@ -14,7 +14,8 @@ export default async function AdminCustomersPage() {
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-semibold">Customers</h1>
+        <div><p className="text-xs uppercase tracking-[0.2em] text-secondary">Customer intelligence</p><h1 className="text-3xl font-semibold mt-2">Customers</h1></div>
+      <a href="/api/admin/reports?type=customers" className="bg-charcoal text-white rounded-lg px-4 py-2 text-sm">Export CSV</a>
       </div>
 
       <div className="bg-white rounded-lg border border-cream overflow-hidden">
