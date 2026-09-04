@@ -16,13 +16,14 @@ import {
 import { useCart } from "@/components/cart/cart-context"
 
 const nav = [
-  { label: "New In", href: "/products" },
-  { label: "Women", href: "/products?gender=Women" },
-  { label: "Men", href: "/products?gender=Men" },
-  { label: "Ready to Wear", href: "/products?category=Ready%20to%20Wear" },
+  { label: "New In", href: "/new-in" },
+  { label: "Women", href: "/women" },
+  { label: "Men", href: "/men" },
+  { label: "Kids", href: "/kids" },
+  { label: "Collections", href: "/collections" },
   { label: "Luxury", href: "/products?category=Luxury" },
-  { label: "Accessories", href: "/products?category=Accessories" },
-  { label: "Sale", href: "/products?sale=1" },
+  { label: "Journal", href: "/journal" },
+  { label: "Sale", href: "/sale" },
 ]
 
 type SearchProduct = {
