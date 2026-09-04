@@ -129,7 +129,16 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-black/5 bg-cream/95 text-charcoal backdrop-blur-xl">
       <div className="mx-auto flex h-[68px] max-w-7xl items-center justify-between px-4 sm:px-5">
-        <button className="mr-3 md:hidden" onClick={() => setMobileOpen(true)} aria-label="Open menu"><Menu className="h-5 w-5" /></button>
+       <button
+  type="button"
+  className="relative z-[60] mr-3 grid h-10 w-10 place-items-center rounded-full border border-black/10 bg-white/70 transition hover:bg-white md:hidden"
+  onClick={() => setMobileOpen(true)}
+  aria-label="Open navigation menu"
+  aria-expanded={mobileOpen}
+  aria-controls="noore-mobile-menu"
+>
+  <Menu className="h-5 w-5" strokeWidth={1.8} />
+</button>
         <Link href="/" className="font-editorial text-[28px] font-semibold tracking-tight">NOORÉ</Link>
 
         <nav className="hidden items-center gap-6 md:flex">
@@ -193,7 +202,129 @@ export function Header() {
 
       {megaOpen && <div className="mega-menu hidden border-t border-black/5 bg-white md:block"><div className="mx-auto grid max-w-7xl grid-cols-4 gap-8 px-5 py-8"><div><p className="eyebrow">Shop women</p><div className="mt-4 space-y-2 text-sm"><Link href="/products?gender=Women" className="block hover:underline">All Women</Link><Link href="/products?category=Ready%20to%20Wear" className="block hover:underline">Ready to Wear</Link><Link href="/products?category=Unstitched" className="block hover:underline">Unstitched</Link><Link href="/products?category=Luxury" className="block hover:underline">Luxury Edit</Link></div></div><div><p className="eyebrow">Shop men</p><div className="mt-4 space-y-2 text-sm"><Link href="/products?gender=Men" className="block hover:underline">All Men</Link><Link href="/products?category=Men" className="block hover:underline">Men&apos;s Collection</Link><Link href="/products?sale=1" className="block hover:underline">Sale</Link></div></div><div><p className="eyebrow">Explore</p><div className="mt-4 space-y-2 text-sm"><Link href="/search" className="block hover:underline">Search</Link><Link href="/blog" className="block hover:underline">Journal</Link><Link href="/account/orders" className="block hover:underline">Orders</Link><Link href="/wishlist" className="block hover:underline">Wishlist</Link></div></div><div className="bg-cream p-5"><p className="eyebrow">The NOORÉ edit</p><p className="mt-3 font-editorial text-2xl">Quiet luxury, made for every day.</p><Link href="/products" className="mt-5 inline-block border-b border-charcoal pb-1 text-[10px] font-semibold uppercase tracking-[.18em]">Shop the edit</Link></div></div></div>}
 
-      {mobileOpen && <div className="fixed inset-0 z-[70] md:hidden"><button className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} aria-label="Close menu" /><aside className="absolute left-0 top-0 h-full w-[88%] max-w-sm overflow-y-auto bg-cream p-5 shadow-2xl"><div className="flex items-center justify-between border-b border-black/5 pb-5"><Link href="/" onClick={() => setMobileOpen(false)} className="font-editorial text-2xl font-semibold">NOORÉ</Link><button onClick={() => setMobileOpen(false)} aria-label="Close menu"><X className="h-5 w-5" /></button></div><button type="button" onClick={() => { setMobileOpen(false); setSearchOpen(true); window.setTimeout(() => inputRef.current?.focus(), 0) }} className="mt-5 flex w-full items-center gap-3 border border-black/10 bg-white px-3 py-3 text-left text-sm"><Search className="h-4 w-4 text-secondary" /> Search NOORÉ <span className="ml-auto text-[10px] text-secondary">{shortcutLabel}</span></button><nav className="mt-7 space-y-1">{nav.map(item => <Link key={item.label} href={item.href} onClick={() => setMobileOpen(false)} className="block border-b border-black/5 py-4 text-sm">{item.label}</Link>)}<Link href="/account" onClick={() => setMobileOpen(false)} className="block border-b border-black/5 py-4 text-sm">Account</Link><Link href="/wishlist" onClick={() => setMobileOpen(false)} className="block border-b border-black/5 py-4 text-sm">Wishlist</Link><Link href="/account/orders" onClick={() => setMobileOpen(false)} className="block border-b border-black/5 py-4 text-sm">My Orders</Link><Link href="/blog" onClick={() => setMobileOpen(false)} className="block border-b border-black/5 py-4 text-sm">Journal</Link></nav><div className="mt-8 bg-white p-5"><p className="eyebrow">Need help?</p><p className="mt-2 text-sm text-secondary">Our team is here for delivery, sizing and order questions.</p></div></aside></div>}
+     {mobileOpen && (
+  <div
+    className="fixed inset-0 z-[100] md:hidden"
+    role="dialog"
+    aria-modal="true"
+    aria-label="NOORÉ navigation"
+  >
+    <button
+      type="button"
+      className="absolute inset-0 bg-black/45 backdrop-blur-[2px]"
+      onClick={() => setMobileOpen(false)}
+      aria-label="Close navigation menu"
+    />
+
+    <aside
+      id="noore-mobile-menu"
+      className="absolute left-0 top-0 flex h-full w-[88%] max-w-sm flex-col overflow-y-auto bg-cream shadow-2xl"
+    >
+      <div className="flex items-center justify-between border-b border-black/10 px-5 py-5">
+        <Link
+          href="/"
+          onClick={() => setMobileOpen(false)}
+          className="font-editorial text-2xl font-semibold tracking-tight"
+        >
+          NOORÉ
+        </Link>
+
+        <button
+          type="button"
+          onClick={() => setMobileOpen(false)}
+          className="grid h-10 w-10 place-items-center rounded-full border border-black/10 bg-white/70"
+          aria-label="Close navigation menu"
+        >
+          <X className="h-5 w-5" strokeWidth={1.8} />
+        </button>
+      </div>
+
+      <div className="px-5">
+        <button
+          type="button"
+          onClick={() => {
+            setMobileOpen(false)
+            setSearchOpen(true)
+            window.setTimeout(() => inputRef.current?.focus(), 0)
+          }}
+          className="mt-5 flex w-full items-center gap-3 border border-black/10 bg-white px-4 py-3.5 text-left text-sm"
+        >
+          <Search className="h-4 w-4 shrink-0 text-secondary" />
+          <span>Search NOORÉ</span>
+          <span className="ml-auto text-[10px] text-secondary">
+            {shortcutLabel}
+          </span>
+        </button>
+
+        <nav className="mt-7" aria-label="Mobile navigation">
+          <Link
+            href="/products"
+            onClick={() => setMobileOpen(false)}
+            className="flex items-center justify-between border-b border-black/10 py-4 text-sm font-medium"
+          >
+            Shop All
+            <ArrowUpRight className="h-4 w-4 text-secondary" />
+          </Link>
+
+          {nav.map((item) => (
+            <Link
+              key={item.label}
+              href={item.href}
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center justify-between border-b border-black/10 py-4 text-sm"
+            >
+              <span>{item.label}</span>
+              <ArrowUpRight className="h-4 w-4 text-secondary" />
+            </Link>
+          ))}
+
+          <Link
+            href="/account"
+            onClick={() => setMobileOpen(false)}
+            className="flex items-center justify-between border-b border-black/10 py-4 text-sm"
+          >
+            Account
+            <UserRound className="h-4 w-4 text-secondary" />
+          </Link>
+
+          <Link
+            href="/wishlist"
+            onClick={() => setMobileOpen(false)}
+            className="flex items-center justify-between border-b border-black/10 py-4 text-sm"
+          >
+            Wishlist
+            <Heart className="h-4 w-4 text-secondary" />
+          </Link>
+
+          <Link
+            href="/account/orders"
+            onClick={() => setMobileOpen(false)}
+            className="flex items-center justify-between border-b border-black/10 py-4 text-sm"
+          >
+            My Orders
+            <ArrowUpRight className="h-4 w-4 text-secondary" />
+          </Link>
+
+          <Link
+            href="/blog"
+            onClick={() => setMobileOpen(false)}
+            className="flex items-center justify-between border-b border-black/10 py-4 text-sm"
+          >
+            Journal
+            <ArrowUpRight className="h-4 w-4 text-secondary" />
+          </Link>
+        </nav>
+
+        <div className="mb-8 mt-8 bg-white p-5">
+          <p className="eyebrow">Need help?</p>
+          <p className="mt-2 text-sm leading-6 text-secondary">
+            Our team is here for delivery, sizing and order questions.
+          </p>
+        </div>
+      </div>
+    </aside>
+  </div>
+)}
     </header>
   )
 }
