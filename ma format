@@ -1,0 +1,485 @@
+warning: in the working copy of 'schema.prisma', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/schema.prisma b/schema.prisma[m
+[1mindex 03cdd66..4493f84 100644[m
+[1m--- a/schema.prisma[m
+[1m+++ b/schema.prisma[m
+[36m@@ -8,26 +8,25 @@[m [mdatasource db {[m
+ }[m
+ [m
+ model User {[m
+[31m-  id            String    @id @default(cuid())[m
+[31m-  email         String    @unique[m
+[31m-  password      String?[m
+[31m-  name          String?[m
+[31m-  role          Role      @default(CUSTOMER)[m
+[31m-  addresses     Address[][m
+[31m-  orders        Order[][m
+[31m-  reviews       ProductReview[][m
+[31m-  wishlist      Wishlist?[m
+[31m-  cart          Cart?[m
+[31m-  couponUsage   CouponUsage[][m
+[31m-  createdAt     DateTime  @default(now())[m
+[31m-  updatedAt     DateTime  @updatedAt[m
+[32m+[m[32m  id                 String              @id @default(cuid())[m
+[32m+[m[32m  email              String              @unique[m
+[32m+[m[32m  password           String?[m
+[32m+[m[32m  name               String?[m
+[32m+[m[32m  role               Role                @default(CUSTOMER)[m
+[32m+[m[32m  createdAt          DateTime            @default(now())[m
+[32m+[m[32m  updatedAt          DateTime            @updatedAt[m
+[32m+[m[32m  addresses          Address[][m
+[32m+[m[32m  cart               Cart?[m
+[32m+[m[32m  couponUsage        CouponUsage[][m
+   inventoryMovements InventoryMovement[][m
+[32m+[m[32m  orders             Order[][m
+[32m+[m[32m  reviews            ProductReview[][m
+[32m+[m[32m  wishlist           Wishlist?[m
+ }[m
+ [m
+ model Address {[m
+   id        String   @id @default(cuid())[m
+   userId    String[m
+[31m-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)[m
+   name      String[m
+   phone     String[m
+   address   String[m
+[36m@@ -35,9 +34,10 @@[m [mmodel Address {[m
+   province  String[m
+   postal    String[m
+   default   Boolean  @default(false)[m
+[31m-  orders    Order[][m
+   createdAt DateTime @default(now())[m
+   updatedAt DateTime @updatedAt[m
+[32m+[m[32m  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)[m
+[32m+[m[32m  orders    Order[][m
+ }[m
+ [m
+ model Category {[m
+[36m@@ -48,72 +48,70 @@[m [mmodel Category {[m
+   active      Boolean    @default(true)[m
+   sortOrder   Int        @default(0)[m
+   parentId    String?[m
+[31m-  parent      Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)[m
+[31m-  children    Category[] @relation("CategoryTree")[m
+   createdAt   DateTime   @default(now())[m
+   updatedAt   DateTime   @updatedAt[m
+[32m+[m[32m  parent      Category?  @relation("CategoryTree", fields: [parentId], references: [id])[m
+[32m+[m[32m  children    Category[] @relation("CategoryTree")[m
+ [m
+   @@index([parentId])[m
+   @@index([active, sortOrder])[m
+ }[m
+ [m
+ model Product {[m
+[31m-  id             String   @id @default(cuid())[m
+[31m-  name           String[m
+[31m-  slug           String   @unique[m
+[31m-  sku            String   @unique[m
+[31m-  description    String?[m
+[31m-  category       String[m
+[31m-  subcategory    String?[m
+[31m-  collection     String?[m
+[31m-  gender         String?[m
+[31m-  type           String?[m
+[31m-  fabric         String?[m
+[31m-  pieces         Int?[m
+[31m-  price          Float[m
+[31m-  salePrice      Float?[m
+[31m-  costPrice      Float?[m
+[31m-  stock          Int      @default(0)[m
+[31m-  lowStock       Int      @default(5)[m
+[31m-  images         String[][m
+[31m-  video          String?[m
+[31m-  tags           String[][m
+[31m-  seoTitle       String?[m
+[31m-  seoDesc        String?[m
+[31m-  status         Status   @default(DRAFT)[m
+[31m-  variants       ProductVariant[][m
+[31m-  reviews        ProductReview[][m
+[31m-  orderItems     OrderItem[][m
+[31m-  wishlistItems  WishlistItem[][m
+[31m-  cartItems      CartItem[][m
+[32m+[m[32m  id                 String              @id @default(cuid())[m
+[32m+[m[32m  name               String[m
+[32m+[m[32m  slug               String              @unique[m
+[32m+[m[32m  sku                String              @unique[m
+[32m+[m[32m  description        String?[m
+[32m+[m[32m  category           String[m
+[32m+[m[32m  subcategory        String?[m
+[32m+[m[32m  collection         String?[m
+[32m+[m[32m  gender             String?[m
+[32m+[m[32m  type               String?[m
+[32m+[m[32m  fabric             String?[m
+[32m+[m[32m  pieces             Int?[m
+[32m+[m[32m  price              Float[m
+[32m+[m[32m  salePrice          Float?[m
+[32m+[m[32m  costPrice          Float?[m
+[32m+[m[32m  stock              Int                 @default(0)[m
+[32m+[m[32m  lowStock           Int                 @default(5)[m
+[32m+[m[32m  images             String[][m
+[32m+[m[32m  video              String?[m
+[32m+[m[32m  tags               String[][m
+[32m+[m[32m  seoTitle           String?[m
+[32m+[m[32m  seoDesc            String?[m
+[32m+[m[32m  status             Status              @default(DRAFT)[m
+[32m+[m[32m  createdAt          DateTime            @default(now())[m
+[32m+[m[32m  updatedAt          DateTime            @updatedAt[m
+[32m+[m[32m  cartItems          CartItem[][m
+   inventoryMovements InventoryMovement[][m
+[31m-  createdAt      DateTime @default(now())[m
+[31m-  updatedAt      DateTime @updatedAt[m
+[32m+[m[32m  orderItems         OrderItem[][m
+[32m+[m[32m  reviews            ProductReview[][m
+[32m+[m[32m  variants           ProductVariant[][m
+[32m+[m[32m  wishlistItems      WishlistItem[][m
+ }[m
+ [m
+ model ProductVariant {[m
+[31m-  id         String   @id @default(cuid())[m
+[31m-  productId  String[m
+[31m-  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)[m
+[31m-  color      String[m
+[31m-  size       String[m
+[31m-  sku        String   @unique[m
+[31m-  price      Float?[m
+[31m-  stock      Int      @default(0)[m
+[31m-  images     String[][m
+[31m-  cartItems  CartItem[][m
+[31m-  orderItems OrderItem[][m
+[32m+[m[32m  id                 String              @id @default(cuid())[m
+[32m+[m[32m  productId          String[m
+[32m+[m[32m  color              String[m
+[32m+[m[32m  size               String[m
+[32m+[m[32m  sku                String              @unique[m
+[32m+[m[32m  price              Float?[m
+[32m+[m[32m  stock              Int                 @default(0)[m
+[32m+[m[32m  images             String[][m
+[32m+[m[32m  createdAt          DateTime            @default(now())[m
+[32m+[m[32m  updatedAt          DateTime            @updatedAt[m
+[32m+[m[32m  cartItems          CartItem[][m
+   inventoryMovements InventoryMovement[][m
+[31m-  createdAt  DateTime @default(now())[m
+[31m-  updatedAt  DateTime @updatedAt[m
+[32m+[m[32m  orderItems         OrderItem[][m
+[32m+[m[32m  product            Product             @relation(fields: [productId], references: [id], onDelete: Cascade)[m
+ }[m
+ [m
+ model ProductReview {[m
+   id        String   @id @default(cuid())[m
+   productId String[m
+[31m-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)[m
+   userId    String[m
+[31m-  user      User     @relation(fields: [userId], references: [id])[m
+   rating    Int      @default(5)[m
+   comment   String?[m
+   images    String[][m
+[36m@@ -122,169 +120,171 @@[m [mmodel ProductReview {[m
+   featured  Boolean  @default(false)[m
+   createdAt DateTime @default(now())[m
+   updatedAt DateTime @updatedAt[m
+[32m+[m[32m  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)[m
+[32m+[m[32m  user      User     @relation(fields: [userId], references: [id])[m
+ }[m
+ [m
+ model Wishlist {[m
+[31m-  id     String   @id @default(cuid())[m
+[31m-  userId String   @unique[m
+[31m-  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)[m
+[31m-  items  WishlistItem[][m
+[31m-  createdAt DateTime @default(now())[m
+[31m-  updatedAt DateTime @updatedAt[m
+[32m+[m[32m  id        String         @id @default(cuid())[m
+[32m+[m[32m  userId    String         @unique[m
+[32m+[m[32m  createdAt DateTime       @default(now())[m
+[32m+[m[32m  updatedAt DateTime       @updatedAt[m
+[32m+[m[32m  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)[m
+[32m+[m[32m  items     WishlistItem[][m
+ }[m
+ [m
+ model WishlistItem {[m
+   id         String   @id @default(cuid())[m
+   wishlistId String[m
+[31m-  wishlist   Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)[m
+   productId  String[m
+[31m-  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)[m
+   createdAt  DateTime @default(now())[m
+[32m+[m[32m  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)[m
+[32m+[m[32m  wishlist   Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)[m
+ }[m
+ [m
+ model Cart {[m
+[31m-  id        String   @id @default(cuid())[m
+[31m-  userId    String   @unique[m
+[31m-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)[m
+[31m-  items     CartItem[][m
+[31m-  coupon    Coupon?  @relation(fields: [couponId], references: [id])[m
+[32m+[m[32m  id        String     @id @default(cuid())[m
+[32m+[m[32m  userId    String     @unique[m
+   couponId  String?[m
+[31m-  createdAt DateTime @default(now())[m
+[31m-  updatedAt DateTime @updatedAt[m
+[32m+[m[32m  createdAt DateTime   @default(now())[m
+[32m+[m[32m  updatedAt DateTime   @updatedAt[m
+[32m+[m[32m  coupon    Coupon?    @relation(fields: [couponId], references: [id])[m
+[32m+[m[32m  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)[m
+[32m+[m[32m  items     CartItem[][m
+ }[m
+ [m
+ model CartItem {[m
+[31m-  id         String   @id @default(cuid())[m
+[31m-  cartId     String[m
+[31m-  cart       Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)[m
+[31m-  productId  String[m
+[31m-  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)[m
+[31m-  variantId  String?[m
+[31m-  variant    ProductVariant? @relation(fields: [variantId], references: [id])[m
+[31m-  quantity   Int      @default(1)[m
+[31m-  createdAt  DateTime @default(now())[m
+[31m-  updatedAt  DateTime @updatedAt[m
+[32m+[m[32m  id        String          @id @default(cuid())[m
+[32m+[m[32m  cartId    String[m
+[32m+[m[32m  productId String[m
+[32m+[m[32m  variantId String?[m
+[32m+[m[32m  quantity  Int             @default(1)[m
+[32m+[m[32m  createdAt DateTime        @default(now())[m
+[32m+[m[32m  updatedAt DateTime        @updatedAt[m
+[32m+[m[32m  cart      Cart            @relation(fields: [cartId], references: [id], onDelete: Cascade)[m
+[32m+[m[32m  product   Product         @relation(fields: [productId], references: [id], onDelete: Cascade)[m
+[32m+[m[32m  variant   ProductVariant? @relation(fields: [variantId], references: [id])[m
+ }[m
+ [m
+ model Order {[m
+[31m-  id               String   @id @default(cuid())[m
+[31m-  orderNumber      String   @unique[m
+[32m+[m[32m  id               String          @id @default(cuid())[m
+[32m+[m[32m  orderNumber      String          @unique[m
+   userId           String[m
+[31m-  user             User     @relation(fields: [userId], references: [id])[m
+   addressId        String[m
+[31m-  address          Address  @relation(fields: [addressId], references: [id])[m
+[31m-  items            OrderItem[][m
+   subtotal         Float[m
+[31m-  discount         Float    @default(0)[m
+[32m+[m[32m  discount         Float           @default(0)[m
+   shipping         Float[m
+[31m-  tax              Float    @default(0)[m
+[32m+[m[32m  tax              Float           @default(0)[m
+   total            Float[m
+[31m-  status           OrderStatus @default(PENDING)[m
+[32m+[m[32m  status           OrderStatus     @default(PENDING)[m
+   paymentMethod    PaymentMethod[m
+[31m-  paymentStatus    PaymentStatus @default(UNPAID)[m
+[32m+[m[32m  paymentStatus    PaymentStatus   @default(UNPAID)[m
+   trackingNumber   String?[m
+   courier          String?[m
+[31m-  courierCompanyId String?[m
+[31m-  courierCompany   CourierCompany? @relation(fields: [courierCompanyId], references: [id], onDelete: SetNull)[m
+   notes            String?[m
+   couponCode       String?[m
+[32m+[m[32m  createdAt        DateTime        @default(now())[m
+[32m+[m[32m  updatedAt        DateTime        @updatedAt[m
+[32m+[m[32m  courierCompanyId String?[m
+   couponUsage      CouponUsage?[m
+[31m-  createdAt        DateTime @default(now())[m
+[31m-  updatedAt        DateTime @updatedAt[m
+[32m+[m[32m  address          Address         @relation(fields: [addressId], references: [id])[m
+[32m+[m[32m  courierCompany   CourierCompany? @relation(fields: [courierCompanyId], references: [id])[m
+[32m+[m[32m  user             User            @relation(fields: [userId], references: [id])[m
+[32m+[m[32m  items            OrderItem[][m
+ }[m
+ [m
+ model CourierCompany {[m
+[31m-  id              String   @id @default(cuid())[m
+[31m-  name            String[m
+[31m-  accountNumber   String?[m
+[31m-  contractNumber  String?[m
+[31m-  contactName     String?[m
+[31m-  contactPhone    String?[m
+[31m-  contactEmail    String?[m
+[31m-  pickupAddress   String?[m
+[31m-  pickupCity      String?[m
+[31m-  serviceNotes    String?[m
+[31m-  apiBaseUrl      String?[m
+[31m-  apiKey          String?[m
+[31m-  apiSecret       String?[m
+[31m-  active          Boolean  @default(true)[m
+[31m-  orders          Order[][m
+[31m-  createdAt       DateTime @default(now())[m
+[31m-  updatedAt       DateTime @updatedAt[m
+[32m+[m[32m  id             String   @id @default(cuid())[m
+[32m+[m[32m  name           String[m
+[32m+[m[32m  accountNumber  String?[m
+[32m+[m[32m  contractNumber String?[m
+[32m+[m[32m  contactName    String?[m
+[32m+[m[32m  contactPhone   String?[m
+[32m+[m[32m  contactEmail   String?[m
+[32m+[m[32m  pickupAddress  String?[m
+[32m+[m[32m  pickupCity     String?[m
+[32m+[m[32m  serviceNotes   String?[m
+[32m+[m[32m  apiBaseUrl     String?[m
+[32m+[m[32m  apiKey         String?[m
+[32m+[m[32m  apiSecret      String?[m
+[32m+[m[32m  active         Boolean  @default(true)[m
+[32m+[m[32m  createdAt      DateTime @default(now())[m
+[32m+[m[32m  updatedAt      DateTime @updatedAt[m
+[32m+[m[32m  orders         Order[][m
+ [m
+   @@index([active, name])[m
+ }[m
+ [m
+ model OrderItem {[m
+[31m-  id         String   @id @default(cuid())[m
+[31m-  orderId    String[m
+[31m-  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)[m
+[31m-  productId  String[m
+[31m-  product    Product  @relation(fields: [productId], references: [id])[m
+[31m-  variantId  String?[m
+[31m-  variant    ProductVariant? @relation(fields: [variantId], references: [id])[m
+[31m-  quantity   Int[m
+[31m-  price      Float[m
+[31m-  total      Float[m
+[31m-  createdAt  DateTime @default(now())[m
+[32m+[m[32m  id        String          @id @default(cuid())[m
+[32m+[m[32m  orderId   String[m
+[32m+[m[32m  productId String[m
+[32m+[m[32m  variantId String?[m
+[32m+[m[32m  quantity  Int[m
+[32m+[m[32m  price     Float[m
+[32m+[m[32m  total     Float[m
+[32m+[m[32m  createdAt DateTime        @default(now())[m
+[32m+[m[32m  order     Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)[m
+[32m+[m[32m  product   Product         @relation(fields: [productId], references: [id])[m
+[32m+[m[32m  variant   ProductVariant? @relation(fields: [variantId], references: [id])[m
+ }[m
+ [m
+ model Coupon {[m
+[31m-  id                      String   @id @default(cuid())[m
+[31m-  code                    String   @unique[m
+[31m-  type                    CouponType @default(PERCENTAGE)[m
+[31m-  value                   Float[m
+[31m-  minOrder                Float    @default(0)[m
+[31m-  maxDiscount             Float?[m
+[31m-  startDate               DateTime[m
+[31m-  expiryDate              DateTime[m
+[31m-  usageLimit              Int?[m
+[31m-  perCustomer             Int?[m
+[31m-  applicableCategories   String[][m
+[31m-  applicableProductIds   String[][m
+[31m-  usedCount              Int      @default(0)[m
+[31m-  active                 Boolean  @default(true)[m
+[31m-  carts                  Cart[][m
+[31m-  couponUsage            CouponUsage[][m
+[31m-  createdAt              DateTime @default(now())[m
+[31m-  updatedAt              DateTime @updatedAt[m
+[32m+[m[32m  id                   String        @id @default(cuid())[m
+[32m+[m[32m  code                 String        @unique[m
+[32m+[m[32m  type                 CouponType    @default(PERCENTAGE)[m
+[32m+[m[32m  value                Float[m
+[32m+[m[32m  minOrder             Float         @default(0)[m
+[32m+[m[32m  maxDiscount          Float?[m
+[32m+[m[32m  startDate            DateTime[m
+[32m+[m[32m  expiryDate           DateTime[m
+[32m+[m[32m  usageLimit           Int?[m
+[32m+[m[32m  perCustomer          Int?[m
+[32m+[m[32m  applicableCategories String[][m
+[32m+[m[32m  applicableProductIds String[][m
+[32m+[m[32m  usedCount            Int           @default(0)[m
+[32m+[m[32m  active               Boolean       @default(true)[m
+[32m+[m[32m  createdAt            DateTime      @default(now())[m
+[32m+[m[32m  updatedAt            DateTime      @updatedAt[m
+[32m+[m[32m  carts                Cart[][m
+[32m+[m[32m  couponUsage          CouponUsage[][m
+ }[m
+ [m
+ model CouponUsage {[m
+[31m-  id        String   @id @default(cuid())[m
+[31m-  couponId  String[m
+[31m-  coupon    Coupon   @relation(fields: [couponId], references: [id])[m
+[31m-  userId    String[m
+[31m-  user      User     @relation(fields: [userId], references: [id])[m
+[31m-  orderId   String?  @unique[m
+[31m-  order     Order?   @relation(fields: [orderId], references: [id])[m
+[31m-  usedAt    DateTime @default(now())[m
+[32m+[m[32m  id       String   @id @default(cuid())[m
+[32m+[m[32m  couponId String[m
+[32m+[m[32m  userId   String[m
+[32m+[m[32m  orderId  String?  @unique[m
+[32m+[m[32m  usedAt   DateTime @default(now())[m
+[32m+[m[32m  coupon   Coupon   @relation(fields: [couponId], references: [id])[m
+[32m+[m[32m  order    Order?   @relation(fields: [orderId], references: [id])[m
+[32m+[m[32m  user     User     @relation(fields: [userId], references: [id])[m
+ }[m
+ [m
+ model SearchEvent {[m
+[31m-  id         String   @id @default(cuid())[m
+[31m-  query      String[m
+[31m-  resultCount Int     @default(0)[m
+[31m-  createdAt  DateTime @default(now())[m
+[32m+[m[32m  id          String   @id @default(cuid())[m
+[32m+[m[32m  query       String[m
+[32m+[m[32m  resultCount Int      @default(0)[m
+[32m+[m[32m  createdAt   DateTime @default(now())[m
+ [m
+   @@index([createdAt])[m
+   @@index([query])[m
+ }[m
+ [m
+ model InventoryMovement {[m
+[31m-  id         String          @id @default(cuid())[m
+[31m-  productId  String[m
+[31m-  product    Product         @relation(fields: [productId], references: [id], onDelete: Cascade)[m
+[31m-  variantId  String?[m
+[31m-  variant    ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)[m
+[31m-  userId     String?[m
+[31m-  user       User?           @relation(fields: [userId], references: [id], onDelete: SetNull)[m
+[31m-  change     Int[m
+[32m+[m[32m  id          String          @id @default(cuid())[m
+[32m+[m[32m  productId   String[m
+[32m+[m[32m  variantId   String?[m
+[32m+[m[32m  change      Int[m
+   beforeStock Int[m
+   afterStock  Int[m
+[31m-  reason     String[m
+[31m-  note       String?[m
+[31m-  createdAt  DateTime @default(now())[m
+[32m+[m[32m  reason      String[m
+[32m+[m[32m  note        String?[m
+[32m+[m[32m  createdAt   DateTime        @default(now())[m
+[32m+[m[32m  userId      String?[m
+[32m+[m[32m  product     Product         @relation(fields: [productId], references: [id], onDelete: Cascade)[m
+[32m+[m[32m  user        User?           @relation(fields: [userId], references: [id])[m
+[32m+[m[32m  variant     ProductVariant? @relation(fields: [variantId], references: [id])[m
+ [m
+   @@index([productId, createdAt])[m
+   @@index([variantId, createdAt])[m
+[36m@@ -307,18 +307,18 @@[m [mmodel Store {[m
+ }[m
+ [m
+ model BlogPost {[m
+[31m-  id          String   @id @default(cuid())[m
+[32m+[m[32m  id          String    @id @default(cuid())[m
+   title       String[m
+[31m-  slug        String   @unique[m
+[32m+[m[32m  slug        String    @unique[m
+   category    String[m
+   excerpt     String?[m
+   content     String[m
+   image       String?[m
+   author      String[m
+[31m-  published   Boolean  @default(false)[m
+[32m+[m[32m  published   Boolean   @default(false)[m
+   publishedAt DateTime?[m
+[31m-  createdAt   DateTime @default(now())[m
+[31m-  updatedAt   DateTime @updatedAt[m
+[32m+[m[32m  createdAt   DateTime  @default(now())[m
+[32m+[m[32m  updatedAt   DateTime  @updatedAt[m
+ }[m
+ [m
+ model NewsletterSubscriber {[m
+[36m@@ -411,4 +411,4 @@[m [menum PaymentStatus {[m
+ enum CouponType {[m
+   PERCENTAGE[m
+   FIXED[m
+[31m-}[m
+\ No newline at end of file[m
+[32m+[m[32m}[m

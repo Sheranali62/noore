@@ -1,18 +1,22 @@
-# NOORE Order Management 2.0
+# NOORE Admin Order Detail Runtime Fix
 
-Replace these files in the project:
+The error was caused by the order detail page assuming `order.address` and several order/item fields always exist. Production data can legitimately have a missing address relation or incomplete legacy relation data, which caused the recovery boundary to display:
 
-- `src/components/admin/orders-management.tsx`
-- `src/components/admin/order-admin-form.tsx`
-- `src/app/(admin)/admin/orders/[id]/page.tsx`
-- `src/app/(admin)/admin/orders/[id]/print/page.tsx`
+"Your cart and account data are kept safe while we recover the page."
 
-Highlights:
-- Premium order operations UI
-- Unsaved-change protection in the order editor
-- CSV export for the currently filtered order set
-- Invoice and packing-slip actions
-- Packing-slip print mode without pricing/payment totals
-- Existing COD-only workflow preserved
-- Existing inventory/status API preserved
-- No schema/database changes
+This patch hardens `/admin/orders/[id]` without changing the database schema.
+
+Replace/add:
+
+`src/app/(admin)/admin/orders/[id]/page.tsx`
+
+Then run:
+
+```bash
+cd D:\NOORE\noore
+npm run build
+git status
+git add "src/app/(admin)/admin/orders/[id]/page.tsx"
+git commit -m "Fix admin order detail runtime error"
+git push origin main
+```

@@ -1,34 +1,28 @@
-# NOORE Phase 2 — Items 4–8
+# NOORÉ Categories + Courier Contracts Upgrade
 
-Copy the packaged files into the matching paths in the current NOORE project. Do not replace the entire project.
+## What this adds
+- Admin > Categories: unlimited main categories and sub-categories using a parent/child tree.
+- Product creation/editing loads active main categories and matching sub-categories from the database.
+- Admin > Couriers: save contracted courier company profiles once (account/contract/contact/pickup/API profile fields).
+- Order Management: select a saved courier company; its company name and contract profile are loaded automatically.
+- Existing manual courier/tracking fields remain available.
+- No fake catalog, customer, order, or courier data is created.
 
-## Required database step
-This phase adds `InventoryMovement` to Prisma. After copying:
+## Database
+The Prisma schema adds `Category` and `CourierCompany`, and adds optional `courierCompanyId` to `Order`.
 
-    npx prisma db push
-    npx prisma generate
+Run once after copying the patch into the real repo:
 
-Then verify:
+```bash
+npx prisma db push
+npx prisma generate
+```
 
-    npx tsc --noEmit
-    npm run build
+Then build:
 
-## Mapping
-- schema.prisma -> prisma/schema.prisma
-- next.config.js -> next.config.js
-- middleware.ts -> src/middleware.ts
-- structured-data.ts -> src/lib/structured-data.ts
-- product-page.tsx -> src/app/(public)/product/[slug]/page.tsx
-- products-page.tsx -> src/app/(public)/products/page.tsx
-- blog-page.tsx -> src/app/(public)/blog/page.tsx
-- blog-detail-page.tsx -> src/app/(public)/blog/[slug]/page.tsx
-- inventory-page.tsx -> src/app/(admin)/admin/inventory/page.tsx
-- inventory-history-page.tsx -> src/app/(admin)/admin/inventory/history/page.tsx
-- inventory-adjust-api.ts -> src/app/api/admin/inventory/adjust/route.ts
-- inventory-history-api.ts -> src/app/api/admin/inventory/history/route.ts
-- inventory-adjustment.tsx -> src/components/admin/inventory-adjustment.tsx
+```bash
+npm run build
+```
 
-## Notes
-- Existing Phase 1 search/reviews/notifications/analytics work is not included here.
-- Existing customer account/cart/checkout work is not included here.
-- COD remains the only checkout payment option; this phase does not add digital payments.
+## Important
+The courier profile stores the contract/account information so the admin does not retype it for every order. The patch does **not** claim to submit shipments to a carrier API automatically unless a real carrier API integration is configured. `apiBaseUrl`, `apiKey`, and `apiSecret` are reserved for that integration.

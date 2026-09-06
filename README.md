@@ -1,17 +1,11 @@
-# NOORE Premium Homepage 2.0
+# NOORÉ — Admin Orders Runtime Fix
 
-Replace the existing `src/app/(public)/page.tsx` with the included file.
+This patch moves the `/admin/orders` order list query behind a dedicated admin API endpoint.
 
-Adds richer editorial homepage sections: Shop by World (Women/Men/Kids), Luxury Spotlight, Collection Stories, and Journal. Preserves adaptive personalization, existing product sections, COD-only checkout, and empty-catalog behavior.
+Why: the production Orders page was throwing the global "Something went wrong" error. The list endpoint intentionally selects only the fields required by the Orders UI and does **not** touch the newer courier-company relation. This keeps the order list resilient while the courier-contract feature is deployed.
 
-After extraction:
+Files:
+- `src/app/(admin)/admin/orders/page.tsx`
+- `src/app/api/admin/orders/route.ts`
 
-```powershell
-cd D:\NOORE\noore
-npm run build
-git status
-git add "src/app/(public)/page.tsx"
-git commit -m "Upgrade NOORE premium homepage"
-git push origin main
-npx vercel --prod
-```
+The patch does not change checkout or payment methods. COD remains unchanged.

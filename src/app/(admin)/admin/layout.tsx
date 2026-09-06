@@ -27,7 +27,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <Link href="/admin" className="font-editorial text-2xl">NOORÉ</Link>
             <span className="truncate text-xs text-secondary">{session.user.email}</span>
           </div>
-          <div className="mt-3"><AdminNav mobile /></div>
+          <div className="mt-3"><AdminNav /></div>
         </div>
         <main className="p-4 sm:p-6 lg:p-8">{children}</main>
       </div>
