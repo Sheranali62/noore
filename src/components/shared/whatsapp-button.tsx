@@ -1,7 +1,8 @@
 "use client"
 
-const WHATSAPP_URL =
-  "https://wa.me/923150490498?text=Hello%2C%20I%20visited%20your%20website%20and%20would%20like%20to%20make%20an%20inquiry."
+import { SOCIAL_LINKS } from "@/config/social-links"
+
+const WHATSAPP_URL = SOCIAL_LINKS.whatsapp
 
 export function WhatsAppButton() {
   return (
