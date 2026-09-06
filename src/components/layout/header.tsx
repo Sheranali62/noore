@@ -59,6 +59,36 @@ export function Header() {
   const [shortcutLabel, setShortcutLabel] = useState("Ctrl K")
 
   const inputRef = useRef<HTMLInputElement>(null)
+  const megaCloseTimer = useRef<number | null>(null)
+
+  const cancelMegaClose = () => {
+    if (megaCloseTimer.current !== null) {
+      window.clearTimeout(megaCloseTimer.current)
+      megaCloseTimer.current = null
+    }
+  }
+
+  const openMega = (tab: string) => {
+    cancelMegaClose()
+    setMegaTab(tab)
+    setMegaOpen(true)
+  }
+
+  const scheduleMegaClose = () => {
+    cancelMegaClose()
+    megaCloseTimer.current = window.setTimeout(() => {
+      setMegaOpen(false)
+      megaCloseTimer.current = null
+    }, 180)
+  }
+
+  useEffect(() => {
+    return () => {
+      if (megaCloseTimer.current !== null) {
+        window.clearTimeout(megaCloseTimer.current)
+      }
+    }
+  }, [])
 
   useEffect(() => {
     setShortcutLabel(
@@ -266,9 +296,17 @@ export function Header() {
           {/* DESKTOP NAVIGATION */}
           <nav
             className="hidden items-center gap-5 md:flex"
-            onMouseLeave={() => setMegaOpen(false)}
+            onMouseEnter={cancelMegaClose}
+            onMouseLeave={scheduleMegaClose}
           >
-            <Link href="/products" className="nav-link">Shop All</Link>
+            <Link
+              href="/products"
+              className="nav-link"
+              onMouseEnter={() => openMega("all")}
+              onFocus={() => openMega("all")}
+            >
+              Shop All
+            </Link>
 
             {[
               ["Women", "/women", "women"],
@@ -280,8 +318,8 @@ export function Header() {
                 <Link
                   href={href}
                   className="nav-link inline-flex items-center gap-1"
-                  onMouseEnter={() => { setMegaTab(tab); setMegaOpen(true) }}
-                  onFocus={() => { setMegaTab(tab); setMegaOpen(true) }}
+                  onMouseEnter={() => openMega(tab)}
+                  onFocus={() => openMega(tab)}
                 >
                   {label}<span className="text-[9px]">⌄</span>
                 </Link>
@@ -569,14 +607,15 @@ export function Header() {
         {megaOpen && (
           <div
             className="absolute left-0 right-0 top-full hidden border-t border-black/5 bg-white shadow-[0_24px_60px_rgba(0,0,0,.08)] md:block"
-            onMouseEnter={() => setMegaOpen(true)}
-            onMouseLeave={() => setMegaOpen(false)}
+            onMouseEnter={cancelMegaClose}
+            onMouseLeave={scheduleMegaClose}
           >
             <div className="mx-auto grid max-w-7xl grid-cols-[180px_1fr_280px] gap-8 px-5 py-8">
               <div className="border-r border-border pr-6">
                 <p className="eyebrow">Shop the world</p>
                 <div className="mt-4 space-y-1">
                   {[
+                    ["all", "Shop All", "/products"],
                     ["women", "Women", "/women"],
                     ["men", "Men", "/men"],
                     ["kids", "Kids", "/kids"],
@@ -595,43 +634,98 @@ export function Header() {
               </div>
 
               <div>
+                {megaTab === "all" && (
+                  <>
+                    <p className="eyebrow">Shop all / categories</p>
+                    <div className="mt-5 grid grid-cols-3 gap-x-8 gap-y-3 text-sm">
+                      <Link href="/new-in">New In</Link>
+                      <Link href="/women">Women</Link>
+                      <Link href="/men">Men</Link>
+                      <Link href="/kids">Kids</Link>
+                      <Link href="/collections">Collections</Link>
+                      <Link href="/products?category=Luxury">Luxury</Link>
+                      <Link href="/sale">Sale</Link>
+                      <Link href="/journal">Journal</Link>
+                      <Link href="/products">All Products</Link>
+                    </div>
+                  </>
+                )}
+
                 {megaTab === "women" && (
                   <>
-                    <p className="eyebrow">Women / edit</p>
+                    <p className="eyebrow">Women / categories</p>
                     <div className="mt-5 grid grid-cols-3 gap-x-8 gap-y-3 text-sm">
                       <Link href="/products?gender=Women">All Women</Link>
-                      <Link href="/products?gender=Women&category=Ready%20to%20Wear">Ready to Wear</Link>
+                      <Link href="/products?gender=Women&category=Saree">Saree</Link>
+                      <Link href="/products?gender=Women&category=Shalwar%20Kameez">Shalwar Kameez</Link>
+                      <Link href="/products?gender=Women&category=2%20Piece">2 Piece</Link>
+                      <Link href="/products?gender=Women&category=3%20Piece">3 Piece</Link>
+                      <Link href="/products?gender=Women&category=Kurta">Kurta</Link>
+                      <Link href="/products?gender=Women&category=Kurtis">Kurtis</Link>
+                      <Link href="/products?gender=Women&category=Suits">Suits</Link>
+                      <Link href="/products?gender=Women&category=Lawn">Lawn</Link>
+                      <Link href="/products?gender=Women&category=Chiffon">Chiffon</Link>
+                      <Link href="/products?gender=Women&category=Linen">Linen</Link>
+                      <Link href="/products?gender=Women&category=Formal%20Wear">Formal Wear</Link>
+                      <Link href="/products?gender=Women&category=Party%20Wear">Party Wear</Link>
+                      <Link href="/products?gender=Women&category=Casual%20Wear">Casual Wear</Link>
                       <Link href="/products?gender=Women&category=Unstitched">Unstitched</Link>
-                      <Link href="/products?gender=Women&category=Luxury">Luxury</Link>
+                      <Link href="/products?gender=Women&category=Dupattas">Dupattas</Link>
+                      <Link href="/products?gender=Women&category=Shawls">Shawls</Link>
+                      <Link href="/products?gender=Women&category=Bottoms">Bottoms</Link>
                       <Link href="/products?gender=Women&sale=1">Sale</Link>
-                      <Link href="/new-in">New In</Link>
                     </div>
                   </>
                 )}
+
                 {megaTab === "men" && (
                   <>
-                    <p className="eyebrow">Men / edit</p>
+                    <p className="eyebrow">Men / categories</p>
                     <div className="mt-5 grid grid-cols-3 gap-x-8 gap-y-3 text-sm">
                       <Link href="/products?gender=Men">All Men</Link>
-                      <Link href="/products?gender=Men&category=Ready%20to%20Wear">Ready to Wear</Link>
-                      <Link href="/products?gender=Men&category=Luxury">Luxury</Link>
+                      <Link href="/products?gender=Men&category=Shalwar%20Kameez">Shalwar Kameez</Link>
+                      <Link href="/products?gender=Men&category=Kurta">Kurta</Link>
+                      <Link href="/products?gender=Men&category=2%20Piece">2 Piece</Link>
+                      <Link href="/products?gender=Men&category=3%20Piece">3 Piece</Link>
+                      <Link href="/products?gender=Men&category=Waistcoats">Waistcoats</Link>
+                      <Link href="/products?gender=Men&category=Prince%20Coats">Prince Coats</Link>
+                      <Link href="/products?gender=Men&category=Suits">Suits</Link>
+                      <Link href="/products?gender=Men&category=Formal%20Wear">Formal Wear</Link>
+                      <Link href="/products?gender=Men&category=Casual%20Wear">Casual Wear</Link>
+                      <Link href="/products?gender=Men&category=Unstitched">Unstitched</Link>
+                      <Link href="/products?gender=Men&category=Kameez">Kameez</Link>
+                      <Link href="/products?gender=Men&category=Shalwar">Shalwar</Link>
+                      <Link href="/products?gender=Men&category=Trousers">Trousers</Link>
+                      <Link href="/products?gender=Men&category=Jackets">Jackets</Link>
+                      <Link href="/products?gender=Men&category=Festive%20Wear">Festive Wear</Link>
                       <Link href="/products?gender=Men&sale=1">Sale</Link>
-                      <Link href="/new-in">New In</Link>
                     </div>
                   </>
                 )}
+
                 {megaTab === "kids" && (
                   <>
-                    <p className="eyebrow">Kids / edit</p>
+                    <p className="eyebrow">Kids / categories</p>
                     <div className="mt-5 grid grid-cols-3 gap-x-8 gap-y-3 text-sm">
                       <Link href="/products?gender=Kids">All Kids</Link>
-                      <Link href="/products?gender=Kids&category=Ready%20to%20Wear">Everyday</Link>
-                      <Link href="/products?gender=Kids&category=Luxury">Occasion</Link>
+                      <Link href="/products?gender=Kids&category=Girls%20Shalwar%20Kameez">Girls Shalwar Kameez</Link>
+                      <Link href="/products?gender=Kids&category=Girls%202%20Piece">Girls 2 Piece</Link>
+                      <Link href="/products?gender=Kids&category=Girls%203%20Piece">Girls 3 Piece</Link>
+                      <Link href="/products?gender=Kids&category=Girls%20Kurtis">Girls Kurtis</Link>
+                      <Link href="/products?gender=Kids&category=Girls%20Festive%20Wear">Girls Festive Wear</Link>
+                      <Link href="/products?gender=Kids&category=Boys%20Shalwar%20Kameez">Boys Shalwar Kameez</Link>
+                      <Link href="/products?gender=Kids&category=Boys%20Kurta">Boys Kurta</Link>
+                      <Link href="/products?gender=Kids&category=Boys%20Waistcoats">Boys Waistcoats</Link>
+                      <Link href="/products?gender=Kids&category=Boys%202%20Piece">Boys 2 Piece</Link>
+                      <Link href="/products?gender=Kids&category=Girls%20Casual">Girls Casual</Link>
+                      <Link href="/products?gender=Kids&category=Boys%20Casual">Boys Casual</Link>
+                      <Link href="/products?gender=Kids&category=Formal">Formal</Link>
+                      <Link href="/products?gender=Kids&category=Festive">Festive</Link>
                       <Link href="/products?gender=Kids&sale=1">Sale</Link>
-                      <Link href="/new-in">New In</Link>
                     </div>
                   </>
                 )}
+
                 {megaTab === "collections" && (
                   <>
                     <p className="eyebrow">Collections / stories</p>
@@ -640,16 +734,20 @@ export function Header() {
                       <Link href="/products?collection=Festive%202026">Festive 2026</Link>
                       <Link href="/products?collection=Modern%20Classics">Modern Classics</Link>
                       <Link href="/products?category=Luxury">The Evening Edit</Link>
+                      <Link href="/products?collection=Lawn">Lawn & Summer</Link>
+                      <Link href="/products?collection=Winter">Winter Edit</Link>
+                      <Link href="/sale">Sale Edit</Link>
+                      <Link href="/new-in">New Season</Link>
                     </div>
                   </>
                 )}
               </div>
 
-              <Link href={megaTab === "collections" ? "/collections" : `/${megaTab}`} className="group relative min-h-[190px] overflow-hidden bg-charcoal text-white">
+              <Link href={megaTab === "collections" ? "/collections" : megaTab === "all" ? "/products" : `/${megaTab}`} className="group relative min-h-[190px] overflow-hidden bg-charcoal text-white">
                 <img src={megaTab === "women" ? "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=900&auto=format&fit=crop" : megaTab === "men" ? "https://images.unsplash.com/photo-1617137968427-85924c800a22?w=900&auto=format&fit=crop" : megaTab === "kids" ? "https://images.unsplash.com/photo-1503919545889-aef636e10ad4?w=900&auto=format&fit=crop" : "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=900&auto=format&fit=crop"} alt="" className="absolute inset-0 h-full w-full object-cover opacity-75 transition duration-700 group-hover:scale-105" />
                 <div className="absolute inset-0 bg-black/35" />
                 <div className="relative flex h-full min-h-[190px] flex-col justify-end p-5">
-                  <p className="text-[9px] uppercase tracking-[.2em] text-white/65">NOORÉ / {megaTab}</p>
+                  <p className="text-[9px] uppercase tracking-[.2em] text-white/65">NOORÉ / {megaTab === "all" ? "SHOP ALL" : megaTab}</p>
                   <p className="mt-2 font-editorial text-2xl">Discover the edit.</p>
                   <span className="mt-3 inline-flex items-center gap-2 text-[9px] font-semibold uppercase tracking-[.18em]">Explore <ArrowUpRight className="h-3 w-3" /></span>
                 </div>
