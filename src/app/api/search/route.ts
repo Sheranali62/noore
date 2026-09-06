@@ -5,7 +5,11 @@ export const dynamic = "force-dynamic"
 
 const SIZE_WORDS = ["xs", "s", "m", "l", "xl", "xxl", "2xl", "3xl", "4xl", "small", "medium", "large"]
 const COLORS = ["black", "white", "ivory", "cream", "beige", "brown", "blue", "navy", "green", "olive", "pink", "red", "maroon", "purple", "grey", "gray", "gold", "silver", "mustard", "peach", "teal"]
-const FILTER_WORDS = new Set(["sale", "selling", "under", "below", "less", "than", "over", "above", "between", "rs", "pkr", "price", "in", "stock", "available", "for", "men", "women", ...SIZE_WORDS, ...COLORS])
+const FILTER_WORDS = new Set([
+  "sale", "selling", "discount", "discounted", "under", "below", "less", "than", "over", "above", "more", "between", "and", "rs", "pkr", "price", "in", "stock", "available", "for", "men", "mens", "male", "women", "womens", "female", "kids", "kid", "children", "child", "new", "arrivals", "arrival",
+  ...SIZE_WORDS,
+  ...COLORS,
+])
 
 function parseSmartQuery(input: string) {
   const raw = input.toLowerCase().replace(/,/g, " ").replace(/\s+/g, " ").trim()
@@ -16,9 +20,10 @@ function parseSmartQuery(input: string) {
   if (color) detected.color = color
   const size = tokens.find((token) => SIZE_WORDS.includes(token))
   if (size) detected.size = size
-  if (tokens.includes("men") || tokens.includes("mens") || tokens.includes("male")) detected.gender = "Men"
-  if (tokens.includes("women") || tokens.includes("womens") || tokens.includes("female")) detected.gender = "Women"
-  if (tokens.includes("sale") || tokens.includes("discount") || tokens.includes("discounted")) detected.sale = true
+  if (tokens.some((token) => ["men", "mens", "male"].includes(token))) detected.gender = "Men"
+  if (tokens.some((token) => ["women", "womens", "female"].includes(token))) detected.gender = "Women"
+  if (tokens.some((token) => ["kids", "kid", "children", "child"].includes(token))) detected.gender = "Kids"
+  if (tokens.some((token) => ["sale", "discount", "discounted"].includes(token))) detected.sale = true
   if (tokens.includes("stock") || tokens.includes("available")) detected.inStock = true
 
   const under = raw.match(/(?:under|below|less than)\s*(?:pkr|rs)?\s*([\d,]+)/)
@@ -39,6 +44,7 @@ export async function GET(request: NextRequest) {
   const q = params.get("q")?.trim() || ""
   const category = params.get("category")?.trim() || ""
   const gender = params.get("gender")?.trim() || ""
+  const collection = params.get("collection")?.trim() || ""
   const size = params.get("size")?.trim() || ""
   const color = params.get("color")?.trim() || ""
   const sale = params.get("sale") === "true"
@@ -75,6 +81,7 @@ export async function GET(request: NextRequest) {
   }
   if (category) where.category = category
   if (effectiveGender) where.gender = { equals: effectiveGender, mode: "insensitive" }
+  if (collection) where.collection = { equals: collection, mode: "insensitive" }
   if (effectiveSize || effectiveColor) {
     where.variants = {
       some: {
@@ -86,9 +93,22 @@ export async function GET(request: NextRequest) {
   } else if (effectiveStock) where.stock = { gt: 0 }
   if (effectiveSale) where.salePrice = { not: null }
   if (Number.isFinite(effectiveMin) || Number.isFinite(effectiveMax)) {
-    where.price = {}
-    if (Number.isFinite(effectiveMin)) where.price.gte = effectiveMin
-    if (Number.isFinite(effectiveMax)) where.price.lte = effectiveMax
+    where.OR = [
+      ...(where.OR || []),
+      {
+        AND: [
+          ...(Number.isFinite(effectiveMin) ? [{ price: { gte: effectiveMin } }] : []),
+          ...(Number.isFinite(effectiveMax) ? [{ price: { lte: effectiveMax } }] : []),
+        ],
+      },
+      {
+        AND: [
+          { salePrice: { not: null } },
+          ...(Number.isFinite(effectiveMin) ? [{ salePrice: { gte: effectiveMin } }] : []),
+          ...(Number.isFinite(effectiveMax) ? [{ salePrice: { lte: effectiveMax } }] : []),
+        ],
+      },
+    ]
   }
 
   let orderBy: any = { createdAt: "desc" }
@@ -106,7 +126,7 @@ export async function GET(request: NextRequest) {
       take,
       select: {
         id: true, name: true, slug: true, price: true, salePrice: true,
-        images: true, category: true, gender: true, stock: true,
+        images: true, category: true, gender: true, collection: true, stock: true,
         variants: { select: { color: true, size: true, stock: true } },
         _count: { select: { reviews: true, orderItems: true } },
       },
@@ -124,14 +144,12 @@ export async function GET(request: NextRequest) {
     sizes: Array.from(new Set(products.flatMap((p) => p.variants.map((v) => v.size)))).slice(0, 20),
   }
 
- return NextResponse.json({
-  products,
-  total,
-  page,
-  pages: Math.ceil(total / take),
-  detectedFilters: smart.detected,
-  facets: facetValues,
-})
-
-  return NextResponse.json({ products, total, page, pages: Math.ceil(total / take), detectedFilters: smart.detected, facets: facetValues })
+  return NextResponse.json({
+    products,
+    total,
+    page,
+    pages: Math.ceil(total / take),
+    detectedFilters: smart.detected,
+    facets: facetValues,
+  })
 }
