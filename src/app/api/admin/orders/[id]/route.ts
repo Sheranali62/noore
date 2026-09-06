@@ -54,6 +54,13 @@ export async function PATCH(
         ? null
         : String(body.courier ?? "").trim() || null
 
+    const courierCompanyId =
+      body.courierCompanyId === undefined
+        ? undefined
+        : body.courierCompanyId === null || body.courierCompanyId === ""
+          ? null
+          : String(body.courierCompanyId)
+
     if (status && !ORDER_STATUSES.includes(status)) {
       return NextResponse.json(
         { error: "Invalid order status" },
@@ -72,12 +79,22 @@ export async function PATCH(
       !status &&
       !paymentStatus &&
       body.trackingNumber === undefined &&
-      body.courier === undefined
+      body.courier === undefined &&
+      body.courierCompanyId === undefined
     ) {
       return NextResponse.json(
         { error: "No changes supplied" },
         { status: 400 }
       )
+    }
+
+    let selectedCourierName: string | null = null
+    if (courierCompanyId) {
+      const courierCompany = await prisma.courierCompany.findUnique({ where: { id: courierCompanyId }, select: { id: true, name: true, active: true } })
+      if (!courierCompany || !courierCompany.active) {
+        return NextResponse.json({ error: "Selected courier company is not active" }, { status: 400 })
+      }
+      selectedCourierName = courierCompany.name
     }
 
     const order = await prisma.$transaction(async (tx) => {
@@ -292,8 +309,14 @@ export async function PATCH(
               ? trackingNumber
               : undefined,
           courier:
-            body.courier !== undefined
-              ? courier
+            courierCompanyId !== undefined
+              ? selectedCourierName
+              : body.courier !== undefined
+                ? courier
+                : undefined,
+          courierCompanyId:
+            courierCompanyId !== undefined
+              ? courierCompanyId
               : undefined,
         },
         include: {

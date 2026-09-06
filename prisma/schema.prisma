@@ -40,6 +40,23 @@ model Address {
   updatedAt DateTime @updatedAt
 }
 
+model Category {
+  id          String     @id @default(cuid())
+  name        String
+  slug        String     @unique
+  description String?
+  active      Boolean    @default(true)
+  sortOrder   Int        @default(0)
+  parentId    String?
+  parent      Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children    Category[] @relation("CategoryTree")
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([parentId])
+  @@index([active, sortOrder])
+}
+
 model Product {
   id             String   @id @default(cuid())
   name           String
@@ -167,11 +184,35 @@ model Order {
   paymentStatus    PaymentStatus @default(UNPAID)
   trackingNumber   String?
   courier          String?
+  courierCompanyId String?
+  courierCompany   CourierCompany? @relation(fields: [courierCompanyId], references: [id], onDelete: SetNull)
   notes            String?
   couponCode       String?
   couponUsage      CouponUsage?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+}
+
+model CourierCompany {
+  id              String   @id @default(cuid())
+  name            String
+  accountNumber   String?
+  contractNumber  String?
+  contactName     String?
+  contactPhone    String?
+  contactEmail    String?
+  pickupAddress   String?
+  pickupCity      String?
+  serviceNotes    String?
+  apiBaseUrl      String?
+  apiKey          String?
+  apiSecret       String?
+  active          Boolean  @default(true)
+  orders          Order[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([active, name])
 }
 
 model OrderItem {
