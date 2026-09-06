@@ -111,6 +111,32 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Shop by world */}
+      <section className="mx-auto max-w-7xl px-5 py-16 md:py-24">
+        <div className="mb-9 flex items-end justify-between gap-4">
+          <div><p className="text-[10px] uppercase tracking-[0.3em] text-black/45">Enter your world</p><h2 className="mt-2 font-editorial text-4xl md:text-5xl">Shop by world</h2></div>
+          <Link href="/collections" className="text-xs font-semibold uppercase tracking-[0.15em] underline underline-offset-4">View collections</Link>
+        </div>
+        <div className="grid gap-3 md:grid-cols-3 md:gap-4">
+          {[
+            { title: "Women", copy: "Modern silhouettes, festive layers and everyday refinement.", href: "/women", image: "https://images.unsplash.com/photo-1485968579580-b6d095142e6e?w=1200&auto=format&fit=crop" },
+            { title: "Men", copy: "Tailored essentials and understated Pakistani style.", href: "/men", image: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=1200&auto=format&fit=crop" },
+            { title: "Kids", copy: "Playful occasionwear and easy everyday pieces.", href: "/kids", image: "https://images.unsplash.com/photo-1503919545889-aef636e10ad4?w=1200&auto=format&fit=crop" },
+          ].map((item) => (
+            <Link key={item.title} href={item.href} className="group relative min-h-[500px] overflow-hidden bg-black text-white md:min-h-[620px]">
+              <div className="absolute inset-0 bg-cover bg-center transition duration-700 group-hover:scale-105" style={{ backgroundImage: `url('${item.image}')` }} />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 p-7 md:p-9">
+                <p className="text-[9px] uppercase tracking-[0.25em] text-white/65">NOORÉ</p>
+                <h3 className="mt-2 font-editorial text-4xl md:text-5xl">{item.title}</h3>
+                <p className="mt-3 max-w-sm text-sm leading-6 text-white/70">{item.copy}</p>
+                <span className="mt-6 inline-block border-b border-white pb-1 text-[10px] font-semibold uppercase tracking-[0.2em]">Explore {item.title} →</span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
       {/* Trending / best sellers */}
       {trendingProducts.length > 0 && (
         <section className="bg-[#f4f0e8] py-16 md:py-24">
@@ -157,6 +183,24 @@ export default async function HomePage() {
         </section>
       )}
 
+      {/* Luxury spotlight */}
+      <section className="bg-charcoal text-white">
+        <div className="mx-auto grid max-w-7xl md:grid-cols-2">
+          <div className="relative min-h-[560px] overflow-hidden md:min-h-[700px]">
+            <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1600&auto=format&fit=crop')" }} />
+            <div className="absolute inset-0 bg-black/20" />
+          </div>
+          <div className="flex items-center px-7 py-16 md:px-14 md:py-24">
+            <div className="max-w-xl">
+              <p className="text-[10px] uppercase tracking-[0.35em] text-white/45">The luxury edit</p>
+              <h2 className="mt-4 font-editorial text-5xl leading-[0.98] md:text-7xl">For evenings that deserve more.</h2>
+              <p className="mt-6 max-w-md text-sm leading-7 text-white/60">A refined selection of elevated pieces, occasion silhouettes and considered details designed to make an entrance without asking for attention.</p>
+              <Link href="/collections" className="mt-8 inline-block border-b border-white/70 pb-1 text-[10px] font-semibold uppercase tracking-[0.2em]">Explore the luxury edit</Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Limited edit */}
       {limitedProducts.length > 0 && (
         <section className="border-y border-black/5 bg-[#f4f0e8] py-16 md:py-20">
@@ -187,6 +231,29 @@ export default async function HomePage() {
         </section>
       )}
 
+      {/* Collection stories */}
+      <section className="bg-white py-16 md:py-24">
+        <div className="mx-auto max-w-7xl px-5">
+          <div className="mb-9 flex items-end justify-between gap-4">
+            <div><p className="text-[10px] uppercase tracking-[0.3em] text-black/45">Curated stories</p><h2 className="mt-2 font-editorial text-4xl md:text-5xl">The collections</h2></div>
+            <Link href="/collections" className="text-xs font-semibold uppercase tracking-[0.15em] underline underline-offset-4">See all</Link>
+          </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            {[
+              ["The New Edit", "Everyday pieces with an elevated point of view.", "/collections", "https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?w=1200&auto=format&fit=crop"],
+              ["Festive 2026", "Statement dressing for celebrations and evenings.", "/collections", "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=1200&auto=format&fit=crop"],
+              ["Quiet Luxury", "Refined textures, softer lines and lasting essentials.", "/collections", "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=1200&auto=format&fit=crop"],
+            ].map(([title, copy, href, image]) => (
+              <Link key={title} href={href} className="group relative min-h-[430px] overflow-hidden bg-black text-white md:min-h-[520px]">
+                <div className="absolute inset-0 bg-cover bg-center transition duration-700 group-hover:scale-105" style={{ backgroundImage: `url('${image}')` }} />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
+                <div className="absolute bottom-0 p-6 md:p-8"><p className="font-editorial text-3xl md:text-4xl">{title}</p><p className="mt-2 max-w-xs text-sm text-white/65">{copy}</p><span className="mt-5 inline-block text-[9px] font-semibold uppercase tracking-[0.2em] underline underline-offset-4">Discover →</span></div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Editorial banners */}
       <section className="mx-auto max-w-7xl px-5 py-16 md:py-24">
         <div className="grid gap-5 md:grid-cols-2">
@@ -197,6 +264,30 @@ export default async function HomePage() {
               <div className="absolute bottom-0 left-0 p-7 md:p-10"><p className="text-[10px] uppercase tracking-[0.3em] text-white/70">{item.eyebrow}</p><h2 className="mt-3 max-w-md font-editorial text-4xl leading-tight md:text-5xl">{item.title}</h2><p className="mt-3 max-w-md text-sm text-white/70">{item.copy}</p><span className="mt-6 inline-block border-b border-white pb-1 text-[10px] font-semibold uppercase tracking-[0.2em]">Explore collection</span></div>
             </Link>
           ))}
+        </div>
+      </section>
+
+      {/* Journal */}
+      <section className="border-y border-black/5 bg-[#f4f0e8] py-16 md:py-24">
+        <div className="mx-auto max-w-7xl px-5">
+          <div className="mb-9 flex items-end justify-between gap-4">
+            <div><p className="text-[10px] uppercase tracking-[0.3em] text-black/45">From the journal</p><h2 className="mt-2 font-editorial text-4xl md:text-5xl">The NOORÉ journal</h2></div>
+            <Link href="/journal" className="text-xs font-semibold uppercase tracking-[0.15em] underline underline-offset-4">Read all</Link>
+          </div>
+          <div className="grid gap-5 md:grid-cols-3">
+            {[
+              ["How to build a timeless Pakistani wardrobe", "Style notes", "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=1000&auto=format&fit=crop"],
+              ["The details behind modern festive dressing", "Inside NOORÉ", "https://images.unsplash.com/photo-1591369822096-ffd140ec948f?w=1000&auto=format&fit=crop"],
+              ["Three ways to style one statement piece", "Styling", "https://images.unsplash.com/photo-1485230895905-ec40ba36b9bc?w=1000&auto=format&fit=crop"],
+            ].map(([title, eyebrow, image]) => (
+              <Link key={title} href="/journal" className="group block">
+                <div className="aspect-[4/3] overflow-hidden bg-black"><div className="h-full w-full bg-cover bg-center transition duration-700 group-hover:scale-105" style={{ backgroundImage: `url('${image}')` }} /></div>
+                <p className="mt-5 text-[9px] font-semibold uppercase tracking-[0.2em] text-black/45">{eyebrow}</p>
+                <h3 className="mt-2 font-editorial text-2xl leading-tight md:text-3xl">{title}</h3>
+                <span className="mt-4 inline-block text-[9px] font-semibold uppercase tracking-[0.18em] underline underline-offset-4">Read story →</span>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 
