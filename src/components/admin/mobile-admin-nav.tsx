@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import AdminNav from "@/components/admin/admin-nav"
@@ -9,150 +9,156 @@ type MobileAdminNavProps = {
   email: string
 }
 
-export default function MobileAdminNav({ email }: MobileAdminNavProps) {
+export default function MobileAdminNav({
+  email,
+}: MobileAdminNavProps) {
   const [open, setOpen] = useState(false)
+  const wrapperRef = useRef<HTMLDivElement>(null)
   const pathname = usePathname()
 
+  // Close menu after navigation
   useEffect(() => {
     setOpen(false)
   }, [pathname])
 
+  // Close when clicking outside
   useEffect(() => {
-    if (!open) {
-      document.body.style.overflow = ""
-      return
+    if (!open) return
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target as Node
+
+      if (
+        wrapperRef.current &&
+        !wrapperRef.current.contains(target)
+      ) {
+        setOpen(false)
+      }
     }
 
-    document.body.style.overflow = "hidden"
+    document.addEventListener("pointerdown", handlePointerDown)
 
     return () => {
-      document.body.style.overflow = ""
+      document.removeEventListener(
+        "pointerdown",
+        handlePointerDown
+      )
     }
   }, [open])
 
+  // Close with Escape
   useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
+    if (!open) return
+
+    const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setOpen(false)
       }
     }
 
-    window.addEventListener("keydown", onKeyDown)
-    return () => window.removeEventListener("keydown", onKeyDown)
-  }, [])
+    document.addEventListener("keydown", handleKeyDown)
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [open])
 
   return (
-    <>
-      {/* Mobile top bar */}
-      <div className="sticky top-0 z-40 border-b border-cream bg-background/95 px-4 py-3 shadow-sm backdrop-blur lg:hidden">
-        <div className="flex min-h-11 items-center justify-between gap-3">
-          <Link
-            href="/admin"
-            className="shrink-0 font-editorial text-2xl text-foreground"
+    <div
+      ref={wrapperRef}
+      className="relative lg:hidden"
+    >
+      {/* Mobile header */}
+      <div className="flex min-h-[60px] items-center justify-between gap-3">
+        <Link
+          href="/admin"
+          className="shrink-0 font-editorial text-2xl text-foreground"
+        >
+          NOORÉ
+        </Link>
+
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="hidden max-w-[180px] truncate text-xs text-secondary sm:block">
+            {email}
+          </span>
+
+          <button
+            type="button"
+            onClick={() => setOpen((current) => !current)}
+            aria-label={
+              open
+                ? "Close admin navigation"
+                : "Open admin navigation"
+            }
+            aria-expanded={open}
+            aria-haspopup="menu"
+            className={[
+              "flex h-11 w-11 shrink-0 items-center justify-center",
+              "rounded-xl border shadow-sm transition-all",
+              "active:scale-95",
+              "focus:outline-none focus-visible:ring-2",
+              "focus-visible:ring-foreground/30",
+              open
+                ? "border-foreground bg-foreground text-background"
+                : "border-border bg-card text-foreground hover:bg-muted",
+            ].join(" ")}
           >
-            NOORÉ
-          </Link>
-
-          <div className="flex min-w-0 items-center gap-2">
-            <span className="hidden max-w-[150px] truncate text-xs text-secondary sm:block">
-              {email}
-            </span>
-
-            {/* 3-dot menu button */}
-            <button
-              type="button"
-              onClick={() => setOpen(true)}
-              aria-label="Open admin menu"
-              aria-expanded={open}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-foreground text-background shadow-sm transition hover:opacity-90 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-foreground/40"
-            >
-              <span className="flex flex-col items-center justify-center gap-1">
-                <span className="h-1.5 w-1.5 rounded-full bg-background" />
-                <span className="h-1.5 w-1.5 rounded-full bg-background" />
-                <span className="h-1.5 w-1.5 rounded-full bg-background" />
+            {open ? (
+              <svg
+                width="19"
+                height="19"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                aria-hidden="true"
+              >
+                <path d="M6 6l12 12" />
+                <path d="M18 6L6 18" />
+              </svg>
+            ) : (
+              <span className="flex flex-col items-center gap-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                <span className="h-1.5 w-1.5 rounded-full bg-current" />
               </span>
-            </button>
-          </div>
+            )}
+          </button>
         </div>
       </div>
 
-      {/* Backdrop */}
+      {/* Simple dropdown — NOT fixed, NOT fullscreen */}
       {open && (
-        <button
-          type="button"
-          aria-label="Close admin menu"
-          onClick={() => setOpen(false)}
-          className="fixed inset-0 z-50 cursor-default bg-black/50 backdrop-blur-[2px] lg:hidden"
-        />
-      )}
-
-      {/* Drawer */}
-      <aside
-        aria-label="Mobile admin navigation"
-        aria-hidden={!open}
-        className={[
-          "fixed inset-y-0 right-0 z-[60] flex w-[min(86vw,360px)]",
-          "flex-col bg-charcoal text-white shadow-2xl",
-          "transition-transform duration-300 ease-out lg:hidden",
-          open ? "translate-x-0" : "translate-x-full",
-        ].join(" ")}
-      >
-        {/* Drawer header */}
-        <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
-          <div>
-            <div className="font-editorial text-2xl">NOORÉ</div>
-            <div className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-white/45">
+        <div
+          role="menu"
+          className="absolute right-0 top-[calc(100%-1px)] z-50 w-[min(92vw,340px)] overflow-hidden rounded-2xl border border-border bg-charcoal p-3 shadow-2xl"
+        >
+          <div className="mb-3 border-b border-white/10 px-2 pb-3">
+            <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/40">
               Admin studio
+            </div>
+
+            <div className="mt-1 truncate text-sm text-white/80">
+              {email}
             </div>
           </div>
 
-          {/* Clearly visible close button */}
-          <button
-            type="button"
-            onClick={() => setOpen(false)}
-            aria-label="Close menu"
-            className="flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-white text-slate-950 shadow-sm transition hover:bg-white/90 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              aria-hidden="true"
-            >
-              <path d="M6 6l12 12" />
-              <path d="M18 6L6 18" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Account */}
-        <div className="border-b border-white/10 px-5 py-4">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/40">
-            Signed in as
+          <div className="max-h-[70vh] overflow-y-auto">
+            <AdminNav mobile />
           </div>
-          <div className="mt-1 truncate text-sm text-white/85">
-            {email}
+
+          <div className="mt-3 border-t border-white/10 pt-3">
+            <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-xs text-white/55">
+              Production workspace
+              <br />
+              <span className="text-white/85">
+                COD commerce
+              </span>
+            </div>
           </div>
         </div>
-
-        {/* Navigation */}
-        <div className="flex-1 overflow-y-auto px-4 py-5">
-          <AdminNav mobile />
-        </div>
-
-        {/* Footer */}
-        <div className="border-t border-white/10 p-4">
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-xs text-white/55">
-            Production workspace
-            <br />
-            <span className="text-white/85">COD commerce</span>
-          </div>
-        </div>
-      </aside>
-    </>
+      )}
+    </div>
   )
 }
