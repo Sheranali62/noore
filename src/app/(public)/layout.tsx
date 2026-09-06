@@ -8,6 +8,7 @@ import { Header } from "@/components/layout/header"
 import { useCart } from "@/components/cart/cart-context"
 import { CartDrawer } from "@/components/cart/cart-drawer"
 import { InterestTracker } from "@/components/personalization/interest-tracker"
+import { WhatsAppButton } from "@/components/shared/whatsapp-button"
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession()
@@ -67,5 +68,6 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
       <div className="border-t border-white/10"><div className="mx-auto flex max-w-7xl flex-col gap-2 px-5 py-5 text-[10px] text-white/35 sm:flex-row sm:items-center sm:justify-between"><span>© 2026 {siteName}. All rights reserved.</span><span>Cash on Delivery · Pakistan</span></div></div>
     </footer>
     <CartDrawer />
+    <WhatsAppButton />
   </>
 }

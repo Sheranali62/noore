@@ -367,3 +367,66 @@ button, a, input, textarea, select {
 
 .eyebrow { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .22em; color: var(--secondary); }
 .section-title { margin-top: .25rem; font-family: Georgia, "Times New Roman", serif; font-size: 1.75rem; line-height: 1.1; }
+
+
+/* Floating WhatsApp customer-contact button */
+.noore-whatsapp {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 1000;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 17px 12px 13px;
+  border-radius: 999px;
+  background: #25D366;
+  color: #fff !important;
+  text-decoration: none !important;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  box-shadow: 0 8px 24px rgba(0,0,0,.2);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.noore-whatsapp:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 11px 28px rgba(0,0,0,.25);
+}
+
+.noore-whatsapp__icon {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255,255,255,.18);
+}
+
+.noore-whatsapp__icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+@media (max-width: 640px) {
+  .noore-whatsapp {
+    right: 14px;
+    bottom: 14px;
+    padding: 11px;
+  }
+
+  .noore-whatsapp__text {
+    display: none;
+  }
+
+  .noore-whatsapp__icon {
+    width: 34px;
+    height: 34px;
+  }
+
+  .noore-whatsapp__icon svg {
+    width: 25px;
+    height: 25px;
+  }
+}

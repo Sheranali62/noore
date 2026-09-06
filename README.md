@@ -1,12 +1,17 @@
-# NOORE final launch polish patch
+# NOORE Premium Homepage 2.0
 
-Copy these files into the root of the NOORE repository, preserving paths.
+Replace the existing `src/app/(public)/page.tsx` with the included file.
 
-Changes:
-- Adds missing favicon assets.
-- Adds a minimal NOORÉ Open Graph image.
-- Adds a neutral NOORÉ placeholder image for empty product-image fallbacks.
-- Adds manifest icons.
-- Removes unused Stripe placeholders from `.env.example` because checkout is COD-only.
+Adds richer editorial homepage sections: Shop by World (Women/Men/Kids), Luxury Spotlight, Collection Stories, and Journal. Preserves adaptive personalization, existing product sections, COD-only checkout, and empty-catalog behavior.
 
-No real product/customer/order data is included.
+After extraction:
+
+```powershell
+cd D:\NOORE\noore
+npm run build
+git status
+git add "src/app/(public)/page.tsx"
+git commit -m "Upgrade NOORE premium homepage"
+git push origin main
+npx vercel --prod
+```
