@@ -55,6 +55,18 @@ export default function CartPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
+       <div className="mb-8 border border-black/5 bg-white px-5 py-4">
+         <div className="flex items-center justify-between gap-4 text-xs">
+           <div>
+             <span className="font-medium">Free shipping</span>
+             <span className="text-secondary"> · {remainingForFreeShipping > 0 ? `Add PKR ${remainingForFreeShipping.toLocaleString()}` : "Unlocked"}</span>
+           </div>
+           <span className="text-secondary">{Math.round(progress)}%</span>
+         </div>
+         <div className="mt-3 h-1 bg-cream overflow-hidden">
+           <div className="h-full bg-charcoal transition-all duration-500" style={{ width: `${progress}%` }} />
+         </div>
+       </div>
         <div className="mb-8 md:mb-10">
           <p className="text-xs uppercase tracking-[0.28em] text-secondary">Shopping bag</p>
           <h1 className="font-editorial mt-2 text-4xl md:text-5xl font-semibold">Your edit</h1>
@@ -93,7 +105,7 @@ export default function CartPage() {
                             <Minus size={14} />
                           </button>
                           <span className="w-10 text-center text-sm">{item.quantity}</span>
-                          <button aria-label="Increase quantity" onClick={() => updateQuantity(itemKey, item.quantity + 1)} className="h-9 w-9 flex items-center justify-center hover:bg-cream transition">
+                          <button aria-label="Increase quantity" disabled={item.quantity >= 99} onClick={() => updateQuantity(itemKey, item.quantity + 1)} className="h-9 w-9 flex items-center justify-center hover:bg-cream transition disabled:opacity-30">
                             <Plus size={14} />
                           </button>
                         </div>
@@ -134,7 +146,7 @@ export default function CartPage() {
               <Link href="/checkout" className="mt-6 flex w-full items-center justify-center gap-2 bg-charcoal text-white py-3.5 text-sm font-medium hover:bg-charcoal/90 transition">
                 Proceed to checkout <ArrowRight size={16} />
               </Link>
-              <p className="mt-3 text-center text-[11px] text-secondary">Cash on Delivery available across Pakistan</p>
+              <div className="mt-4 flex items-center justify-center gap-2 border-t border-black/5 pt-4 text-[11px] text-secondary"><ShieldCheck size={13}/> Cash on Delivery · Pakistan-wide</div>
             </div>
 
             <div className="bg-white border border-black/5 p-5">
@@ -144,6 +156,17 @@ export default function CartPage() {
           </aside>
         </div>
       </div>
+    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-black/10 bg-white/95 p-3 shadow-2xl backdrop-blur lg:hidden">
+      <div className="mx-auto flex max-w-7xl items-center gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-[10px] uppercase tracking-[0.16em] text-secondary">Total</p>
+          <p className="text-sm font-semibold">PKR {(total + shipping).toLocaleString()}</p>
+        </div>
+        <Link href="/checkout" className="flex h-11 shrink-0 items-center gap-2 bg-charcoal px-5 text-xs font-medium uppercase tracking-[0.14em] text-white">
+          Checkout <ArrowRight size={15}/>
+        </Link>
+      </div>
+    </div>
     </main>
   )
 }
