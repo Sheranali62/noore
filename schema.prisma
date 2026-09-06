@@ -8,26 +8,25 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  password      String?
-  name          String?
-  role          Role      @default(CUSTOMER)
-  addresses     Address[]
-  orders        Order[]
-  reviews       ProductReview[]
-  wishlist      Wishlist?
-  cart          Cart?
-  couponUsage   CouponUsage[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                 String              @id @default(cuid())
+  email              String              @unique
+  password           String?
+  name               String?
+  role               Role                @default(CUSTOMER)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  addresses          Address[]
+  cart               Cart?
+  couponUsage        CouponUsage[]
   inventoryMovements InventoryMovement[]
+  orders             Order[]
+  reviews            ProductReview[]
+  wishlist           Wishlist?
 }
 
 model Address {
   id        String   @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   name      String
   phone     String
   address   String
@@ -35,9 +34,10 @@ model Address {
   province  String
   postal    String
   default   Boolean  @default(false)
-  orders    Order[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders    Order[]
 }
 
 model Category {
@@ -48,72 +48,70 @@ model Category {
   active      Boolean    @default(true)
   sortOrder   Int        @default(0)
   parentId    String?
-  parent      Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
-  children    Category[] @relation("CategoryTree")
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+  parent      Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryTree")
 
   @@index([parentId])
   @@index([active, sortOrder])
 }
 
 model Product {
-  id             String   @id @default(cuid())
-  name           String
-  slug           String   @unique
-  sku            String   @unique
-  description    String?
-  category       String
-  subcategory    String?
-  collection     String?
-  gender         String?
-  type           String?
-  fabric         String?
-  pieces         Int?
-  price          Float
-  salePrice      Float?
-  costPrice      Float?
-  stock          Int      @default(0)
-  lowStock       Int      @default(5)
-  images         String[]
-  video          String?
-  tags           String[]
-  seoTitle       String?
-  seoDesc        String?
-  status         Status   @default(DRAFT)
-  variants       ProductVariant[]
-  reviews        ProductReview[]
-  orderItems     OrderItem[]
-  wishlistItems  WishlistItem[]
-  cartItems      CartItem[]
+  id                 String              @id @default(cuid())
+  name               String
+  slug               String              @unique
+  sku                String              @unique
+  description        String?
+  category           String
+  subcategory        String?
+  collection         String?
+  gender             String?
+  type               String?
+  fabric             String?
+  pieces             Int?
+  price              Float
+  salePrice          Float?
+  costPrice          Float?
+  stock              Int                 @default(0)
+  lowStock           Int                 @default(5)
+  images             String[]
+  video              String?
+  tags               String[]
+  seoTitle           String?
+  seoDesc            String?
+  status             Status              @default(DRAFT)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  cartItems          CartItem[]
   inventoryMovements InventoryMovement[]
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  orderItems         OrderItem[]
+  reviews            ProductReview[]
+  variants           ProductVariant[]
+  wishlistItems      WishlistItem[]
 }
 
 model ProductVariant {
-  id         String   @id @default(cuid())
-  productId  String
-  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  color      String
-  size       String
-  sku        String   @unique
-  price      Float?
-  stock      Int      @default(0)
-  images     String[]
-  cartItems  CartItem[]
-  orderItems OrderItem[]
+  id                 String              @id @default(cuid())
+  productId          String
+  color              String
+  size               String
+  sku                String              @unique
+  price              Float?
+  stock              Int                 @default(0)
+  images             String[]
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  cartItems          CartItem[]
   inventoryMovements InventoryMovement[]
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  orderItems         OrderItem[]
+  product            Product             @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model ProductReview {
   id        String   @id @default(cuid())
   productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
   rating    Int      @default(5)
   comment   String?
   images    String[]
@@ -122,169 +120,171 @@ model ProductReview {
   featured  Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model Wishlist {
-  id     String   @id @default(cuid())
-  userId String   @unique
-  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items  WishlistItem[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        String         @id @default(cuid())
+  userId    String         @unique
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     WishlistItem[]
 }
 
 model WishlistItem {
   id         String   @id @default(cuid())
   wishlistId String
-  wishlist   Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
   productId  String
-  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   createdAt  DateTime @default(now())
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  wishlist   Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
 }
 
 model Cart {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items     CartItem[]
-  coupon    Coupon?  @relation(fields: [couponId], references: [id])
+  id        String     @id @default(cuid())
+  userId    String     @unique
   couponId  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  coupon    Coupon?    @relation(fields: [couponId], references: [id])
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
 }
 
 model CartItem {
-  id         String   @id @default(cuid())
-  cartId     String
-  cart       Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  productId  String
-  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  variantId  String?
-  variant    ProductVariant? @relation(fields: [variantId], references: [id])
-  quantity   Int      @default(1)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id        String          @id @default(cuid())
+  cartId    String
+  productId String
+  variantId String?
+  quantity  Int             @default(1)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  cart      Cart            @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product   Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant   ProductVariant? @relation(fields: [variantId], references: [id])
 }
 
 model Order {
-  id               String   @id @default(cuid())
-  orderNumber      String   @unique
+  id               String          @id @default(cuid())
+  orderNumber      String          @unique
   userId           String
-  user             User     @relation(fields: [userId], references: [id])
   addressId        String
-  address          Address  @relation(fields: [addressId], references: [id])
-  items            OrderItem[]
   subtotal         Float
-  discount         Float    @default(0)
+  discount         Float           @default(0)
   shipping         Float
-  tax              Float    @default(0)
+  tax              Float           @default(0)
   total            Float
-  status           OrderStatus @default(PENDING)
+  status           OrderStatus     @default(PENDING)
   paymentMethod    PaymentMethod
-  paymentStatus    PaymentStatus @default(UNPAID)
+  paymentStatus    PaymentStatus   @default(UNPAID)
   trackingNumber   String?
   courier          String?
-  courierCompanyId String?
-  courierCompany   CourierCompany? @relation(fields: [courierCompanyId], references: [id], onDelete: SetNull)
   notes            String?
   couponCode       String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  courierCompanyId String?
   couponUsage      CouponUsage?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  address          Address         @relation(fields: [addressId], references: [id])
+  courierCompany   CourierCompany? @relation(fields: [courierCompanyId], references: [id])
+  user             User            @relation(fields: [userId], references: [id])
+  items            OrderItem[]
 }
 
 model CourierCompany {
-  id              String   @id @default(cuid())
-  name            String
-  accountNumber   String?
-  contractNumber  String?
-  contactName     String?
-  contactPhone    String?
-  contactEmail    String?
-  pickupAddress   String?
-  pickupCity      String?
-  serviceNotes    String?
-  apiBaseUrl      String?
-  apiKey          String?
-  apiSecret       String?
-  active          Boolean  @default(true)
-  orders          Order[]
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id             String   @id @default(cuid())
+  name           String
+  accountNumber  String?
+  contractNumber String?
+  contactName    String?
+  contactPhone   String?
+  contactEmail   String?
+  pickupAddress  String?
+  pickupCity     String?
+  serviceNotes   String?
+  apiBaseUrl     String?
+  apiKey         String?
+  apiSecret      String?
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  orders         Order[]
 
   @@index([active, name])
 }
 
 model OrderItem {
-  id         String   @id @default(cuid())
-  orderId    String
-  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId  String
-  product    Product  @relation(fields: [productId], references: [id])
-  variantId  String?
-  variant    ProductVariant? @relation(fields: [variantId], references: [id])
-  quantity   Int
-  price      Float
-  total      Float
-  createdAt  DateTime @default(now())
+  id        String          @id @default(cuid())
+  orderId   String
+  productId String
+  variantId String?
+  quantity  Int
+  price     Float
+  total     Float
+  createdAt DateTime        @default(now())
+  order     Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product         @relation(fields: [productId], references: [id])
+  variant   ProductVariant? @relation(fields: [variantId], references: [id])
 }
 
 model Coupon {
-  id                      String   @id @default(cuid())
-  code                    String   @unique
-  type                    CouponType @default(PERCENTAGE)
-  value                   Float
-  minOrder                Float    @default(0)
-  maxDiscount             Float?
-  startDate               DateTime
-  expiryDate              DateTime
-  usageLimit              Int?
-  perCustomer             Int?
-  applicableCategories   String[]
-  applicableProductIds   String[]
-  usedCount              Int      @default(0)
-  active                 Boolean  @default(true)
-  carts                  Cart[]
-  couponUsage            CouponUsage[]
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
+  id                   String        @id @default(cuid())
+  code                 String        @unique
+  type                 CouponType    @default(PERCENTAGE)
+  value                Float
+  minOrder             Float         @default(0)
+  maxDiscount          Float?
+  startDate            DateTime
+  expiryDate           DateTime
+  usageLimit           Int?
+  perCustomer          Int?
+  applicableCategories String[]
+  applicableProductIds String[]
+  usedCount            Int           @default(0)
+  active               Boolean       @default(true)
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+  carts                Cart[]
+  couponUsage          CouponUsage[]
 }
 
 model CouponUsage {
-  id        String   @id @default(cuid())
-  couponId  String
-  coupon    Coupon   @relation(fields: [couponId], references: [id])
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  orderId   String?  @unique
-  order     Order?   @relation(fields: [orderId], references: [id])
-  usedAt    DateTime @default(now())
+  id       String   @id @default(cuid())
+  couponId String
+  userId   String
+  orderId  String?  @unique
+  usedAt   DateTime @default(now())
+  coupon   Coupon   @relation(fields: [couponId], references: [id])
+  order    Order?   @relation(fields: [orderId], references: [id])
+  user     User     @relation(fields: [userId], references: [id])
 }
 
 model SearchEvent {
-  id         String   @id @default(cuid())
-  query      String
-  resultCount Int     @default(0)
-  createdAt  DateTime @default(now())
+  id          String   @id @default(cuid())
+  query       String
+  resultCount Int      @default(0)
+  createdAt   DateTime @default(now())
 
   @@index([createdAt])
   @@index([query])
 }
 
 model InventoryMovement {
-  id         String          @id @default(cuid())
-  productId  String
-  product    Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
-  variantId  String?
-  variant    ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
-  userId     String?
-  user       User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
-  change     Int
+  id          String          @id @default(cuid())
+  productId   String
+  variantId   String?
+  change      Int
   beforeStock Int
   afterStock  Int
-  reason     String
-  note       String?
-  createdAt  DateTime @default(now())
+  reason      String
+  note        String?
+  createdAt   DateTime        @default(now())
+  userId      String?
+  product     Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user        User?           @relation(fields: [userId], references: [id])
+  variant     ProductVariant? @relation(fields: [variantId], references: [id])
 
   @@index([productId, createdAt])
   @@index([variantId, createdAt])
@@ -307,18 +307,18 @@ model Store {
 }
 
 model BlogPost {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   title       String
-  slug        String   @unique
+  slug        String    @unique
   category    String
   excerpt     String?
   content     String
   image       String?
   author      String
-  published   Boolean  @default(false)
+  published   Boolean   @default(false)
   publishedAt DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 model NewsletterSubscriber {
