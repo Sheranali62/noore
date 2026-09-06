@@ -5,6 +5,7 @@ import { ChevronDown, ChevronLeft, ChevronRight, Heart, Minus, Plus, Ruler, Shar
 import { useCart } from "@/components/cart/cart-context"
 import { ProductCard } from "./product-card"
 import { RecommendationShelf } from "./recommendation-shelf"
+import { ReviewsSection } from "./reviews-section"
 
 type Variant = { id: string; color: string; size: string; sku: string; price: number | null; stock: number; images: string[] }
 type Review = { id: string; rating: number; comment: string | null; verified: boolean; createdAt: string }
@@ -29,7 +30,6 @@ export function ProductDetail({ product, relatedProducts }: Props) {
   const [wishlistBusy, setWishlistBusy] = useState(false)
   const [openInfo, setOpenInfo] = useState<string | null>("details")
   const [notice, setNotice] = useState("")
-  const [sizeGuideOpen, setSizeGuideOpen] = useState(false)
   const [recentlyViewed, setRecentlyViewed] = useState<any[]>([])
 
   const colors = useMemo(() => Array.from(new Set(product.variants.map(v => v.color))), [product.variants])
@@ -135,20 +135,6 @@ export function ProductDetail({ product, relatedProducts }: Props) {
     setSelectedImage(i => (i + direction + images.length) % images.length)
   }
 
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (zoomOpen) {
-        if (event.key === "Escape") setZoomOpen(false)
-        if (event.key === "ArrowLeft") changeImage(-1)
-        if (event.key === "ArrowRight") changeImage(1)
-        return
-      }
-      if (sizeGuideOpen && event.key === "Escape") setSizeGuideOpen(false)
-    }
-    window.addEventListener("keydown", onKeyDown)
-    return () => window.removeEventListener("keydown", onKeyDown)
-  }, [zoomOpen, sizeGuideOpen, images.length])
-
   return (
     <div className="pb-16">
       {notice && <div className="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 rounded-full bg-charcoal px-5 py-3 text-sm text-white shadow-xl">{notice}</div>}
@@ -168,24 +154,11 @@ export function ProductDetail({ product, relatedProducts }: Props) {
               ))}
             </div>
             <div className="group relative order-1 overflow-hidden bg-cream sm:order-2">
-              <div
-                className="aspect-[4/5] sm:aspect-[3/4]"
-                tabIndex={0}
-                aria-label={`Product image ${selectedImage + 1} of ${images.length}`}
-                onKeyDown={(event) => {
-                  if (event.key === "ArrowLeft") changeImage(-1)
-                  if (event.key === "ArrowRight") changeImage(1)
-                  if (event.key === "Enter" || event.key === " ") setZoomOpen(true)
-                }}
-              >
-                <img src={images[selectedImage] || "/placeholder.jpg"} alt={`${product.name} — image ${selectedImage + 1}`} className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.02]" />
-              </div>
-              <div className="absolute left-4 top-4 bg-white/90 px-3 py-2 text-[10px] font-medium uppercase tracking-[0.18em] shadow-sm backdrop-blur">
-                {selectedImage + 1} / {Math.max(images.length, 1)}
+              <div className="aspect-[4/5] sm:aspect-[3/4]">
+                <img src={images[selectedImage] || "/placeholder.jpg"} alt={product.name} className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.02]" />
               </div>
               <button type="button" onClick={() => setZoomOpen(true)} className="absolute right-4 top-4 flex items-center gap-2 bg-white/90 px-3 py-2 text-xs uppercase tracking-wider shadow-sm backdrop-blur" aria-label="Zoom image"><ZoomIn className="h-4 w-4" /> Zoom</button>
-              {images.length > 1 && <><button type="button" onClick={() => changeImage(-1)} className="absolute left-3 top-1/2 rounded-full bg-white/90 p-2 opacity-0 shadow transition hover:scale-105 focus:opacity-100 group-hover:opacity-100" aria-label="Previous image"><ChevronLeft className="h-5 w-5" /></button><button type="button" onClick={() => changeImage(1)} className="absolute right-3 top-1/2 rounded-full bg-white/90 p-2 opacity-0 shadow transition hover:scale-105 focus:opacity-100 group-hover:opacity-100" aria-label="Next image"><ChevronRight className="h-5 w-5" /></button></>}
-              {images.length > 1 && <div className="absolute inset-x-0 bottom-4 flex justify-center gap-1.5 sm:hidden" aria-label="Image navigation">{images.map((_, i) => <button key={i} type="button" onClick={() => setSelectedImage(i)} aria-label={`Go to image ${i + 1}`} className={`h-1.5 rounded-full transition-all ${selectedImage === i ? "w-6 bg-charcoal" : "w-1.5 bg-white/80"}`} />)}</div>}
+              {images.length > 1 && <><button type="button" onClick={() => changeImage(-1)} className="absolute left-3 top-1/2 rounded-full bg-white/90 p-2 opacity-0 shadow transition group-hover:opacity-100"><ChevronLeft className="h-5 w-5" /></button><button type="button" onClick={() => changeImage(1)} className="absolute right-3 top-1/2 rounded-full bg-white/90 p-2 opacity-0 shadow transition group-hover:opacity-100"><ChevronRight className="h-5 w-5" /></button></>}
             </div>
           </div>
         </section>
@@ -213,16 +186,9 @@ export function ProductDetail({ product, relatedProducts }: Props) {
 
           {product.description && <p className="mt-6 text-sm leading-7 text-secondary">{product.description}</p>}
 
-          <div className="mt-5 flex flex-wrap gap-2">
-            {product.fabric && <span className="border border-border px-3 py-1.5 text-[10px] uppercase tracking-[0.16em] text-secondary">{product.fabric}</span>}
-            {product.type && <span className="border border-border px-3 py-1.5 text-[10px] uppercase tracking-[0.16em] text-secondary">{product.type}</span>}
-            {product.pieces && <span className="border border-border px-3 py-1.5 text-[10px] uppercase tracking-[0.16em] text-secondary">{product.pieces} Piece</span>}
-            {product.gender && <span className="border border-border px-3 py-1.5 text-[10px] uppercase tracking-[0.16em] text-secondary">{product.gender}</span>}
-          </div>
-
           {product.variants.length > 0 && <div className="mt-7 space-y-6">
             <div><div className="mb-3 flex items-center justify-between"><label className="text-sm font-medium">Color <span className="font-normal text-secondary">— {selectedColor}</span></label></div><div className="flex flex-wrap gap-2">{colors.map(color => <button key={color} type="button" onClick={() => chooseColor(color)} className={`min-w-20 border px-4 py-2.5 text-sm transition ${selectedColor === color ? "border-charcoal bg-charcoal text-white" : "border-border hover:border-charcoal"}`}>{color}</button>)}</div></div>
-            <div><div className="mb-3 flex items-center justify-between"><label className="text-sm font-medium">Size <span className="font-normal text-secondary">— {selectedSize}</span></label><button type="button" onClick={() => setSizeGuideOpen(true)} className="flex items-center gap-1 text-xs underline underline-offset-4"><Ruler className="h-3.5 w-3.5" /> Size Guide</button></div><div className="flex flex-wrap gap-2">{sizes.map(size => { const variant = product.variants.find(v => v.color === selectedColor && v.size === size); const disabled = Boolean(variant && variant.stock <= 0); return <button key={size} type="button" disabled={disabled} onClick={() => chooseSize(size)} className={`min-w-14 border px-4 py-2.5 text-sm ${selectedSize === size ? "border-charcoal bg-charcoal text-white" : "border-border hover:border-charcoal"} ${disabled ? "cursor-not-allowed opacity-35 line-through" : ""}`}>{size}</button> })}</div></div>
+            <div><div className="mb-3 flex items-center justify-between"><label className="text-sm font-medium">Size <span className="font-normal text-secondary">— {selectedSize}</span></label><button type="button" onClick={() => setNotice("Size guide: XS 32–34, S 34–36, M 36–38, L 38–40, XL 40–42 inches chest") } className="flex items-center gap-1 text-xs underline underline-offset-4"><Ruler className="h-3.5 w-3.5" /> Size Guide</button></div><div className="flex flex-wrap gap-2">{sizes.map(size => { const variant = product.variants.find(v => v.color === selectedColor && v.size === size); const disabled = Boolean(variant && variant.stock <= 0); return <button key={size} type="button" disabled={disabled} onClick={() => chooseSize(size)} className={`min-w-14 border px-4 py-2.5 text-sm ${selectedSize === size ? "border-charcoal bg-charcoal text-white" : "border-border hover:border-charcoal"} ${disabled ? "cursor-not-allowed opacity-35 line-through" : ""}`}>{size}</button> })}</div></div>
           </div>}
 
           <div className="mt-7 flex items-center justify-between border-y border-border py-4 text-sm">
@@ -243,7 +209,7 @@ export function ProductDetail({ product, relatedProducts }: Props) {
         </section>
       </div>
 
-      {reviewCount > 0 && <section className="mt-20 border-t border-border pt-12"><div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><p className="text-xs uppercase tracking-[0.2em] text-secondary">Customer feedback</p><h2 className="mt-2 font-editorial text-3xl">Reviews</h2></div><div className="text-sm">★ <strong>{averageRating.toFixed(1)}</strong> / 5 · {reviewCount} reviews</div></div><div className="mt-8 grid gap-5 md:grid-cols-3">{product.reviews.slice(0, 3).map(review => <article key={review.id} className="border border-border p-6"><div className="text-sm">{"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)}</div><p className="mt-4 text-sm leading-6 text-secondary">{review.comment || "Beautiful product."}</p>{review.verified && <p className="mt-4 text-xs uppercase tracking-wider">✓ Verified purchase</p>}</article>)}</div></section>}
+      <ReviewsSection productId={product.id} reviews={product.reviews} />
 
       <RecommendationShelf productId={product.id} title="You May Also Like" eyebrow="Complete your wardrobe" exclude={[product.id, ...relatedProducts.map(p => p.id)]} />
       <RecommendationShelf productId={product.id} title="Complete the Look" eyebrow="Style it together" exclude={[product.id]} />
@@ -252,31 +218,7 @@ export function ProductDetail({ product, relatedProducts }: Props) {
 
       {inStock && <div className="fixed inset-x-0 bottom-0 z-40 border-t border-black/10 bg-white/95 p-3 shadow-2xl backdrop-blur md:hidden"><div className="flex items-center gap-3"><div className="min-w-0 flex-1"><p className="truncate text-xs font-medium">{product.name}</p><p className="text-[11px] text-secondary">{money(currentPrice)} · {selectedVariant ? `${selectedVariant.color} / ${selectedVariant.size}` : "Ready to ship"}</p></div><button type="button" onClick={handleAddToCart} className="flex h-11 shrink-0 items-center gap-2 bg-charcoal px-5 text-[10px] font-semibold uppercase tracking-[.16em] text-white"><ShoppingBag className="h-4 w-4" /> Add to Bag</button></div></div>}
 
-      {sizeGuideOpen && <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="size-guide-title" onClick={() => setSizeGuideOpen(false)}>
-        <div className="w-full max-w-lg bg-white p-6 shadow-2xl sm:p-8" onClick={e => e.stopPropagation()}>
-          <div className="flex items-start justify-between gap-5">
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-secondary">NOORÉ fit guide</p>
-              <h2 id="size-guide-title" className="mt-2 font-editorial text-3xl">Find your size</h2>
-            </div>
-            <button type="button" onClick={() => setSizeGuideOpen(false)} className="rounded-full border border-border p-2" aria-label="Close size guide"><X className="h-5 w-5" /></button>
-          </div>
-          <p className="mt-5 text-sm leading-6 text-secondary">Use your body measurements as a guide. If you are between sizes, choose the larger size for a more relaxed fit.</p>
-          <div className="mt-6 overflow-hidden border border-border">
-            <div className="grid grid-cols-2 bg-cream text-xs font-medium uppercase tracking-wider"><div className="px-4 py-3">Size</div><div className="px-4 py-3">Chest</div></div>
-            {[
-              ["XS", '32–34"'],
-              ["S", '34–36"'],
-              ["M", '36–38"'],
-              ["L", '38–40"'],
-              ["XL", '40–42"'],
-            ].map(([size, chest]) => <div key={size} className="grid grid-cols-2 border-t border-border text-sm"><div className="px-4 py-3 font-medium">{size}</div><div className="px-4 py-3 text-secondary">{chest}</div></div>)}
-          </div>
-          <p className="mt-5 text-xs leading-5 text-secondary">For product-specific fit, always check the garment label and description where available.</p>
-        </div>
-      </div>}
-
-      {zoomOpen && <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4" role="dialog" aria-modal="true" aria-label="Product image viewer" onClick={() => setZoomOpen(false)}><button type="button" onClick={() => setZoomOpen(false)} className="absolute right-5 top-5 rounded-full bg-white p-2" aria-label="Close image viewer"><X className="h-5 w-5" /></button><img src={images[selectedImage] || "/placeholder.jpg"} alt={product.name} className="max-h-[92vh] max-w-[92vw] object-contain" onClick={e => e.stopPropagation()} /></div>}
+      {zoomOpen && <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4" role="dialog" aria-modal="true" onClick={() => setZoomOpen(false)}><button type="button" onClick={() => setZoomOpen(false)} className="absolute right-5 top-5 rounded-full bg-white p-2" aria-label="Close"><X className="h-5 w-5" /></button><img src={images[selectedImage] || "/placeholder.jpg"} alt={product.name} className="max-h-[92vh] max-w-[92vw] object-contain" onClick={e => e.stopPropagation()} /></div>}
     </div>
   )
 }
