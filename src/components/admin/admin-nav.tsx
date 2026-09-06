@@ -25,7 +25,11 @@ export default function AdminNav({ mobile = false }: AdminNavProps) {
 
   return (
     <nav
-      className={mobile ? "space-y-1" : "space-y-1"}
+      className={
+        mobile
+          ? "flex flex-col gap-1.5"
+          : "space-y-1"
+      }
       aria-label="Admin navigation"
     >
       {items.map(([href, label]) => {
@@ -38,14 +42,38 @@ export default function AdminNav({ mobile = false }: AdminNavProps) {
           <Link
             key={href}
             href={href}
-            className={`block rounded px-3 py-2.5 text-sm transition ${
-              active
-                ? "bg-white/15 text-white"
-                : "text-white/85 hover:bg-white/10 hover:text-white"
-            }`}
+            className={[
+              "group flex min-h-[44px] items-center rounded-xl px-3.5 py-3",
+              "text-sm font-medium transition-all duration-200",
+              "focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60",
+              mobile
+                ? active
+                  ? "bg-white text-slate-950 shadow-sm"
+                  : "text-white hover:bg-white/10 hover:text-white active:bg-white/15"
+                : active
+                  ? "bg-white/15 text-white"
+                  : "text-white/85 hover:bg-white/10 hover:text-white",
+            ].join(" ")}
             aria-current={active ? "page" : undefined}
           >
-            {label}
+            <span
+              className={
+                mobile
+                  ? active
+                    ? "truncate"
+                    : "truncate"
+                  : "truncate"
+              }
+            >
+              {label}
+            </span>
+
+            {mobile && active && (
+              <span
+                className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-slate-950"
+                aria-hidden="true"
+              />
+            )}
           </Link>
         )
       })}
