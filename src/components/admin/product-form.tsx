@@ -28,6 +28,21 @@ type Props = {
 
 const MAX_IMAGE_BYTES = 3 * 1024 * 1024
 
+const CATEGORY_SUBCATEGORIES: Record<string, string[]> = {
+  Women: ["Saree", "Shalwar Kameez", "2 Piece", "3 Piece", "Kurta", "Kurtis", "Suits", "Lawn", "Chiffon", "Linen", "Cambric", "Formal Wear", "Party Wear", "Casual Wear", "Pret", "Unstitched", "Dupattas", "Shawls", "Bottoms", "New Arrivals", "Sale"],
+  Men: ["Shalwar Kameez", "Kurta", "2 Piece", "3 Piece", "Waistcoats", "Prince Coats", "Suits", "Formal Wear", "Casual Wear", "Unstitched", "Kameez", "Shalwar", "Trousers", "Jackets", "Festive Wear", "New Arrivals", "Sale"],
+  Kids: ["Girls Shalwar Kameez", "Girls 2 Piece", "Girls 3 Piece", "Girls Kurtis", "Girls Festive Wear", "Boys Shalwar Kameez", "Boys Kurta", "Boys Waistcoats", "Boys 2 Piece", "Girls Casual", "Boys Casual", "Formal", "Festive", "New Arrivals", "Sale"],
+  Luxury: ["Luxury Pret", "Luxury Unstitched", "Formal Wear", "Party Wear", "Evening Wear", "Bridal & Occasion", "Wedding Guest", "Quiet Luxury"],
+  Accessories: ["Bags", "Jewellery", "Footwear", "Dupattas", "Shawls", "Belts", "Scarves", "Accessories"],
+}
+
+const COLLECTIONS = [
+  "The New Edit", "Festive 2026", "Modern Classics", "The Evening Edit",
+  "Luxury", "Wedding Guest", "Bridal & Occasion", "Lawn & Summer",
+  "Winter Edit", "Everyday", "New Season", "Best Sellers", "Sale Edit",
+]
+
+
 function slugify(value: string) {
   return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")
 }
@@ -132,9 +147,9 @@ export default function ProductForm({ mode, productId, initialData = emptyProduc
             <Field label="Slug" value={formData.slug} onChange={v => update("slug", slugify(v))} placeholder="Auto-generated from product name" />
             <button type="button" onClick={() => update("slug", slugify(formData.name))} className="mt-1 text-xs text-blue-700">Generate from product name</button>
           </div>
-          <Select label="Category *" value={formData.category} onChange={v => update("category", v)} options={["Women", "Men", "Kids", "Luxury", "Accessories"]} required />
-          <Field label="Subcategory" value={formData.subcategory} onChange={v => update("subcategory", v)} placeholder="Ready to Wear / Unstitched" />
-          <Field label="Collection" value={formData.collection} onChange={v => update("collection", v)} placeholder="Festive 2026" />
+          <Select label="Category *" value={formData.category} onChange={v => { update("category", v); update("subcategory", "") }} options={["Women", "Men", "Kids", "Luxury", "Accessories"]} required />
+          <Select label="Subcategory" value={formData.subcategory} onChange={v => update("subcategory", v)} options={CATEGORY_SUBCATEGORIES[formData.category] ?? []} allowEmpty placeholder={formData.category ? "Select subcategory..." : "Select category first..."} />
+          <Select label="Collection" value={formData.collection} onChange={v => update("collection", v)} options={COLLECTIONS} allowEmpty placeholder="Select collection..." />
           <Select label="Gender" value={formData.gender} onChange={v => update("gender", v)} options={["Women", "Men", "Kids", "Unisex"]} allowEmpty />
           <Field label="Product Type" value={formData.type} onChange={v => update("type", v)} placeholder="3 Piece Suit / Kurta / Bag" />
           <Field label="Fabric" value={formData.fabric} onChange={v => update("fabric", v)} placeholder="Lawn / Cotton / Silk" />
@@ -205,6 +220,6 @@ function Field({ label, value, onChange, type = "text", placeholder, required = 
   return <label className="block text-sm font-medium">{label}<input required={required} type={type} min={min} step={step} disabled={disabled} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} className="mt-1 w-full rounded border border-cream px-3 py-2 disabled:bg-cream/50" /></label>
 }
 
-function Select({ label, value, onChange, options, required = false, allowEmpty = false }: { label: string; value: string; onChange: (value: string) => void; options: string[]; required?: boolean; allowEmpty?: boolean }) {
-  return <label className="block text-sm font-medium">{label}<select required={required} value={value} onChange={e => onChange(e.target.value)} className="mt-1 w-full rounded border border-cream px-3 py-2">{allowEmpty && <option value="">Select...</option>}{options.map(option => <option key={option} value={option}>{option}</option>)}</select></label>
+function Select({ label, value, onChange, options, required = false, allowEmpty = false, placeholder }: { label: string; value: string; onChange: (value: string) => void; options: string[]; required?: boolean; allowEmpty?: boolean; placeholder?: string }) {
+  return <label className="block text-sm font-medium">{label}<select required={required} value={value} onChange={e => onChange(e.target.value)} className="mt-1 w-full rounded border border-cream px-3 py-2"><option value="">{placeholder ?? (allowEmpty ? "Select..." : "Select...")}</option>{options.map(option => <option key={option} value={option}>{option}</option>)}</select></label>
 }
