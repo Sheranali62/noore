@@ -16,21 +16,17 @@ export default function MobileAdminNav({
   const wrapperRef = useRef<HTMLDivElement>(null)
   const pathname = usePathname()
 
-  // Close menu after navigation
   useEffect(() => {
     setOpen(false)
   }, [pathname])
 
-  // Close when clicking outside
   useEffect(() => {
     if (!open) return
 
     const handlePointerDown = (event: PointerEvent) => {
-      const target = event.target as Node
-
       if (
         wrapperRef.current &&
-        !wrapperRef.current.contains(target)
+        !wrapperRef.current.contains(event.target as Node)
       ) {
         setOpen(false)
       }
@@ -46,7 +42,6 @@ export default function MobileAdminNav({
     }
   }, [open])
 
-  // Close with Escape
   useEffect(() => {
     if (!open) return
 
@@ -66,22 +61,23 @@ export default function MobileAdminNav({
   return (
     <div
       ref={wrapperRef}
-      className="relative lg:hidden"
+      className="relative"
     >
-      {/* Mobile header */}
-      <div className="flex min-h-[60px] items-center justify-between gap-3">
+      {/* Premium mobile admin header */}
+      <div className="flex min-h-[64px] items-center justify-between gap-3">
         <Link
           href="/admin"
-          className="shrink-0 font-editorial text-2xl text-foreground"
+          className="shrink-0 font-editorial text-2xl text-white"
         >
           NOORÉ
         </Link>
 
         <div className="flex min-w-0 items-center gap-2">
-          <span className="hidden max-w-[180px] truncate text-xs text-secondary sm:block">
+          <span className="hidden max-w-[180px] truncate text-xs text-white/50 sm:block">
             {email}
           </span>
 
+          {/* 3-dot button */}
           <button
             type="button"
             onClick={() => setOpen((current) => !current)}
@@ -94,13 +90,13 @@ export default function MobileAdminNav({
             aria-haspopup="menu"
             className={[
               "flex h-11 w-11 shrink-0 items-center justify-center",
-              "rounded-xl border shadow-sm transition-all",
+              "rounded-xl border transition-all duration-200",
               "active:scale-95",
               "focus:outline-none focus-visible:ring-2",
-              "focus-visible:ring-foreground/30",
+              "focus-visible:ring-white/50",
               open
-                ? "border-foreground bg-foreground text-background"
-                : "border-border bg-card text-foreground hover:bg-muted",
+                ? "border-white bg-white text-charcoal"
+                : "border-white/20 bg-white/10 text-white hover:bg-white/20",
             ].join(" ")}
           >
             {open ? (
@@ -119,20 +115,20 @@ export default function MobileAdminNav({
               </svg>
             ) : (
               <span className="flex flex-col items-center gap-1">
-                <span className="h-1.5 w-1.5 rounded-full bg-current" />
-                <span className="h-1.5 w-1.5 rounded-full bg-current" />
-                <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                <span className="h-1.5 w-1.5 rounded-full bg-white" />
               </span>
             )}
           </button>
         </div>
       </div>
 
-      {/* Simple dropdown — NOT fixed, NOT fullscreen */}
+      {/* Inline dropdown only */}
       {open && (
         <div
           role="menu"
-          className="absolute right-0 top-[calc(100%-1px)] z-50 w-[min(92vw,340px)] overflow-hidden rounded-2xl border border-border bg-charcoal p-3 shadow-2xl"
+          className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-2xl border border-white/10 bg-charcoal p-3 shadow-2xl"
         >
           <div className="mb-3 border-b border-white/10 px-2 pb-3">
             <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/40">
@@ -144,7 +140,7 @@ export default function MobileAdminNav({
             </div>
           </div>
 
-          <div className="max-h-[70vh] overflow-y-auto">
+          <div className="max-h-[65vh] overflow-y-auto">
             <AdminNav mobile />
           </div>
 

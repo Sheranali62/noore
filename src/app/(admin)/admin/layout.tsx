@@ -53,10 +53,10 @@ export default async function AdminLayout({
         </div>
       </aside>
 
-      {/* Main content */}
+      {/* Main */}
       <div className="lg:pl-64">
-        {/* Mobile header + dropdown */}
-        <header className="sticky top-0 z-40 border-b border-cream bg-background/95 px-4 backdrop-blur lg:hidden">
+        {/* Mobile header */}
+        <header className="sticky top-0 z-40 border-b border-white/10 bg-charcoal px-4 text-white shadow-lg lg:hidden">
           <MobileAdminNav email={email} />
         </header>
 
