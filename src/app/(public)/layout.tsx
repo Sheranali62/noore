@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { usePathname } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
 import Link from "next/link"
 import { Header } from "@/components/layout/header"
@@ -10,6 +11,7 @@ import { InterestTracker } from "@/components/personalization/interest-tracker"
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession()
+  const pathname = usePathname()
   const [announcement, setAnnouncement] = useState("FREE SHIPPING ON ORDERS ABOVE PKR 5,000")
   const [siteName, setSiteName] = useState("NOORÉ")
   const { toggleCart } = useCart()
@@ -21,6 +23,35 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
       if (s?.siteName) setSiteName(s.siteName)
     }).catch(() => {})
   }, [])
+
+  // Keep public storefront content fresh without interrupting checkout or active form work.
+  useEffect(() => {
+    const refreshEveryMs = 60_000
+
+    const refreshPage = () => {
+      if (document.visibilityState !== "visible") return
+
+      // Never reload checkout while a customer may be entering/submitting order details.
+      if (pathname === "/checkout" || pathname.startsWith("/checkout/")) return
+
+      const active = document.activeElement
+      const isEditing =
+        active instanceof HTMLInputElement ||
+        active instanceof HTMLTextAreaElement ||
+        active instanceof HTMLSelectElement ||
+        active?.hasAttribute("contenteditable")
+
+      // Give open dialogs/drawers and menus priority over the timer.
+      if (isEditing || document.querySelector("[role=dialog]") || document.querySelector("[data-noore-menu-open=\"true\"]")) {
+        return
+      }
+
+      window.location.reload()
+    }
+
+    const interval = window.setInterval(refreshPage, refreshEveryMs)
+    return () => window.clearInterval(interval)
+  }, [pathname])
 
   return <>
     <div className="bg-charcoal px-4 py-2 text-center text-[9px] font-semibold uppercase tracking-[.2em] text-white sm:text-[10px]">{announcement}</div>
