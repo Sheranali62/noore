@@ -1,82 +1,91 @@
-import { prisma } from "@/lib/prisma"
-import Link from "next/link"
+"use client"
 
-export default async function AdminOrdersPage() {
-  const orders = await prisma.order.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 50,
-    include: {
-      user: {
-        select: { name: true, email: true }
+import { useEffect, useState } from "react"
+import { OrdersManagement } from "@/components/admin/orders-management"
+
+export const dynamic = "force-dynamic"
+
+export default function OrdersPage() {
+  const [orders, setOrders] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadOrders() {
+      setLoading(true)
+      setError("")
+      try {
+        const response = await fetch("/api/admin/orders", {
+          cache: "no-store",
+          headers: { Accept: "application/json" },
+        })
+        const data = await response.json().catch(() => ({}))
+        if (!response.ok) {
+          throw new Error(data?.error || "Unable to load orders")
+        }
+        if (!cancelled) setOrders(Array.isArray(data.orders) ? data.orders : [])
+      } catch (err: any) {
+        if (!cancelled) {
+          setOrders([])
+          setError(err?.message || "Unable to load orders")
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
       }
     }
-  })
 
-  const statusColors: Record<string, string> = {
-    PENDING: "bg-yellow-100 text-yellow-800",
-    CONFIRMED: "bg-blue-100 text-blue-800",
-    PROCESSING: "bg-purple-100 text-purple-800",
-    PACKED: "bg-indigo-100 text-indigo-800",
-    SHIPPED: "bg-cyan-100 text-cyan-800",
-    OUT_FOR_DELIVERY: "bg-orange-100 text-orange-800",
-    DELIVERED: "bg-green-100 text-green-800",
-    CANCELLED: "bg-red-100 text-red-800",
-    RETURNED: "bg-gray-100 text-gray-800",
-    REFUNDED: "bg-pink-100 text-pink-800",
+    loadOrders()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <p className="text-xs uppercase tracking-[0.2em] text-secondary">NOORÉ / Orders</p>
+          <h1 className="mt-2 text-3xl font-semibold md:text-4xl">Order management</h1>
+        </div>
+        <div className="rounded-2xl border border-cream bg-white p-10 text-center text-secondary">
+          Loading orders…
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <p className="text-xs uppercase tracking-[0.2em] text-secondary">NOORÉ / Orders</p>
+          <h1 className="mt-2 text-3xl font-semibold md:text-4xl">Order management</h1>
+        </div>
+        <div className="rounded-2xl border border-red-200 bg-white p-10 text-center">
+          <p className="font-semibold text-red-700">Orders could not be loaded.</p>
+          <p className="mt-2 text-sm text-secondary">{error}</p>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="mt-5 rounded-xl bg-charcoal px-5 py-3 text-sm font-medium text-white"
+          >
+            Try again
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-semibold">Orders</h1>
+    <div className="space-y-6">
+      <div>
+        <p className="text-xs uppercase tracking-[0.2em] text-secondary">NOORÉ / Orders</p>
+        <h1 className="mt-2 text-3xl font-semibold md:text-4xl">Order management</h1>
+        <p className="mt-1 text-secondary">Search, filter and manage customer orders.</p>
       </div>
-
-      <div className="bg-white rounded-lg border border-cream overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-cream">
-              <tr>
-                <th className="text-left p-4 text-sm font-medium">Order #</th>
-                <th className="text-left p-4 text-sm font-medium">Customer</th>
-                <th className="text-left p-4 text-sm font-medium">Total</th>
-                <th className="text-left p-4 text-sm font-medium">Status</th>
-                <th className="text-left p-4 text-sm font-medium">Payment</th>
-                <th className="text-left p-4 text-sm font-medium">Date</th>
-                <th className="text-left p-4 text-sm font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="text-center p-8 text-secondary">
-                    No orders yet.
-                  </td>
-                </tr>
-              ) : (
-                orders.map((order) => (
-                  <tr key={order.id} className="border-t border-cream hover:bg-cream/50 transition">
-                    <td className="p-4 font-medium">#{order.orderNumber}</td>
-                    <td className="p-4">{order.user?.name || "Guest"}</td>
-                    <td className="p-4">PKR {order.total.toLocaleString()}</td>
-                    <td className="p-4">
-                      <span className={`px-2 py-1 rounded text-xs ${statusColors[order.status] || "bg-gray-100"}`}>
-                        {order.status}
-                      </span>
-                    </td>
-                    <td className="p-4 text-secondary">{order.paymentMethod}</td>
-                    <td className="p-4 text-secondary">{new Date(order.createdAt).toLocaleDateString()}</td>
-                    <td className="p-4">
-                      <Link href={`/admin/orders/${order.id}`} className="text-blue-600 hover:text-blue-800">
-                        View
-                      </Link>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <OrdersManagement orders={orders} />
     </div>
   )
 }
