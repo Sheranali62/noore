@@ -4,6 +4,8 @@ import { requireAdmin } from "@/lib/admin"
 
 export const dynamic = "force-dynamic"
 
+const cleanImages = (value: unknown) => Array.isArray(value) ? value.filter((v): v is string => typeof v === "string" && v.trim() !== "" && (v.startsWith("data:image/") || /^https?:\/\//i.test(v.trim()))) : []
+
 export async function GET() {
   const { response } = await requireAdmin(["SUPER_ADMIN", "ADMIN", "PRODUCT_MANAGER"])
   if (response) return response
@@ -38,7 +40,14 @@ export async function POST(request: NextRequest) {
     const lowStock = body.lowStock === null || body.lowStock === "" || body.lowStock === undefined ? 5 : Number(body.lowStock)
 
     if (!name || !slug || !sku || !category || !Number.isFinite(price) || price < 0 || !Number.isInteger(stock) || stock < 0) {
-      return NextResponse.json({ error: "Invalid product fields" }, { status: 400 })
+      const missing: string[] = []
+      if (!name) missing.push("name")
+      if (!slug) missing.push("slug")
+      if (!sku) missing.push("SKU")
+      if (!category) missing.push("category")
+      if (!Number.isFinite(price) || price < 0) missing.push("regular price")
+      if (!Number.isInteger(stock) || stock < 0) missing.push("stock")
+      return NextResponse.json({ error: `Invalid product fields${missing.length ? `: ${missing.join(", ")}` : ""}` }, { status: 400 })
     }
     if (salePrice !== null && (!Number.isFinite(salePrice) || salePrice < 0 || salePrice > price)) {
       return NextResponse.json({ error: "Sale price must be between 0 and the regular price" }, { status: 400 })
@@ -63,7 +72,7 @@ export async function POST(request: NextRequest) {
       sku: String(variant.sku ?? "").trim().toUpperCase(),
       price: variant.price === null || variant.price === "" || variant.price === undefined ? null : Number(variant.price),
       stock: Number(variant.stock ?? 0),
-      images: Array.isArray(variant.images) ? variant.images.filter((v: unknown): v is string => typeof v === "string" && v.trim() !== "") : [],
+      images: cleanImages(variant.images),
     }))
 
     if (variants.some((v: any) => !v.color || !v.size || !v.sku || !Number.isInteger(v.stock) || v.stock < 0 || (v.price !== null && (!Number.isFinite(v.price) || v.price < 0)))) {
@@ -97,7 +106,7 @@ export async function POST(request: NextRequest) {
         salePrice,
         stock: variantStock,
         status: body.status || "DRAFT",
-        images: Array.isArray(body.images) ? body.images.filter((v: unknown): v is string => typeof v === "string" && v.trim() !== "") : [],
+        images: cleanImages(body.images),
         variants: variants.length ? { create: variants } : undefined,
       },
       include: { variants: true },
