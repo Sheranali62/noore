@@ -238,18 +238,416 @@ export default function CouriersPage() {
   }
 
   return (
-    <div className="admin-page space-y-7">
-      <header><p className="admin-eyebrow">Operations / Delivery</p><h1 className="admin-title">Courier companies</h1><p className="admin-subtitle">Save contracted courier profiles once so orders can reuse them without re-entering company information.</p></header>
-      <section className="admin-surface"><div className="flex flex-col gap-3 border-b border-white/10 pb-5 md:flex-row md:items-end md:justify-between"><div><p className="admin-eyebrow">{editing?"Editing profile":"New profile"}</p><h2 className="mt-2 text-base font-semibold text-white">{editing?"Edit courier contract":"Add courier company"}</h2><p className="mt-1 text-sm text-white/45">Contract, contact, pickup and future API fields remain unchanged.</p></div>{editing&&<button type="button" onClick={cancelEdit} className="admin-button-secondary w-fit">Cancel edit</button>}</div>
-        <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {[['name','Company name *','Courier company'],['accountNumber','Account number','Account number'],['contractNumber','Contract number','Contract number'],['contactName','Account/contact person','Contact person'],['contactPhone','Contact phone','+92…'],['contactEmail','Contact email','contact@courier.com'],['pickupCity','Pickup city','Lahore'],['apiBaseUrl','API base URL','Optional']].map(([key,label,placeholder])=><label key={key} className="block text-sm"><span className="mb-2 block text-xs font-medium uppercase tracking-[0.12em] text-white/45">{label}</span><input type={key==='contactEmail'?'email':'text'} value={form[key as keyof CourierForm] as string} onChange={e=>update(key as keyof CourierForm,e.target.value)} placeholder={placeholder} className="admin-input"/></label>)}
-          <label className="block text-sm"><span className="mb-2 block text-xs font-medium uppercase tracking-[0.12em] text-white/45">API key</span><input type="password" value={form.apiKey} onChange={e=>update('apiKey',e.target.value)} placeholder="Optional" className="admin-input"/></label>
-          <label className="block text-sm"><span className="mb-2 block text-xs font-medium uppercase tracking-[0.12em] text-white/45">API secret</span><input type="password" value={form.apiSecret} onChange={e=>update('apiSecret',e.target.value)} placeholder="Optional" className="admin-input"/></label>
+    <div className="max-w-7xl pb-12">
+
+      {/* HEADER */}
+      <div className="mb-8">
+        <p className="text-xs uppercase tracking-[0.22em] text-secondary">
+          Operations
+        </p>
+
+        <h1 className="mt-2 text-3xl font-semibold">
+          Courier Companies
+        </h1>
+
+        <p className="mt-2 text-sm text-secondary max-w-3xl">
+          Save your contracted courier
+          profiles once. Orders can then
+          use a saved courier instead of
+          re-entering company information
+          every time.
+        </p>
+      </div>
+
+      {/* FORM */}
+      <section className="mb-6 rounded-3xl border border-charcoal/10 bg-white p-6 shadow-[0_12px_40px_rgba(23,23,23,0.05)]">
+
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-semibold">
+              {editing
+                ? "Edit courier contract"
+                : "Add courier company"}
+            </h2>
+
+            <p className="text-sm text-secondary mt-1">
+              Store the courier contract and
+              pickup information here.
+            </p>
+          </div>
+
+          {editing && (
+            <button
+              type="button"
+              onClick={cancelEdit}
+              className="text-sm text-secondary hover:text-charcoal"
+            >
+              Cancel edit
+            </button>
+          )}
         </div>
-        <div className="mt-4 grid gap-4 md:grid-cols-2"><label className="block text-sm"><span className="mb-2 block text-xs font-medium uppercase tracking-[0.12em] text-white/45">Pickup address</span><textarea rows={3} value={form.pickupAddress} onChange={e=>update('pickupAddress',e.target.value)} placeholder="Courier pickup address" className="admin-input resize-y"/></label><label className="block text-sm"><span className="mb-2 block text-xs font-medium uppercase tracking-[0.12em] text-white/45">Service notes</span><textarea rows={3} value={form.serviceNotes} onChange={e=>update('serviceNotes',e.target.value)} placeholder="Contract terms, COD notes, pickup schedule…" className="admin-input resize-y"/></label></div>
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-4"><label className="flex items-center gap-3 text-sm text-white/70"><input type="checkbox" checked={form.active} onChange={e=>update('active',e.target.checked)} className="h-4 w-4 accent-white"/> Active courier</label><div className="flex gap-2"><button type="button" onClick={save} disabled={saving||!form.name.trim()} className="admin-button-primary">{saving?'Saving…':editing?'Save courier':'Add courier'}</button>{editing&&<button type="button" onClick={cancelEdit} className="admin-button-secondary">Cancel</button>}</div></div><p className="mt-4 text-xs leading-5 text-white/35">API credentials are reserved for future real courier integrations. No shipment booking is simulated.</p>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mt-5">
+
+          {/* COMPANY NAME */}
+          <label className="text-sm font-medium">
+            Company name *
+            <input
+              type="text"
+              value={form.name}
+              onChange={(event) =>
+                update(
+                  "name",
+                  event.target.value
+                )
+              }
+              placeholder="Courier company"
+              className="mt-2 w-full rounded-xl border border-charcoal/10 bg-background px-4 py-3 outline-none transition focus:border-charcoal"
+            />
+          </label>
+
+          {/* ACCOUNT NUMBER */}
+          <label className="text-sm font-medium">
+            Account number
+            <input
+              type="text"
+              value={form.accountNumber}
+              onChange={(event) =>
+                update(
+                  "accountNumber",
+                  event.target.value
+                )
+              }
+              placeholder="Account number"
+              className="mt-2 w-full rounded-xl border border-charcoal/10 bg-background px-4 py-3 outline-none transition focus:border-charcoal"
+            />
+          </label>
+
+          {/* CONTRACT NUMBER */}
+          <label className="text-sm font-medium">
+            Contract number
+            <input
+              type="text"
+              value={form.contractNumber}
+              onChange={(event) =>
+                update(
+                  "contractNumber",
+                  event.target.value
+                )
+              }
+              placeholder="Contract number"
+              className="mt-2 w-full rounded-xl border border-charcoal/10 bg-background px-4 py-3 outline-none transition focus:border-charcoal"
+            />
+          </label>
+
+          {/* CONTACT NAME */}
+          <label className="text-sm font-medium">
+            Account/contact person
+            <input
+              type="text"
+              value={form.contactName}
+              onChange={(event) =>
+                update(
+                  "contactName",
+                  event.target.value
+                )
+              }
+              placeholder="Contact person"
+              className="mt-2 w-full rounded-xl border border-charcoal/10 bg-background px-4 py-3 outline-none transition focus:border-charcoal"
+            />
+          </label>
+
+          {/* CONTACT PHONE */}
+          <label className="text-sm font-medium">
+            Contact phone
+            <input
+              type="text"
+              value={form.contactPhone}
+              onChange={(event) =>
+                update(
+                  "contactPhone",
+                  event.target.value
+                )
+              }
+              placeholder="+92..."
+              className="mt-2 w-full rounded-xl border border-charcoal/10 bg-background px-4 py-3 outline-none transition focus:border-charcoal"
+            />
+          </label>
+
+          {/* CONTACT EMAIL */}
+          <label className="text-sm font-medium">
+            Contact email
+            <input
+              type="email"
+              value={form.contactEmail}
+              onChange={(event) =>
+                update(
+                  "contactEmail",
+                  event.target.value
+                )
+              }
+              placeholder="contact@courier.com"
+              className="mt-2 w-full rounded-xl border border-charcoal/10 bg-background px-4 py-3 outline-none transition focus:border-charcoal"
+            />
+          </label>
+
+          {/* PICKUP CITY */}
+          <label className="text-sm font-medium">
+            Pickup city
+            <input
+              type="text"
+              value={form.pickupCity}
+              onChange={(event) =>
+                update(
+                  "pickupCity",
+                  event.target.value
+                )
+              }
+              placeholder="Lahore"
+              className="mt-2 w-full rounded-xl border border-charcoal/10 bg-background px-4 py-3 outline-none transition focus:border-charcoal"
+            />
+          </label>
+
+          {/* API BASE URL */}
+          <label className="text-sm font-medium">
+            API base URL
+            <input
+              type="text"
+              value={form.apiBaseUrl}
+              onChange={(event) =>
+                update(
+                  "apiBaseUrl",
+                  event.target.value
+                )
+              }
+              placeholder="Optional"
+              className="mt-2 w-full rounded-xl border border-charcoal/10 bg-background px-4 py-3 outline-none transition focus:border-charcoal"
+            />
+          </label>
+
+          {/* API KEY */}
+          <label className="text-sm font-medium">
+            API key
+            <input
+              type="password"
+              value={form.apiKey}
+              onChange={(event) =>
+                update(
+                  "apiKey",
+                  event.target.value
+                )
+              }
+              placeholder="Optional"
+              className="mt-2 w-full rounded-xl border border-charcoal/10 bg-background px-4 py-3 outline-none transition focus:border-charcoal"
+            />
+          </label>
+
+          {/* API SECRET */}
+          <label className="text-sm font-medium">
+            API secret
+            <input
+              type="password"
+              value={form.apiSecret}
+              onChange={(event) =>
+                update(
+                  "apiSecret",
+                  event.target.value
+                )
+              }
+              placeholder="Optional"
+              className="mt-2 w-full rounded-xl border border-charcoal/10 bg-background px-4 py-3 outline-none transition focus:border-charcoal"
+            />
+          </label>
+        </div>
+
+        {/* PICKUP ADDRESS */}
+        <label className="block text-sm font-medium mt-4">
+          Pickup address
+
+          <textarea
+            rows={2}
+            value={form.pickupAddress}
+            onChange={(event) =>
+              update(
+                "pickupAddress",
+                event.target.value
+              )
+            }
+            placeholder="Courier pickup address"
+            className="mt-2 w-full rounded-xl border border-charcoal/10 bg-background px-4 py-3 outline-none transition focus:border-charcoal"
+          />
+        </label>
+
+        {/* SERVICE NOTES */}
+        <label className="block text-sm font-medium mt-4">
+          Service notes
+
+          <textarea
+            rows={3}
+            value={form.serviceNotes}
+            onChange={(event) =>
+              update(
+                "serviceNotes",
+                event.target.value
+              )
+            }
+            placeholder="Contract terms, COD notes, pickup schedule..."
+            className="mt-2 w-full rounded-xl border border-charcoal/10 bg-background px-4 py-3 outline-none transition focus:border-charcoal"
+          />
+        </label>
+
+        {/* ACTIVE */}
+        <label className="flex items-center gap-2 text-sm mt-4">
+          <input
+            type="checkbox"
+            checked={form.active}
+            onChange={(event) =>
+              update(
+                "active",
+                event.target.checked
+              )
+            }
+          />
+
+          <span>
+            Active courier
+          </span>
+        </label>
+
+        {/* BUTTONS */}
+        <div className="flex gap-3 mt-5">
+
+          <button
+            type="button"
+            onClick={save}
+            disabled={
+              saving ||
+              !form.name.trim()
+            }
+            className="rounded-xl bg-charcoal px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-white shadow-lg disabled:opacity-50"
+          >
+            {saving
+              ? "Saving..."
+              : editing
+              ? "Save Courier"
+              : "Add Courier"}
+          </button>
+
+          {editing && (
+            <button
+              type="button"
+              onClick={cancelEdit}
+              className="rounded-xl border border-charcoal/10 bg-white px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em]"
+            >
+              Cancel
+            </button>
+          )}
+        </div>
+
+        <p className="text-xs text-secondary mt-4">
+          API credentials are optional
+          profile fields for future courier
+          API booking. The system does not
+          pretend to book shipments through a
+          courier API unless that carrier
+          integration is actually configured.
+        </p>
       </section>
-      <section className="admin-surface p-0 overflow-hidden"><div className="border-b border-white/10 px-5 py-4 md:px-6"><h2 className="text-sm font-semibold text-white">Saved courier contracts</h2><p className="mt-1 text-xs text-white/40">{couriers.length} configured courier{couriers.length===1?'':'s'}.</p></div>{loading?<div className="p-10 text-center text-sm text-white/45">Loading couriers…</div>:couriers.length===0?<div className="p-12 text-center"><p className="font-medium text-white">No courier companies configured</p><p className="mt-1 text-sm text-white/40">Add a contract above to make it available in orders.</p></div>:<div className="divide-y divide-white/[0.07]">{couriers.map(courier=><div key={courier.id} className="flex flex-col gap-4 px-5 py-5 md:flex-row md:items-center md:justify-between md:px-6"><div><div className="flex flex-wrap items-center gap-2"><p className="font-semibold text-white">{courier.name}</p><span className={`rounded-full border px-2.5 py-1 text-[11px] font-medium ${courier.active?'border-emerald-400/20 bg-emerald-400/10 text-emerald-200':'border-white/10 bg-white/[0.04] text-white/40'}`}>{courier.active?'Active':'Disabled'}</span></div><p className="mt-2 text-sm text-white/45">{courier.contactName||'No contact person'}{courier.contactPhone?` · ${courier.contactPhone}`:''}{courier.pickupCity?` · Pickup ${courier.pickupCity}`:''}</p>{courier.accountNumber&&<p className="mt-1 text-xs text-white/30">Account {courier.accountNumber}{courier.contractNumber?` · Contract ${courier.contractNumber}`:''}</p>}</div><div className="flex gap-2"><button type="button" onClick={()=>edit(courier)} className="admin-button-secondary !px-3 !py-2 text-xs">Edit</button><button type="button" onClick={()=>remove(courier.id)} className="rounded-lg border border-red-400/20 px-3 py-2 text-xs text-red-300 hover:bg-red-400/10">Delete</button></div></div>)}</div>}</section>
+
+      {/* SAVED COURIERS */}
+      <section className="overflow-hidden rounded-3xl border border-charcoal/10 bg-white shadow-[0_12px_40px_rgba(23,23,23,0.05)]">
+
+        <div className="border-b border-charcoal/10 p-5">
+          <h2 className="font-semibold">
+            Saved courier contracts
+          </h2>
+        </div>
+
+        {loading ? (
+          <div className="p-8 text-secondary">
+            Loading couriers...
+          </div>
+        ) : couriers.length === 0 ? (
+          <div className="p-8 text-secondary">
+            No courier companies configured
+            yet.
+          </div>
+        ) : (
+          <div className="divide-y divide-cream">
+
+            {couriers.map((courier) => (
+              <div
+                key={courier.id}
+                className="flex flex-col justify-between gap-4 border-t border-charcoal/10 p-5 transition hover:bg-charcoal/[0.02] md:flex-row md:items-center"
+              >
+
+                <div>
+                  <div className="flex items-center gap-2">
+
+                    <p className="font-semibold">
+                      {courier.name}
+                    </p>
+
+                    <span
+                      className={`text-xs px-2 py-1 rounded-full ${
+                        courier.active
+                          ? "bg-green-50 text-green-700"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      {courier.active
+                        ? "Active"
+                        : "Disabled"}
+                    </span>
+                  </div>
+
+                  <p className="text-sm text-secondary mt-1">
+                    Account:{" "}
+                    {courier.accountNumber ||
+                      "—"}{" "}
+                    · Contract:{" "}
+                    {courier.contractNumber ||
+                      "—"}
+                  </p>
+
+                  <p className="text-sm text-secondary">
+                    Pickup:{" "}
+                    {courier.pickupCity ||
+                      "—"}{" "}
+                    · Contact:{" "}
+                    {courier.contactPhone ||
+                      "—"}
+                  </p>
+                </div>
+
+                <div className="flex gap-2">
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      edit(courier)
+                    }
+                    className="rounded-lg border border-charcoal/10 bg-white px-3 py-2 text-xs font-medium"
+                  >
+                    Edit
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      remove(courier.id)
+                    }
+                    className="rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-medium text-red-700"
+                  >
+                    Delete
+                  </button>
+
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   )
 }

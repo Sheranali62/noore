@@ -26,11 +26,16 @@ export default function OrdersPage() {
     loadOrders(); return () => { cancelled = true }
   }, [])
 
-  if (loading) return <div className="admin-page space-y-6"><PageIntro /><div className="admin-surface flex min-h-56 items-center justify-center"><div className="text-center"><div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-white/15 border-t-white" /><p className="mt-4 text-sm text-white/60">Loading orders…</p></div></div></div>
-  if (error) return <div className="admin-page space-y-6"><PageIntro /><div className="admin-surface border-red-400/20"><p className="text-sm font-semibold text-red-300">Orders could not be loaded.</p><p className="mt-2 text-sm text-white/55">{error}</p><button type="button" onClick={() => window.location.reload()} className="admin-button-primary mt-5">Try again</button></div></div>
-  return <div className="admin-page space-y-7"><PageIntro /><OrdersManagement orders={orders} /></div>
-}
+  const heading = <div className="mb-7">
+    <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-secondary">NOORÉ / Operations</p>
+    <div className="mt-2 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+      <div><h1 className="font-editorial text-4xl tracking-tight md:text-5xl">Orders</h1><p className="mt-2 max-w-2xl text-sm text-secondary">A calm, command-centre view for searching, filtering and fulfilling every customer order.</p></div>
+      <span className="w-fit rounded-full border border-charcoal/10 bg-charcoal px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-white">COD commerce</span>
+    </div>
+  </div>
 
-function PageIntro() {
-  return <header className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between"><div><p className="admin-eyebrow">Operations / Orders</p><h1 className="admin-title">Order management</h1><p className="admin-subtitle">A clear command center for every customer order, payment state and delivery step.</p></div><div className="hidden rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs text-white/55 md:block">COD commerce · Live catalog</div></header>
+  if (loading) return <div className="max-w-7xl">{heading}<div className="rounded-3xl border border-charcoal/10 bg-white p-12 text-center shadow-sm"><div className="mx-auto mb-4 h-8 w-8 animate-pulse rounded-full bg-charcoal/10"/><p className="text-sm text-secondary">Preparing your order workspace…</p></div></div>
+  if (error) return <div className="max-w-7xl">{heading}<div className="rounded-3xl border border-red-200 bg-white p-10 shadow-sm"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-red-600">Workspace error</p><p className="mt-2 text-xl font-semibold">Orders could not be loaded.</p><p className="mt-2 text-sm text-secondary">{error}</p><button type="button" onClick={() => window.location.reload()} className="mt-6 rounded-xl bg-charcoal px-5 py-3 text-sm font-semibold text-white">Try again</button></div></div>
+
+  return <div className="max-w-7xl pb-12">{heading}<OrdersManagement orders={orders} /></div>
 }
