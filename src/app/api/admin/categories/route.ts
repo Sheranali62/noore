@@ -10,6 +10,43 @@ const ADMIN_ROLES = [
   "PRODUCT_MANAGER",
 ] as const
 
+const DEFAULT_ROOT_CATEGORIES = [
+  { name: "Women", slug: "women", sortOrder: 1 },
+  { name: "Men", slug: "men", sortOrder: 2 },
+  { name: "Kids", slug: "kids", sortOrder: 3 },
+  { name: "Luxury", slug: "luxury", sortOrder: 4 },
+  { name: "Accessories", slug: "accessories", sortOrder: 5 },
+]
+
+async function ensureDefaultRootCategories() {
+  for (const item of DEFAULT_ROOT_CATEGORIES) {
+    const existing = await prisma.category.findFirst({
+      where: { name: item.name, parentId: null },
+      select: { id: true },
+    })
+
+    if (existing) continue
+
+    let slug = item.slug
+    const slugOwner = await prisma.category.findUnique({
+      where: { slug },
+      select: { id: true },
+    })
+
+    if (slugOwner) slug = `${item.slug}-department`
+
+    await prisma.category.create({
+      data: {
+        name: item.name,
+        slug,
+        parentId: null,
+        active: true,
+        sortOrder: item.sortOrder,
+      },
+    })
+  }
+}
+
 function makeSlug(value: string) {
   return value
     .trim()
@@ -41,6 +78,8 @@ export async function GET() {
   }
 
   try {
+    await ensureDefaultRootCategories()
+
     const categories = await prisma.category.findMany({
       orderBy: [
         {
