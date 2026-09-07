@@ -78,45 +78,10 @@ export function Header() {
     }
   }
 
-  const loadMenuCategories = async () => {
-    try {
-      const response = await fetch("/api/categories", {
-        method: "GET",
-        cache: "no-store",
-        headers: { Accept: "application/json" },
-      })
-      const data = await response.json().catch(() => [])
-      const rows = Array.isArray(data)
-        ? data
-        : Array.isArray(data?.categories)
-          ? data.categories
-          : Array.isArray(data?.data)
-            ? data.data
-            : []
-
-      const normalized = rows
-        .filter((item: any) => item?.id && item?.name)
-        .map((item: any) => ({
-          id: String(item.id),
-          name: String(item.name).trim(),
-          slug: String(item.slug ?? "").trim(),
-          parentId: item.parentId ? String(item.parentId) : null,
-          active: item.active !== false,
-          sortOrder: Number(item.sortOrder) || 0,
-        }))
-        .filter((item: MenuCategory) => item.active)
-
-      setMenuCategories(normalized)
-    } catch (error) {
-      console.error("NOORÉ mega menu category load failed:", error)
-    }
-  }
-
   const openMega = (tab: string) => {
     cancelMegaClose()
     setMegaTab(tab)
     setMegaOpen(true)
-    void loadMenuCategories()
   }
 
   const scheduleMegaClose = () => {
@@ -136,7 +101,43 @@ export function Header() {
   }, [])
 
   useEffect(() => {
-    void loadMenuCategories()
+    let cancelled = false
+
+    fetch("/api/categories", {
+      method: "GET",
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+    })
+      .then((response) => (response.ok ? response.json() : []))
+      .then((data) => {
+        if (cancelled) return
+        const rows = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.categories)
+            ? data.categories
+            : []
+
+        setMenuCategories(
+          rows
+            .filter((item: any) => item && item.id && item.name)
+            .map((item: any) => ({
+              id: String(item.id),
+              name: String(item.name).trim(),
+              slug: String(item.slug ?? "").trim(),
+              parentId: item.parentId ? String(item.parentId) : null,
+              active: item.active !== false,
+              sortOrder: Number(item.sortOrder) || 0,
+            }))
+            .filter((item: MenuCategory) => item.active),
+        )
+      })
+      .catch(() => {
+        if (!cancelled) setMenuCategories([])
+      })
+
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   const menuRoots = useMemo(
@@ -155,10 +156,7 @@ export function Header() {
     if (!root) return []
 
     return menuCategories
-      .filter((item) => {
-        if (!item.parentId) return false
-        return item.parentId === root.id
-      })
+      .filter((item) => item.parentId === root.id)
       .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name))
   }
 

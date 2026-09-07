@@ -10,43 +10,6 @@ const ADMIN_ROLES = [
   "PRODUCT_MANAGER",
 ] as const
 
-const DEFAULT_ROOT_CATEGORIES = [
-  { name: "Women", slug: "women", sortOrder: 1 },
-  { name: "Men", slug: "men", sortOrder: 2 },
-  { name: "Kids", slug: "kids", sortOrder: 3 },
-  { name: "Luxury", slug: "luxury", sortOrder: 4 },
-  { name: "Accessories", slug: "accessories", sortOrder: 5 },
-]
-
-async function ensureDefaultRootCategories() {
-  for (const item of DEFAULT_ROOT_CATEGORIES) {
-    const existing = await prisma.category.findFirst({
-      where: { name: item.name, parentId: null },
-      select: { id: true },
-    })
-
-    if (existing) continue
-
-    let slug = item.slug
-    const slugOwner = await prisma.category.findUnique({
-      where: { slug },
-      select: { id: true },
-    })
-
-    if (slugOwner) slug = `${item.slug}-department`
-
-    await prisma.category.create({
-      data: {
-        name: item.name,
-        slug,
-        parentId: null,
-        active: true,
-        sortOrder: item.sortOrder,
-      },
-    })
-  }
-}
-
 function makeSlug(value: string) {
   return value
     .trim()
@@ -70,6 +33,134 @@ function toSortOrder(value: unknown) {
   return Math.trunc(number)
 }
 
+const DEFAULT_DEPARTMENT_CATEGORIES = {
+  Women: [
+    "Saree",
+    "Shalwar Kameez",
+    "2 Piece",
+    "3 Piece",
+    "Kurta",
+    "Kurtis",
+    "Suits",
+    "Lawn",
+    "Chiffon",
+    "Linen",
+    "Cambric",
+    "Formal Wear",
+    "Party Wear",
+    "Casual Wear",
+    "Pret",
+    "Unstitched",
+    "Dupattas",
+    "Shawls",
+    "Bottoms",
+    "New Arrivals",
+    "Sale",
+  ],
+  Men: [
+    "Shalwar Kameez",
+    "Kurta",
+    "2 Piece",
+    "3 Piece",
+    "Waistcoats",
+    "Prince Coats",
+    "Suits",
+    "Formal Wear",
+    "Casual Wear",
+    "Unstitched",
+    "Kameez",
+    "Shalwar",
+    "Trousers",
+    "Jackets",
+    "Festive Wear",
+    "New Arrivals",
+    "Sale",
+  ],
+  Kids: [
+    "Girls Shalwar Kameez",
+    "Girls 2 Piece",
+    "Girls 3 Piece",
+    "Girls Kurtis",
+    "Girls Festive Wear",
+    "Boys Shalwar Kameez",
+    "Boys Kurta",
+    "Boys Waistcoats",
+    "Boys 2 Piece",
+    "Girls Casual",
+    "Boys Casual",
+    "Formal",
+    "Festive",
+    "New Arrivals",
+    "Sale",
+  ],
+} as const
+
+async function ensureDefaultDepartmentCategories() {
+  const roots = await prisma.category.findMany({
+    where: { parentId: null },
+    select: { id: true, name: true },
+  })
+
+  const rootByName = new Map(roots.map((root) => [root.name.toLowerCase(), root]))
+
+  for (const [department, children] of Object.entries(DEFAULT_DEPARTMENT_CATEGORIES)) {
+    let root = rootByName.get(department.toLowerCase())
+
+    if (!root) {
+      const baseSlug = makeSlug(department)
+      let slug = baseSlug
+      let suffix = 2
+
+      while (await prisma.category.findUnique({ where: { slug }, select: { id: true } })) {
+        slug = `${baseSlug}-${suffix++}`
+      }
+
+      root = await prisma.category.create({
+        data: {
+          name: department,
+          slug,
+          parentId: null,
+          active: true,
+          sortOrder: Object.keys(DEFAULT_DEPARTMENT_CATEGORIES).indexOf(department),
+        },
+        select: { id: true, name: true },
+      })
+      rootByName.set(department.toLowerCase(), root)
+    }
+
+    for (let index = 0; index < children.length; index += 1) {
+      const childName = children[index]
+      const existing = await prisma.category.findFirst({
+        where: {
+          parentId: root.id,
+          name: { equals: childName, mode: "insensitive" },
+        },
+        select: { id: true },
+      })
+
+      if (existing) continue
+
+      const baseSlug = makeSlug(`${department}-${childName}`)
+      let slug = baseSlug
+      let suffix = 2
+
+      while (await prisma.category.findUnique({ where: { slug }, select: { id: true } })) {
+        slug = `${baseSlug}-${suffix++}`
+      }
+
+      await prisma.category.create({
+        data: {
+          name: childName,
+          slug,
+          parentId: root.id,
+          active: true,
+          sortOrder: index,
+        },
+      })
+    }
+  }
+}
+
 export async function GET() {
   const { response } = await requireAdmin(ADMIN_ROLES)
 
@@ -78,7 +169,7 @@ export async function GET() {
   }
 
   try {
-    await ensureDefaultRootCategories()
+    await ensureDefaultDepartmentCategories()
 
     const categories = await prisma.category.findMany({
       orderBy: [
