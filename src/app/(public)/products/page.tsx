@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic"
 export default async function ProductsPage({ searchParams }: { searchParams?: Record<string, string | string[] | undefined> }) {
   const get = (key: string) => { const value = searchParams?.[key]; return Array.isArray(value) ? value[0] || "" : value || "" }
   const category = get("category")
+  const subcategory = get("subcategory")
   const gender = get("gender")
   const collection = get("collection")
   const sale = get("sale") === "1"
@@ -18,6 +19,7 @@ export default async function ProductsPage({ searchParams }: { searchParams?: Re
 
   const where: any = { status: "ACTIVE" }
   if (category && category !== "all") where.category = category
+  if (subcategory) where.subcategory = subcategory
   if (gender) where.gender = gender
   if (collection) where.collection = collection
   if (sale) where.salePrice = { not: null }
@@ -36,11 +38,12 @@ export default async function ProductsPage({ searchParams }: { searchParams?: Re
   ])
 
   const totalPages = Math.ceil(totalCount / perPage)
-  const title = category || collection || gender || (sale ? "Sale" : "Shop All")
+  const title = subcategory || category || collection || gender || (sale ? "Sale" : "Shop All")
   const subtitle = sale ? "Selected pieces, considered prices." : "Discover the latest NOORÉ collection."
   const makePageUrl = (p: number) => {
     const params = new URLSearchParams()
     if (category) params.set("category", category)
+    if (subcategory) params.set("subcategory", subcategory)
     if (gender) params.set("gender", gender)
     if (collection) params.set("collection", collection)
     if (sale) params.set("sale", "1")

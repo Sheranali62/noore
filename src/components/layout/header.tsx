@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import {
   Heart,
   Menu,
@@ -25,6 +25,15 @@ const nav = [
   { label: "Journal", href: "/journal" },
   { label: "Sale", href: "/sale" },
 ]
+
+type MenuCategory = {
+  id: string
+  name: string
+  slug: string
+  parentId: string | null
+  active: boolean
+  sortOrder: number
+}
 
 type SearchProduct = {
   id: string
@@ -57,6 +66,7 @@ export function Header() {
   const [recentSearches, setRecentSearches] = useState<string[]>([])
   const [activeIndex, setActiveIndex] = useState(-1)
   const [shortcutLabel, setShortcutLabel] = useState("Ctrl K")
+  const [menuCategories, setMenuCategories] = useState<MenuCategory[]>([])
 
   const inputRef = useRef<HTMLInputElement>(null)
   const megaCloseTimer = useRef<number | null>(null)
@@ -89,6 +99,73 @@ export function Header() {
       }
     }
   }, [])
+
+  useEffect(() => {
+    let cancelled = false
+
+    fetch("/api/categories", {
+      method: "GET",
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+    })
+      .then((response) => (response.ok ? response.json() : []))
+      .then((data) => {
+        if (cancelled) return
+        const rows = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.categories)
+            ? data.categories
+            : []
+
+        setMenuCategories(
+          rows
+            .filter((item: any) => item && item.id && item.name)
+            .map((item: any) => ({
+              id: String(item.id),
+              name: String(item.name).trim(),
+              slug: String(item.slug ?? "").trim(),
+              parentId: item.parentId ? String(item.parentId) : null,
+              active: item.active !== false,
+              sortOrder: Number(item.sortOrder) || 0,
+            }))
+            .filter((item: MenuCategory) => item.active),
+        )
+      })
+      .catch(() => {
+        if (!cancelled) setMenuCategories([])
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const menuRoots = useMemo(
+    () =>
+      menuCategories
+        .filter((item) => !item.parentId)
+        .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name)),
+    [menuCategories],
+  )
+
+  const getMenuRoot = (name: string) =>
+    menuRoots.find((item) => item.name.toLowerCase() === name.toLowerCase())
+
+  const getMenuChildren = (rootName: string) => {
+    const root = getMenuRoot(rootName)
+    if (!root) return []
+
+    return menuCategories
+      .filter((item) => item.parentId === root.id)
+      .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name))
+  }
+
+  const categoryHref = (rootName: string, child?: MenuCategory) => {
+    const params = new URLSearchParams()
+    params.set("category", rootName)
+    if (child) params.set("subcategory", child.name)
+    return `/products?${params.toString()}`
+  }
 
   useEffect(() => {
     setShortcutLabel(
@@ -639,11 +716,12 @@ export function Header() {
                     <p className="eyebrow">Shop all / categories</p>
                     <div className="mt-5 grid grid-cols-3 gap-x-8 gap-y-3 text-sm">
                       <Link href="/new-in">New In</Link>
-                      <Link href="/women">Women</Link>
-                      <Link href="/men">Men</Link>
-                      <Link href="/kids">Kids</Link>
+                      {menuRoots.map((category) => (
+                        <Link key={category.id} href={categoryHref(category.name)}>
+                          {category.name}
+                        </Link>
+                      ))}
                       <Link href="/collections">Collections</Link>
-                      <Link href="/products?category=Luxury">Luxury</Link>
                       <Link href="/sale">Sale</Link>
                       <Link href="/journal">Journal</Link>
                       <Link href="/products">All Products</Link>
@@ -651,78 +729,25 @@ export function Header() {
                   </>
                 )}
 
-                {megaTab === "women" && (
+                {(megaTab === "women" || megaTab === "men" || megaTab === "kids") && (
                   <>
-                    <p className="eyebrow">Women / categories</p>
+                    <p className="eyebrow">{megaTab} / categories</p>
                     <div className="mt-5 grid grid-cols-3 gap-x-8 gap-y-3 text-sm">
-                      <Link href="/products?gender=Women">All Women</Link>
-                      <Link href="/products?gender=Women&category=Saree">Saree</Link>
-                      <Link href="/products?gender=Women&category=Shalwar%20Kameez">Shalwar Kameez</Link>
-                      <Link href="/products?gender=Women&category=2%20Piece">2 Piece</Link>
-                      <Link href="/products?gender=Women&category=3%20Piece">3 Piece</Link>
-                      <Link href="/products?gender=Women&category=Kurta">Kurta</Link>
-                      <Link href="/products?gender=Women&category=Kurtis">Kurtis</Link>
-                      <Link href="/products?gender=Women&category=Suits">Suits</Link>
-                      <Link href="/products?gender=Women&category=Lawn">Lawn</Link>
-                      <Link href="/products?gender=Women&category=Chiffon">Chiffon</Link>
-                      <Link href="/products?gender=Women&category=Linen">Linen</Link>
-                      <Link href="/products?gender=Women&category=Formal%20Wear">Formal Wear</Link>
-                      <Link href="/products?gender=Women&category=Party%20Wear">Party Wear</Link>
-                      <Link href="/products?gender=Women&category=Casual%20Wear">Casual Wear</Link>
-                      <Link href="/products?gender=Women&category=Unstitched">Unstitched</Link>
-                      <Link href="/products?gender=Women&category=Dupattas">Dupattas</Link>
-                      <Link href="/products?gender=Women&category=Shawls">Shawls</Link>
-                      <Link href="/products?gender=Women&category=Bottoms">Bottoms</Link>
-                      <Link href="/products?gender=Women&sale=1">Sale</Link>
+                      <Link href={`/products?gender=${encodeURIComponent(megaTab === "women" ? "Women" : megaTab === "men" ? "Men" : "Kids")}`}>
+                        All {megaTab === "women" ? "Women" : megaTab === "men" ? "Men" : "Kids"}
+                      </Link>
+                      {getMenuChildren(megaTab).map((category) => (
+                        <Link
+                          key={category.id}
+                          href={categoryHref(megaTab === "women" ? "Women" : megaTab === "men" ? "Men" : "Kids", category)}
+                        >
+                          {category.name}
+                        </Link>
+                      ))}
                     </div>
-                  </>
-                )}
-
-                {megaTab === "men" && (
-                  <>
-                    <p className="eyebrow">Men / categories</p>
-                    <div className="mt-5 grid grid-cols-3 gap-x-8 gap-y-3 text-sm">
-                      <Link href="/products?gender=Men">All Men</Link>
-                      <Link href="/products?gender=Men&category=Shalwar%20Kameez">Shalwar Kameez</Link>
-                      <Link href="/products?gender=Men&category=Kurta">Kurta</Link>
-                      <Link href="/products?gender=Men&category=2%20Piece">2 Piece</Link>
-                      <Link href="/products?gender=Men&category=3%20Piece">3 Piece</Link>
-                      <Link href="/products?gender=Men&category=Waistcoats">Waistcoats</Link>
-                      <Link href="/products?gender=Men&category=Prince%20Coats">Prince Coats</Link>
-                      <Link href="/products?gender=Men&category=Suits">Suits</Link>
-                      <Link href="/products?gender=Men&category=Formal%20Wear">Formal Wear</Link>
-                      <Link href="/products?gender=Men&category=Casual%20Wear">Casual Wear</Link>
-                      <Link href="/products?gender=Men&category=Unstitched">Unstitched</Link>
-                      <Link href="/products?gender=Men&category=Kameez">Kameez</Link>
-                      <Link href="/products?gender=Men&category=Shalwar">Shalwar</Link>
-                      <Link href="/products?gender=Men&category=Trousers">Trousers</Link>
-                      <Link href="/products?gender=Men&category=Jackets">Jackets</Link>
-                      <Link href="/products?gender=Men&category=Festive%20Wear">Festive Wear</Link>
-                      <Link href="/products?gender=Men&sale=1">Sale</Link>
-                    </div>
-                  </>
-                )}
-
-                {megaTab === "kids" && (
-                  <>
-                    <p className="eyebrow">Kids / categories</p>
-                    <div className="mt-5 grid grid-cols-3 gap-x-8 gap-y-3 text-sm">
-                      <Link href="/products?gender=Kids">All Kids</Link>
-                      <Link href="/products?gender=Kids&category=Girls%20Shalwar%20Kameez">Girls Shalwar Kameez</Link>
-                      <Link href="/products?gender=Kids&category=Girls%202%20Piece">Girls 2 Piece</Link>
-                      <Link href="/products?gender=Kids&category=Girls%203%20Piece">Girls 3 Piece</Link>
-                      <Link href="/products?gender=Kids&category=Girls%20Kurtis">Girls Kurtis</Link>
-                      <Link href="/products?gender=Kids&category=Girls%20Festive%20Wear">Girls Festive Wear</Link>
-                      <Link href="/products?gender=Kids&category=Boys%20Shalwar%20Kameez">Boys Shalwar Kameez</Link>
-                      <Link href="/products?gender=Kids&category=Boys%20Kurta">Boys Kurta</Link>
-                      <Link href="/products?gender=Kids&category=Boys%20Waistcoats">Boys Waistcoats</Link>
-                      <Link href="/products?gender=Kids&category=Boys%202%20Piece">Boys 2 Piece</Link>
-                      <Link href="/products?gender=Kids&category=Girls%20Casual">Girls Casual</Link>
-                      <Link href="/products?gender=Kids&category=Boys%20Casual">Boys Casual</Link>
-                      <Link href="/products?gender=Kids&category=Formal">Formal</Link>
-                      <Link href="/products?gender=Kids&category=Festive">Festive</Link>
-                      <Link href="/products?gender=Kids&sale=1">Sale</Link>
-                    </div>
+                    {getMenuChildren(megaTab).length === 0 && (
+                      <p className="mt-5 text-sm text-secondary">Categories are coming soon.</p>
+                    )}
                   </>
                 )}
 
