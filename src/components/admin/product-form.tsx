@@ -92,6 +92,36 @@ const DEFAULT_DEPARTMENTS = [
   "Accessories",
 ]
 
+
+const DEPARTMENT_SUBCATEGORIES: Record<string, string[]> = {
+  Women: [
+    "Saree", "Shalwar Kameez", "2 Piece", "3 Piece", "Kurta", "Kurtis",
+    "Suits", "Lawn", "Chiffon", "Linen", "Cambric", "Formal Wear",
+    "Party Wear", "Casual Wear", "Pret", "Unstitched", "Dupattas",
+    "Shawls", "Bottoms", "New Arrivals", "Sale",
+  ],
+  Men: [
+    "Shalwar Kameez", "Kurta", "2 Piece", "3 Piece", "Waistcoats",
+    "Prince Coats", "Suits", "Formal Wear", "Casual Wear", "Unstitched",
+    "Kameez", "Shalwar", "Trousers", "Jackets", "Festive Wear",
+    "New Arrivals", "Sale",
+  ],
+  Kids: [
+    "Girls Shalwar Kameez", "Girls 2 Piece", "Girls 3 Piece", "Girls Kurtis",
+    "Girls Festive Wear", "Boys Shalwar Kameez", "Boys Kurta", "Boys Waistcoats",
+    "Boys 2 Piece", "Girls Casual", "Boys Casual", "Formal", "Festive",
+    "New Arrivals", "Sale",
+  ],
+  Luxury: [
+    "Luxury Pret", "Luxury Unstitched", "Luxury Formal", "Luxury Bridal",
+    "Luxury Festive", "Luxury Shawls", "New Arrivals", "Sale",
+  ],
+  Accessories: [
+    "Dupattas", "Shawls", "Bags", "Jewellery", "Footwear", "Belts",
+    "Scarves", "Gift Sets", "New Arrivals", "Sale",
+  ],
+}
+
 const COLLECTIONS = [
   "New Season",
   "New In",
@@ -253,16 +283,25 @@ export default function ProductForm({
   )
 
   const subcategories = useMemo(() => {
-    if (!selectedMainCategory || selectedMainCategory.id.startsWith("default-")) return []
+    const fixed = DEPARTMENT_SUBCATEGORIES[formData.category] || []
 
-    return categories
-      .filter(
-        category =>
-          category.parentId === selectedMainCategory.id &&
-          category.active !== false,
-      )
-      .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0) || a.name.localeCompare(b.name))
-  }, [categories, selectedMainCategory])
+    const database = selectedMainCategory && !selectedMainCategory.id.startsWith("default-")
+      ? categories
+          .filter(
+            category =>
+              category.parentId === selectedMainCategory.id &&
+              category.active !== false,
+          )
+          .sort(
+            (a, b) =>
+              (a.sortOrder || 0) - (b.sortOrder || 0) ||
+              a.name.localeCompare(b.name),
+          )
+          .map(category => category.name)
+      : []
+
+    return Array.from(new Set([...fixed, ...database]))
+  }, [categories, selectedMainCategory, formData.category])
 
   const update = (key: keyof ProductFormData, value: string) => {
     setFormData(current => ({ ...current, [key]: value }))
@@ -439,28 +478,18 @@ export default function ProductForm({
 
           <label className="block text-sm font-medium">
             Subcategory *
-            {subcategories.length ? (
-              <select
-                required
-                value={formData.subcategory}
-                onChange={e => handleSubcategoryChange(e.target.value)}
-                className="mt-1 w-full rounded border border-cream bg-white px-3 py-2"
-              >
-                <option value="">Select Subcategory</option>
-                {subcategories.map(category => (
-                  <option key={category.id} value={category.name}>{category.name}</option>
-                ))}
-              </select>
-            ) : (
-              <input
-                required
-                value={formData.subcategory}
-                onChange={e => handleSubcategoryChange(e.target.value)}
-                placeholder={formData.category ? "Enter subcategory" : "Select category first"}
-                className="mt-1 w-full rounded border border-cream px-3 py-2 disabled:bg-cream/50"
-                disabled={!formData.category}
-              />
-            )}
+            <select
+              required
+              value={formData.subcategory}
+              onChange={e => handleSubcategoryChange(e.target.value)}
+              disabled={!formData.category}
+              className="mt-1 w-full rounded border border-cream bg-white px-3 py-2 disabled:bg-cream/50"
+            >
+              <option value="">{formData.category ? "Select Subcategory" : "Select Category first"}</option>
+              {subcategories.map(subcategory => (
+                <option key={subcategory} value={subcategory}>{subcategory}</option>
+              ))}
+            </select>
           </label>
 
           <label className="block text-sm font-medium">
