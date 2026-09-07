@@ -1,11 +1,6 @@
 "use client"
 
-import {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import ProductVariantsForm from "@/components/admin/product-variants-form"
 
@@ -17,6 +12,14 @@ type Variant = {
   price: string
   stock: string
   images: string[]
+}
+
+type CategoryRecord = {
+  id: string
+  name: string
+  parentId: string | null
+  active: boolean
+  sortOrder: number
 }
 
 export type ProductFormData = {
@@ -76,20 +79,20 @@ type Props = {
   initialVariants?: Variant[]
 }
 
-type Category = {
-  id: string
-  name: string
-  parentId: string | null
-  active: boolean
-  sortOrder: number
-  children?: Category[]
-}
-
 const MAX_IMAGE_SIZE = 3 * 1024 * 1024
 const MAX_VIDEO_SIZE = 25 * 1024 * 1024
 
+const BUILT_IN_DEPARTMENTS = [
+  "Women",
+  "Men",
+  "Kids",
+  "Luxury",
+  "Accessories",
+]
+
 const COLLECTIONS = [
   "New Season",
+  "New In",
   "Luxury",
   "Festive",
   "Wedding Guest",
@@ -107,7 +110,7 @@ function fileToDataUrl(file: File): Promise<string> {
 
     reader.onload = () => {
       if (typeof reader.result !== "string") {
-        reject(new Error("Unable to read selected file"))
+        reject(new Error("Unable to read the selected file"))
         return
       }
 
@@ -122,67 +125,74 @@ function fileToDataUrl(file: File): Promise<string> {
   })
 }
 
-function flattenCategories(
-  input: unknown,
+function normalizeCategory(
+  item: any,
   inheritedParentId: string | null = null,
-): Category[] {
-  if (!Array.isArray(input)) {
+  index = 0,
+): CategoryRecord[] {
+  if (!item || typeof item !== "object") {
     return []
   }
 
-  const result: Category[] = []
+  const id =
+    typeof item.id === "string" && item.id.trim()
+      ? item.id
+      : `category-${index}-${String(item.name ?? "unknown")}`
 
-  for (const item of input) {
-    if (
-      !item ||
-      typeof item !== "object"
-    ) {
-      continue
-    }
+  const name =
+    typeof item.name === "string"
+      ? item.name.trim()
+      : ""
 
-    const raw = item as {
-      id?: unknown
-      name?: unknown
-      parentId?: unknown
-      active?: unknown
-      sortOrder?: unknown
-      children?: unknown
-    }
-
-    if (
-      typeof raw.id !== "string" ||
-      typeof raw.name !== "string"
-    ) {
-      continue
-    }
-
-    const parentId =
-      typeof raw.parentId === "string"
-        ? raw.parentId
-        : inheritedParentId
-
-    result.push({
-      id: raw.id,
-      name: raw.name,
-      parentId,
-      active: raw.active !== false,
-      sortOrder:
-        typeof raw.sortOrder === "number"
-          ? raw.sortOrder
-          : 0,
-    })
-
-    if (Array.isArray(raw.children)) {
-      result.push(
-        ...flattenCategories(
-          raw.children,
-          raw.id,
-        ),
-      )
-    }
+  if (!name) {
+    return []
   }
 
-  return result
+  const parentId =
+    typeof item.parentId === "string" && item.parentId.trim()
+      ? item.parentId
+      : inheritedParentId
+
+  const active = item.active !== false
+
+  const sortOrder =
+    typeof item.sortOrder === "number"
+      ? item.sortOrder
+      : 0
+
+  const current: CategoryRecord = {
+    id,
+    name,
+    parentId,
+    active,
+    sortOrder,
+  }
+
+  const children = Array.isArray(item.children)
+    ? item.children.flatMap((child: any, childIndex: number) =>
+        normalizeCategory(child, id, childIndex),
+      )
+    : []
+
+  return [current, ...children]
+}
+
+function normalizeCategoryResponse(data: any): CategoryRecord[] {
+  let raw: any[] = []
+
+  if (Array.isArray(data)) {
+    raw = data
+  } else if (Array.isArray(data?.categories)) {
+    raw = data.categories
+  } else if (Array.isArray(data?.data)) {
+    raw = data.data
+  } else if (Array.isArray(data?.items)) {
+    raw = data.items
+  }
+
+  return raw.flatMap((item, index) =>
+    normalizeCategory(item, null, index),
+  )
 }
 
 export default function ProductForm({
@@ -193,117 +203,129 @@ export default function ProductForm({
 }: Props) {
   const router = useRouter()
 
-  const imageInputRef =
-    useRef<HTMLInputElement>(null)
+  const imageInputRef = useRef<HTMLInputElement>(null)
+  const videoInputRef = useRef<HTMLInputElement>(null)
 
-  const videoInputRef =
-    useRef<HTMLInputElement>(null)
+  const [loading, setLoading] = useState(false)
+  const [uploadingImages, setUploadingImages] = useState(false)
+  const [uploadingVideo, setUploadingVideo] = useState(false)
 
-  const [loading, setLoading] =
-    useState(false)
+  const [categories, setCategories] = useState<CategoryRecord[]>([])
+  const [categoriesLoading, setCategoriesLoading] = useState(true)
+  const [categoryError, setCategoryError] = useState("")
 
-  const [uploadingImages, setUploadingImages] =
-    useState(false)
-
-  const [uploadingVideo, setUploadingVideo] =
-    useState(false)
-
-  const [categories, setCategories] =
-    useState<Category[]>([])
-
-  const [categoriesLoading, setCategoriesLoading] =
-    useState(true)
-
-  const [formData, setFormData] =
-    useState<ProductFormData>({
-      ...emptyProductForm,
-      ...initialData,
-      images: Array.isArray(initialData.images)
-        ? initialData.images.filter(Boolean)
-        : [],
-    })
+  const [formData, setFormData] = useState<ProductFormData>({
+    ...emptyProductForm,
+    ...initialData,
+    images: Array.isArray(initialData.images)
+      ? initialData.images.filter(Boolean)
+      : [],
+  })
 
   const [variants, setVariants] =
     useState<Variant[]>(initialVariants)
 
   /*
-   * Load categories from:
+   * LOAD CATEGORIES
    *
-   * /api/admin/categories
+   * Supports:
+   *   []
+   *   { categories: [] }
+   *   { data: [] }
+   *   { items: [] }
    *
-   * Supports both:
-   *
-   * [
-   *   { id, name, parentId }
-   * ]
-   *
-   * and:
-   *
-   * {
-   *   categories: [...]
-   * }
-   *
-   * and nested children.
+   * Also supports nested:
+   *   Women
+   *     Shalwar Kameez
+   *       3 Piece
    */
   useEffect(() => {
     let cancelled = false
 
     async function loadCategories() {
       setCategoriesLoading(true)
+      setCategoryError("")
 
       try {
         const response = await fetch(
           "/api/admin/categories",
           {
+            method: "GET",
             cache: "no-store",
+            credentials: "include",
+            headers: {
+              Accept: "application/json",
+            },
           },
         )
 
-        if (!response.ok) {
-          throw new Error(
-            "Unable to load categories",
-          )
-        }
+        const text = await response.text()
 
-        const data =
-          await response.json()
+        let data: any = null
 
-        let rawCategories: unknown = []
-
-        if (Array.isArray(data)) {
-          rawCategories = data
-        } else if (
-          data &&
-          typeof data === "object"
-        ) {
-          const objectData = data as {
-            categories?: unknown
-            data?: unknown
+        if (text) {
+          try {
+            data = JSON.parse(text)
+          } catch {
+            data = null
           }
-
-          rawCategories =
-            objectData.categories ??
-            objectData.data ??
-            []
         }
 
-        const flattened =
-          flattenCategories(
-            rawCategories,
-          )
+        if (!response.ok) {
+          const message =
+            typeof data?.error === "string"
+              ? data.error
+              : `Category API returned ${response.status}`
 
-        if (!cancelled) {
-          setCategories(flattened)
+          throw new Error(message)
+        }
+
+        const loadedCategories =
+          normalizeCategoryResponse(data)
+
+        if (cancelled) return
+
+        setCategories(loadedCategories)
+
+        /*
+         * IMPORTANT:
+         * We do NOT delete or replace database categories.
+         *
+         * If the database/API is temporarily empty,
+         * we expose the standard NOORÉ departments so
+         * product creation does not become unusable.
+         */
+        if (
+          loadedCategories.length === 0 &&
+          !initialData.category
+        ) {
+          setFormData((current) => ({
+            ...current,
+            category: "Women",
+            subcategory: "",
+            collection: "",
+          }))
         }
       } catch (error) {
+        if (cancelled) return
+
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Unable to load categories."
+
         console.error(
           "Product form category loading error:",
           error,
         )
 
-        if (!cancelled) {
-          setCategories([])
-        }
+        setCategoryError(message)
+
+        /*
+         * Keep the product form usable even if the
+         * category endpoint temporarily fails.
+         */
+        setCategories([])
       } finally {
         if (!cancelled) {
           setCategoriesLoading(false)
@@ -316,72 +338,96 @@ export default function ProductForm({
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [initialData.category])
 
   /*
-   * MAIN CATEGORY
+   * MAIN CATEGORIES
    *
-   * Only top-level active categories.
+   * A category is a root category when:
+   *   parentId === null
+   *
+   * Missing active means active.
    */
-  const mainCategories = useMemo(
-    () =>
-      categories
-        .filter(
-          (category) =>
-            category.parentId === null &&
-            category.active,
-        )
-        .sort(
-          (a, b) =>
-            a.sortOrder - b.sortOrder,
-        ),
-    [categories],
-  )
-
-  /*
-   * SELECTED CATEGORY
-   */
-  const selectedCategory = useMemo(
-    () =>
-      mainCategories.find(
+  const mainCategories = useMemo(() => {
+    const databaseCategories = categories
+      .filter(
         (category) =>
-          category.name ===
-          formData.category,
-      ),
-    [
-      mainCategories,
-      formData.category,
-    ],
-  )
+          !category.parentId &&
+          category.active !== false,
+      )
+      .sort((a, b) => {
+        if (a.sortOrder !== b.sortOrder) {
+          return a.sortOrder - b.sortOrder
+        }
+
+        return a.name.localeCompare(b.name)
+      })
+
+    /*
+     * If DB has categories, use them.
+     * Otherwise show the standard department choices.
+     */
+    if (databaseCategories.length > 0) {
+      return databaseCategories
+    }
+
+    return BUILT_IN_DEPARTMENTS.map(
+      (name, index) => ({
+        id: `builtin-${name.toLowerCase()}`,
+        name,
+        parentId: null,
+        active: true,
+        sortOrder: index,
+      }),
+    )
+  }, [categories])
+
+  const selectedMainCategory = useMemo(() => {
+    return mainCategories.find(
+      (category) =>
+        category.name === formData.category,
+    )
+  }, [mainCategories, formData.category])
 
   /*
-   * SUBCATEGORY
-   *
-   * Depends on Category.
+   * DIRECT SUBCATEGORIES
    */
-  const subcategories = useMemo(
-    () => {
-      if (!selectedCategory) {
-        return []
-      }
+  const subcategories = useMemo(() => {
+    if (!selectedMainCategory) {
+      return []
+    }
 
-      return categories
-        .filter(
-          (category) =>
-            category.parentId ===
-              selectedCategory.id &&
-            category.active,
-        )
-        .sort(
-          (a, b) =>
-            a.sortOrder - b.sortOrder,
-        )
-    },
-    [
-      categories,
-      selectedCategory,
-    ],
-  )
+    /*
+     * Built-in departments don't have DB children.
+     */
+    if (
+      selectedMainCategory.id.startsWith("builtin-")
+    ) {
+      return []
+    }
+
+    return categories
+      .filter(
+        (category) =>
+          category.parentId ===
+            selectedMainCategory.id &&
+          category.active !== false,
+      )
+      .sort((a, b) => {
+        if (a.sortOrder !== b.sortOrder) {
+          return a.sortOrder - b.sortOrder
+        }
+
+        return a.name.localeCompare(b.name)
+      })
+  }, [
+    categories,
+    selectedMainCategory,
+  ])
+
+  const collectionOptions = useMemo(() => {
+    return COLLECTIONS
+  }, [])
 
   const update = (
     key: keyof ProductFormData,
@@ -393,16 +439,7 @@ export default function ProductForm({
     }))
   }
 
-  /*
-   * CATEGORY
-   *
-   * Category change resets:
-   * Subcategory
-   * Collection
-   */
-  const handleCategoryChange = (
-    value: string,
-  ) => {
+  const handleCategoryChange = (value: string) => {
     setFormData((current) => ({
       ...current,
       category: value,
@@ -411,12 +448,6 @@ export default function ProductForm({
     }))
   }
 
-  /*
-   * SUBCATEGORY
-   *
-   * Subcategory change resets:
-   * Collection
-   */
   const handleSubcategoryChange = (
     value: string,
   ) => {
@@ -428,25 +459,36 @@ export default function ProductForm({
   }
 
   /*
+   * PRODUCT IMAGE REMOVE
+   */
+  const removeProductImage = (index: number) => {
+    setFormData((current) => ({
+      ...current,
+      images: current.images.filter(
+        (_, imageIndex) =>
+          imageIndex !== index,
+      ),
+    }))
+  }
+
+  /*
    * PRODUCT IMAGE UPLOAD
    */
   const handleImageUpload = async (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
-    const selectedFiles = Array.from(
-      event.target.files ?? [],
+    const files = Array.from(
+      event.target.files || [],
     )
 
-    if (selectedFiles.length === 0) {
-      return
-    }
+    if (!files.length) return
 
     setUploadingImages(true)
 
     try {
       const validFiles: File[] = []
 
-      for (const file of selectedFiles) {
+      for (const file of files) {
         if (!file.type.startsWith("image/")) {
           alert(
             `${file.name} is not an image file.`,
@@ -464,13 +506,11 @@ export default function ProductForm({
         validFiles.push(file)
       }
 
-      if (validFiles.length === 0) {
-        return
-      }
+      if (!validFiles.length) return
 
-      const dataUrls =
+      const uploadedImages =
         await Promise.all(
-          validFiles.map(file =>
+          validFiles.map((file) =>
             fileToDataUrl(file),
           ),
         )
@@ -479,7 +519,7 @@ export default function ProductForm({
         ...current,
         images: [
           ...current.images,
-          ...dataUrls,
+          ...uploadedImages,
         ],
       }))
     } catch (error) {
@@ -498,21 +538,6 @@ export default function ProductForm({
   }
 
   /*
-   * REMOVE PRODUCT IMAGE
-   */
-  const removeProductImage = (
-    index: number,
-  ) => {
-    setFormData((current) => ({
-      ...current,
-      images: current.images.filter(
-        (_, imageIndex) =>
-          imageIndex !== index,
-      ),
-    }))
-  }
-
-  /*
    * PRODUCT VIDEO UPLOAD
    */
   const handleVideoUpload = async (
@@ -521,14 +546,10 @@ export default function ProductForm({
     const file =
       event.target.files?.[0]
 
-    if (!file) {
-      return
-    }
+    if (!file) return
 
     if (!file.type.startsWith("video/")) {
-      alert(
-        "Please select a valid video file.",
-      )
+      alert("Please select a video file.")
 
       if (videoInputRef.current) {
         videoInputRef.current.value = ""
@@ -552,12 +573,12 @@ export default function ProductForm({
     setUploadingVideo(true)
 
     try {
-      const dataUrl =
+      const videoDataUrl =
         await fileToDataUrl(file)
 
       setFormData((current) => ({
         ...current,
-        video: dataUrl,
+        video: videoDataUrl,
       }))
     } catch (error) {
       alert(
@@ -575,81 +596,49 @@ export default function ProductForm({
   }
 
   /*
-   * REMOVE PRODUCT VIDEO
-   */
-  const removeVideo = () => {
-    setFormData((current) => ({
-      ...current,
-      video: "",
-    }))
-
-    if (videoInputRef.current) {
-      videoInputRef.current.value = ""
-    }
-  }
-
-  /*
    * SUBMIT
-   *
-   * Strict workflow:
-   *
-   * Category
-   * ↓
-   * Subcategory
-   * ↓
-   * Collection
    */
   const submit = async (
     event: React.FormEvent,
   ) => {
     event.preventDefault()
 
+    /*
+     * These three fields are deliberately
+     * required in the product workflow.
+     */
     if (!formData.category.trim()) {
-      alert(
-        "Please select a Category.",
-      )
+      alert("Please select a category.")
       return
     }
 
     if (!formData.subcategory.trim()) {
-      alert(
-        "Please select a Subcategory.",
-      )
+      alert("Please select or enter a subcategory.")
       return
     }
 
     if (!formData.collection.trim()) {
-      alert(
-        "Please select a Collection.",
-      )
+      alert("Please select a collection.")
       return
     }
 
     if (!formData.name.trim()) {
-      alert(
-        "Please enter the product name.",
-      )
+      alert("Please enter the product name.")
       return
     }
 
     if (!formData.sku.trim()) {
-      alert(
-        "Please enter the product SKU.",
-      )
+      alert("Please enter the product SKU.")
       return
     }
 
     if (!formData.slug.trim()) {
-      alert(
-        "Please enter the product slug.",
-      )
+      alert("Please enter the product slug.")
       return
     }
 
     if (!formData.price.trim()) {
-      alert(
-        "Please enter the product price.",
-      )
+      alert("Please enter the regular price.")
       return
     }
 
@@ -659,39 +648,29 @@ export default function ProductForm({
       const payload = {
         ...formData,
 
-        category:
-          formData.category.trim(),
+        name: formData.name.trim(),
+        sku: formData.sku.trim().toUpperCase(),
+        slug: formData.slug.trim(),
 
+        category: formData.category.trim(),
         subcategory:
           formData.subcategory.trim(),
-
         collection:
           formData.collection.trim(),
 
-        price: Number(
-          formData.price,
-        ),
+        price: Number(formData.price),
 
-        salePrice:
-          formData.salePrice
-            ? Number(
-                formData.salePrice,
-              )
-            : null,
+        salePrice: formData.salePrice
+          ? Number(formData.salePrice)
+          : null,
 
-        costPrice:
-          formData.costPrice
-            ? Number(
-                formData.costPrice,
-              )
-            : null,
+        costPrice: formData.costPrice
+          ? Number(formData.costPrice)
+          : null,
 
-        pieces:
-          formData.pieces
-            ? Number(
-                formData.pieces,
-              )
-            : null,
+        pieces: formData.pieces
+          ? Number(formData.pieces)
+          : null,
 
         stock: Number(
           formData.stock || 0,
@@ -703,15 +682,10 @@ export default function ProductForm({
 
         tags: formData.tags
           .split(",")
-          .map((tag) =>
-            tag.trim(),
-          )
+          .map((tag) => tag.trim())
           .filter(Boolean),
 
-        images:
-          formData.images.filter(
-            Boolean,
-          ),
+        images: formData.images.filter(Boolean),
 
         variants: variants.map(
           (variant) => ({
@@ -721,43 +695,42 @@ export default function ProductForm({
             size:
               variant.size.trim(),
             sku:
-              variant.sku.trim(),
-            price:
-              variant.price
-                ? Number(
-                    variant.price,
-                  )
-                : null,
+              variant.sku
+                .trim()
+                .toUpperCase(),
+            price: variant.price
+              ? Number(variant.price)
+              : null,
             stock: Number(
               variant.stock || 0,
             ),
             images:
-              variant.images.filter(
-                Boolean,
-              ),
+              variant.images.filter(Boolean),
           }),
         ),
       }
 
-      const response =
-        await fetch(
-          mode === "create"
-            ? "/api/products"
-            : `/api/products/${productId}`,
-          {
-            method:
-              mode === "create"
-                ? "POST"
-                : "PUT",
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-            body: JSON.stringify(
-              payload,
-            ),
+      const response = await fetch(
+        mode === "create"
+          ? "/api/products"
+          : `/api/products/${productId}`,
+        {
+          method:
+            mode === "create"
+              ? "POST"
+              : "PUT",
+          headers: {
+            "Content-Type":
+              "application/json",
+            Accept:
+              "application/json",
           },
-        )
+          credentials: "include",
+          body: JSON.stringify(
+            payload,
+          ),
+        },
+      )
 
       const data =
         await response
@@ -775,10 +748,7 @@ export default function ProductForm({
         )
       }
 
-      router.push(
-        "/admin/products",
-      )
-
+      router.push("/admin/products")
       router.refresh()
     } catch (error) {
       alert(
@@ -796,10 +766,9 @@ export default function ProductForm({
       onSubmit={submit}
       className="space-y-6"
     >
-      {/* ====================================================== */}
-      {/* CORE PRODUCT INFORMATION */}
-      {/* ====================================================== */}
-
+      {/* =====================================================
+          CORE PRODUCT INFORMATION
+          ===================================================== */}
       <section className="rounded-xl border border-cream bg-white p-6">
         <h2 className="text-lg font-semibold">
           Core product information
@@ -810,15 +779,45 @@ export default function ProductForm({
           merchandising teams use most.
         </p>
 
+        {/* CATEGORY STATUS */}
+        {categoriesLoading && (
+          <div className="mt-5 rounded-lg border border-cream bg-cream/20 p-4">
+            <p className="text-sm font-medium">
+              Loading categories...
+            </p>
+
+            <p className="mt-1 text-xs text-secondary">
+              Loading your NOORÉ category
+              structure.
+            </p>
+          </div>
+        )}
+
+        {categoryError && (
+          <div className="mt-5 rounded-lg border border-red-200 bg-red-50 p-4">
+            <p className="text-sm font-semibold text-red-800">
+              Category database could not
+              be loaded
+            </p>
+
+            <p className="mt-1 text-xs text-red-700">
+              {categoryError}
+            </p>
+
+            <p className="mt-2 text-xs text-red-700">
+              The standard NOORÉ departments
+              remain available so you can
+              continue working.
+            </p>
+          </div>
+        )}
+
         <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2">
           <Field
             label="Product Name *"
             value={formData.name}
             onChange={(value) =>
-              update(
-                "name",
-                value,
-              )
+              update("name", value)
             }
             required
           />
@@ -852,94 +851,140 @@ export default function ProductForm({
             required
           />
 
-          {/* ================================================== */}
           {/* CATEGORY */}
-          {/* ================================================== */}
+          <div className="block text-sm font-medium">
+            <label>
+              Category *
+            </label>
 
-          <Select
-            label="1. Category *"
-            value={formData.category}
-            onChange={
-              handleCategoryChange
-            }
-            options={mainCategories.map(
-              (category) =>
-                category.name,
-            )}
-            required
-            disabled={
-              categoriesLoading
-            }
-            placeholder={
-              categoriesLoading
-                ? "Loading categories..."
-                : mainCategories.length ===
-                    0
-                  ? "No categories available"
-                  : "Select Category"
-            }
-          />
+            <select
+              required
+              value={formData.category}
+              onChange={(event) =>
+                handleCategoryChange(
+                  event.target.value,
+                )
+              }
+              className="mt-1 w-full rounded border border-cream bg-white px-3 py-2"
+            >
+              <option value="">
+                Select Category
+              </option>
 
-          {/* ================================================== */}
+              {mainCategories.map(
+                (category) => (
+                  <option
+                    key={category.id}
+                    value={
+                      category.name
+                    }
+                  >
+                    {category.name}
+                  </option>
+                ),
+              )}
+            </select>
+          </div>
+
           {/* SUBCATEGORY */}
-          {/* ================================================== */}
+          {subcategories.length > 0 ? (
+            <div className="block text-sm font-medium">
+              <label>
+                Subcategory *
+              </label>
 
-          <Select
-            label="2. Subcategory *"
-            value={
-              formData.subcategory
-            }
-            onChange={
-              handleSubcategoryChange
-            }
-            options={subcategories.map(
-              (category) =>
-                category.name,
-            )}
-            required
-            disabled={
-              categoriesLoading ||
-              !formData.category ||
-              subcategories.length ===
-                0
-            }
-            placeholder={
-              !formData.category
-                ? "Select Category first"
-                : subcategories.length ===
-                    0
-                  ? "No subcategories available"
-                  : "Select Subcategory"
-            }
-          />
+              <select
+                required
+                value={
+                  formData.subcategory
+                }
+                onChange={(event) =>
+                  handleSubcategoryChange(
+                    event.target.value,
+                  )
+                }
+                className="mt-1 w-full rounded border border-cream bg-white px-3 py-2"
+              >
+                <option value="">
+                  Select Subcategory
+                </option>
 
-          {/* ================================================== */}
+                {subcategories.map(
+                  (subcategory) => (
+                    <option
+                      key={
+                        subcategory.id
+                      }
+                      value={
+                        subcategory.name
+                      }
+                    >
+                      {
+                        subcategory.name
+                      }
+                    </option>
+                  ),
+                )}
+              </select>
+            </div>
+          ) : (
+            <Field
+              label="Subcategory *"
+              value={
+                formData.subcategory
+              }
+              onChange={(value) =>
+                handleSubcategoryChange(
+                  value,
+                )
+              }
+              placeholder="e.g. Shalwar Kameez"
+              required
+            />
+          )}
+
           {/* COLLECTION */}
-          {/* ================================================== */}
+          <div className="block text-sm font-medium">
+            <label>
+              Collection *
+            </label>
 
-          <Select
-            label="3. Collection *"
-            value={
-              formData.collection
-            }
-            onChange={(value) =>
-              update(
-                "collection",
-                value,
-              )
-            }
-            options={COLLECTIONS}
-            required
-            disabled={
-              !formData.subcategory
-            }
-            placeholder={
-              !formData.subcategory
-                ? "Select Subcategory first"
-                : "Select Collection"
-            }
-          />
+            <select
+              required
+              value={
+                formData.collection
+              }
+              disabled={
+                !formData.subcategory
+              }
+              onChange={(event) =>
+                update(
+                  "collection",
+                  event.target.value,
+                )
+              }
+              className="mt-1 w-full rounded border border-cream bg-white px-3 py-2 disabled:bg-cream/50 disabled:text-secondary"
+            >
+              <option value="">
+                {formData.subcategory
+                  ? "Select Collection"
+                  : "Select Subcategory first"}
+              </option>
 
+              {collectionOptions.map(
+                (collection) => (
+                  <option
+                    key={collection}
+                    value={collection}
+                  >
+                    {collection}
+                  </option>
+                ),
+              )}
+            </select>
+          </div>
+
+          {/* GENDER */}
           <Select
             label="Gender"
             value={formData.gender}
@@ -958,18 +1003,17 @@ export default function ProductForm({
             allowEmpty
           />
 
+          {/* PRODUCT TYPE */}
           <Field
             label="Product Type"
             value={formData.type}
             onChange={(value) =>
-              update(
-                "type",
-                value,
-              )
+              update("type", value)
             }
             placeholder="3 Piece Suit / Kurta / Bag"
           />
 
+          {/* FABRIC */}
           <Field
             label="Fabric"
             value={formData.fabric}
@@ -982,6 +1026,7 @@ export default function ProductForm({
             placeholder="Lawn / Cotton / Silk"
           />
 
+          {/* PIECES */}
           <Field
             label="Pieces"
             type="number"
@@ -995,57 +1040,6 @@ export default function ProductForm({
             }
             placeholder="3"
           />
-        </div>
-
-        {/* CLASSIFICATION DISPLAY */}
-
-        <div className="mt-6 rounded-lg border border-cream bg-cream/20 p-4">
-          <p className="text-xs font-semibold uppercase tracking-wider text-secondary">
-            Product Classification
-          </p>
-
-          <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
-            <span
-              className={`rounded-full px-3 py-1.5 ${
-                formData.category
-                  ? "bg-charcoal text-white"
-                  : "bg-white text-secondary"
-              }`}
-            >
-              {formData.category ||
-                "Category"}
-            </span>
-
-            <span className="text-secondary">
-              →
-            </span>
-
-            <span
-              className={`rounded-full px-3 py-1.5 ${
-                formData.subcategory
-                  ? "bg-charcoal text-white"
-                  : "bg-white text-secondary"
-              }`}
-            >
-              {formData.subcategory ||
-                "Subcategory"}
-            </span>
-
-            <span className="text-secondary">
-              →
-            </span>
-
-            <span
-              className={`rounded-full px-3 py-1.5 ${
-                formData.collection
-                  ? "bg-charcoal text-white"
-                  : "bg-white text-secondary"
-              }`}
-            >
-              {formData.collection ||
-                "Collection"}
-            </span>
-          </div>
         </div>
 
         <label className="mt-5 block text-sm font-medium">
@@ -1067,10 +1061,9 @@ export default function ProductForm({
         </label>
       </section>
 
-      {/* ====================================================== */}
-      {/* PRICING */}
-      {/* ====================================================== */}
-
+      {/* =====================================================
+          PRICING & INVENTORY
+          ===================================================== */}
       <section className="rounded-xl border border-cream bg-white p-6">
         <h2 className="text-lg font-semibold">
           Pricing & inventory
@@ -1157,7 +1150,9 @@ export default function ProductForm({
 
           <Select
             label="Status"
-            value={formData.status}
+            value={
+              formData.status
+            }
             onChange={(value) =>
               update(
                 "status",
@@ -1187,26 +1182,24 @@ export default function ProductForm({
         />
       </section>
 
-      {/* ====================================================== */}
-      {/* MEDIA */}
-      {/* ====================================================== */}
-
+      {/* =====================================================
+          MEDIA
+          ===================================================== */}
       <section className="rounded-xl border border-cream bg-white p-6">
         <h2 className="text-lg font-semibold">
           Media & merchandising
         </h2>
 
         {/* PRODUCT IMAGES */}
-
         <div className="mt-5">
-          <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h3 className="text-sm font-semibold">
                 Product Images
               </h3>
 
               <p className="mt-1 text-xs text-secondary">
-                Upload multiple product
+                Upload one or more product
                 images. Maximum 3 MB per
                 image.
               </p>
@@ -1243,17 +1236,14 @@ export default function ProductForm({
 
           {formData.images.length >
           0 ? (
-            <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
               {formData.images.map(
-                (
-                  image,
-                  index,
-                ) => (
+                (image, index) => (
                   <div
-                    key={`${index}-${image.slice(
+                    key={`${image.slice(
                       0,
-                      24,
-                    )}`}
+                      30,
+                    )}-${index}`}
                     className="group relative overflow-hidden rounded-lg border border-cream bg-cream/20"
                   >
                     <img
@@ -1264,45 +1254,47 @@ export default function ProductForm({
                       className="aspect-[3/4] w-full object-cover"
                     />
 
+                    <div className="absolute inset-x-0 bottom-0 bg-black/60 p-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          removeProductImage(
+                            index,
+                          )
+                        }
+                        className="w-full rounded bg-white px-2 py-1.5 text-xs font-medium text-red-700"
+                      >
+                        Remove
+                      </button>
+                    </div>
+
                     {index === 0 && (
                       <span className="absolute left-2 top-2 rounded bg-charcoal px-2 py-1 text-[10px] font-medium text-white">
                         Main Image
                       </span>
                     )}
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        removeProductImage(
-                          index,
-                        )
-                      }
-                      className="absolute bottom-2 left-2 right-2 rounded bg-white/95 px-3 py-2 text-xs font-medium text-red-700 shadow"
-                    >
-                      Remove
-                    </button>
                   </div>
                 ),
               )}
             </div>
           ) : (
-            <div className="mt-5 rounded-lg border border-dashed border-cream p-8 text-center">
+            <div className="mt-4 rounded-lg border border-dashed border-cream p-8 text-center">
               <p className="text-sm font-medium">
                 No product images uploaded
               </p>
 
               <p className="mt-1 text-xs text-secondary">
-                Click Upload Images to
-                add product photos.
+                Click &quot;Upload
+                Images&quot; to add
+                product photos.
               </p>
             </div>
           )}
         </div>
 
         {/* PRODUCT VIDEO */}
-
         <div className="mt-8 border-t border-cream pt-6">
-          <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h3 className="text-sm font-semibold">
                 Product Video
@@ -1345,7 +1337,7 @@ export default function ProductForm({
           </div>
 
           {formData.video ? (
-            <div className="mt-5 overflow-hidden rounded-lg border border-cream bg-black">
+            <div className="mt-4 overflow-hidden rounded-lg border border-cream bg-black">
               <video
                 src={formData.video}
                 controls
@@ -1360,7 +1352,19 @@ export default function ProductForm({
 
                 <button
                   type="button"
-                  onClick={removeVideo}
+                  onClick={() => {
+                    update(
+                      "video",
+                      "",
+                    )
+
+                    if (
+                      videoInputRef.current
+                    ) {
+                      videoInputRef.current.value =
+                        ""
+                    }
+                  }}
                   className="rounded bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700"
                 >
                   Remove Video
@@ -1368,7 +1372,7 @@ export default function ProductForm({
               </div>
             </div>
           ) : (
-            <div className="mt-5 rounded-lg border border-dashed border-cream p-6 text-center">
+            <div className="mt-4 rounded-lg border border-dashed border-cream p-6 text-center">
               <p className="text-sm font-medium">
                 No product video uploaded
               </p>
@@ -1381,8 +1385,7 @@ export default function ProductForm({
         </div>
 
         {/* TAGS */}
-
-        <div className="mt-8">
+        <div className="mt-8 grid gap-5 md:grid-cols-2">
           <Field
             label="Tags"
             value={formData.tags}
@@ -1397,10 +1400,9 @@ export default function ProductForm({
         </div>
       </section>
 
-      {/* ====================================================== */}
-      {/* SEO */}
-      {/* ====================================================== */}
-
+      {/* =====================================================
+          SEO
+          ===================================================== */}
       <section className="rounded-xl border border-cream bg-white p-6">
         <h2 className="text-lg font-semibold">
           Search engine optimization
@@ -1440,10 +1442,9 @@ export default function ProductForm({
         </div>
       </section>
 
-      {/* ====================================================== */}
-      {/* ACTIONS */}
-      {/* ====================================================== */}
-
+      {/* =====================================================
+          ACTIONS
+          ===================================================== */}
       <div className="flex flex-wrap gap-3">
         <button
           type="submit"
@@ -1475,9 +1476,9 @@ export default function ProductForm({
   )
 }
 
-/* ============================================================ */
-/* FIELD */
-/* ============================================================ */
+/* =========================================================
+   FIELD
+   ========================================================= */
 
 function Field({
   label,
@@ -1525,9 +1526,9 @@ function Field({
   )
 }
 
-/* ============================================================ */
-/* SELECT */
-/* ============================================================ */
+/* =========================================================
+   SELECT
+   ========================================================= */
 
 function Select({
   label,
@@ -1536,8 +1537,6 @@ function Select({
   options,
   required = false,
   allowEmpty = false,
-  disabled = false,
-  placeholder = "Select...",
 }: {
   label: string
   value: string
@@ -1547,8 +1546,6 @@ function Select({
   options: string[]
   required?: boolean
   allowEmpty?: boolean
-  disabled?: boolean
-  placeholder?: string
 }) {
   return (
     <label className="block text-sm font-medium">
@@ -1556,31 +1553,28 @@ function Select({
 
       <select
         required={required}
-        disabled={disabled}
         value={value}
         onChange={(event) =>
           onChange(
             event.target.value,
           )
         }
-        className="mt-1 w-full rounded border border-cream px-3 py-2 disabled:bg-cream/50 disabled:text-secondary"
+        className="mt-1 w-full rounded border border-cream bg-white px-3 py-2"
       >
-        <option value="">
-          {allowEmpty
-            ? "Select..."
-            : placeholder}
-        </option>
-
-        {options.map(
-          (option) => (
-            <option
-              key={option}
-              value={option}
-            >
-              {option}
-            </option>
-          ),
+        {allowEmpty && (
+          <option value="">
+            Select...
+          </option>
         )}
+
+        {options.map((option) => (
+          <option
+            key={option}
+            value={option}
+          >
+            {option}
+          </option>
+        ))}
       </select>
     </label>
   )
