@@ -40,9 +40,9 @@ export function ProductCard({ id, name, slug, price, salePrice, image, hoverImag
     <article className="group">
       <div className="relative overflow-hidden bg-[#f1eee8] aspect-[3/4]">
         <Link href={`/product/${slug}`} data-noore-gender={gender || ""} className="block h-full" aria-label={`View ${name}`}>
-          <img src={image || "/placeholder.jpg"} alt={name} className="h-full w-full object-cover transition-all duration-700 group-hover:scale-[1.035]" />
+          <img loading="lazy" decoding="async" src={image || "/placeholder.jpg"} alt={name} className="h-full w-full object-cover transition-all duration-700 group-hover:scale-[1.035]" />
           {hoverImage && (
-            <img src={hoverImage} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+            <img loading="lazy" decoding="async" src={hoverImage} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
           )}
         </Link>
 

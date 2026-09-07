@@ -430,3 +430,33 @@ button, a, input, textarea, select {
     height: 25px;
   }
 }
+
+/* NOORÉ performance layer */
+main > section,
+main > div > section {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 720px;
+}
+
+
+.noore-lite main > section,
+.noore-lite main > div > section {
+  content-visibility: auto;
+}
+
+.noore-lite *,
+.noore-lite *::before,
+.noore-lite *::after {
+  scroll-behavior: auto !important;
+}
+
+.noore-lite .transition,
+.noore-lite .transition-all,
+.noore-lite .transition-opacity,
+.noore-lite .transition-transform {
+  transition-duration: 180ms !important;
+}
+
+.noore-hidden * {
+  animation-play-state: paused !important;
+}

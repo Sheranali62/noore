@@ -17,7 +17,7 @@ export function HeroSlider({ banners }: { banners: Banner[] }) {
   return <section className="relative min-h-[70vh] md:min-h-[80vh] flex items-center justify-center bg-charcoal text-white overflow-hidden">
     <picture className="absolute inset-0">
       {banner.mobileImage && <source media="(max-width: 767px)" srcSet={banner.mobileImage} />}
-      <img src={banner.image} alt="" className="w-full h-full object-cover opacity-75" />
+      <img fetchPriority="high" decoding="async" src={banner.image} alt="" className="w-full h-full object-cover opacity-75" />
     </picture>
     <div className="absolute inset-0 bg-black/35" />
     <div className="relative z-10 text-center px-4 max-w-4xl py-24">

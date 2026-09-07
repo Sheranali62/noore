@@ -5,6 +5,7 @@ import { Providers } from "./providers"
 import { Toaster } from "@/components/ui/toaster"
 import { GoogleAnalytics } from "@/components/analytics/google-analytics"
 import { AutoDayNightTheme } from "@/components/theme/auto-day-night"
+import { PerformanceOptimizer } from "@/components/performance/performance-optimizer"
 
 const inter = Inter({ 
   subsets: ["latin"], 
@@ -112,6 +113,7 @@ export default function RootLayout({
         
         <Providers>
           <AutoDayNightTheme />
+          <PerformanceOptimizer />
           {children}
           <Toaster />
         </Providers>

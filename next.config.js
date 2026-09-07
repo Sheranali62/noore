@@ -12,6 +12,16 @@ const nextConfig = {
       { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" },
     ] }]
   },
-  images: { formats: ["image/avif", "image/webp"], remotePatterns: [{ protocol: "https", hostname: "images.unsplash.com" }, { protocol: "https", hostname: "images.pexels.com" }] },
+  images: {
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 60,
+    remotePatterns: [
+      { protocol: "https", hostname: "images.unsplash.com" },
+      { protocol: "https", hostname: "images.pexels.com" },
+    ],
+  },
+  experimental: {
+    optimizePackageImports: ["lucide-react"],
+  },
 }
 module.exports = nextConfig

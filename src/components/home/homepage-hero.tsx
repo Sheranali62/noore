@@ -44,7 +44,7 @@ export function HomepageHero({ banners }: { banners: Banner[] }) {
     <section className="relative min-h-[68vh] md:min-h-[78vh] overflow-hidden bg-neutral-100">
       <picture className="absolute inset-0">
         {active.mobileImage && <source media="(max-width: 767px)" srcSet={active.mobileImage} />}
-        <img src={active.image} alt={active.heading} className="h-full w-full object-cover" />
+        <img fetchPriority="high" decoding="async" src={active.image} alt={active.heading} className="h-full w-full object-cover" />
       </picture>
       <div className="absolute inset-0 bg-gradient-to-r from-black/65 via-black/20 to-transparent" />
       <div className="relative z-10 max-w-7xl mx-auto min-h-[68vh] md:min-h-[78vh] flex items-end px-5 md:px-8 pb-14 md:pb-20 text-white">
