@@ -127,13 +127,39 @@ export default function ProductForm({
   >([])
 
   useEffect(() => {
-    fetch("/api/admin/categories", { cache: "no-store" })
-      .then((response) => (response.ok ? response.json() : []))
-      .then((data) => {
-        setCategories(Array.isArray(data) ? data : [])
-      })
-      .catch(() => setCategories([]))
-  }, [])
+  fetch("/api/admin/categories", { cache: "no-store" })
+    .then((response) => (response.ok ? response.json() : []))
+    .then((data) => {
+      const loadedCategories = Array.isArray(data) ? data : []
+
+      setCategories(loadedCategories)
+
+      // If the database has no categories yet, automatically
+      // select the first built-in department so the product
+      // can still be created.
+      if (
+        loadedCategories.length === 0 &&
+        !initialData.category
+      ) {
+        setFormData((current) => ({
+          ...current,
+          category: "Women",
+          subcategory: "",
+        }))
+      }
+    })
+    .catch(() => {
+      setCategories([])
+
+      if (!initialData.category) {
+        setFormData((current) => ({
+          ...current,
+          category: "Women",
+          subcategory: "",
+        }))
+      }
+    })
+}, [initialData.category])
 
   const mainCategories = useMemo(
     () => categories.filter((category) => !category.parentId && category.active),
