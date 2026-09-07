@@ -1,105 +1,16 @@
 "use client"
-
 import { useEffect, useState } from "react"
-
-const defaults = {
-  siteName: "NOORÉ",
-  announcementText: "FREE SHIPPING ON ORDERS ABOVE PKR 5,000",
-  freeShippingThreshold: "5000",
-  standardShipping: "250",
-  expressShipping: "500",
-  currency: "PKR",
+const defaults={siteName:"NOORÉ",announcementText:"FREE SHIPPING ON ORDERS ABOVE PKR 5,000",freeShippingThreshold:"5000",standardShipping:"250",expressShipping:"500",currency:"PKR"}
+type Settings=typeof defaults
+export default function AdminSettingsPage(){
+ const [settings,setSettings]=useState<Settings>(defaults); const [loading,setLoading]=useState(true); const [saving,setSaving]=useState(false); const [message,setMessage]=useState(""); const [error,setError]=useState("")
+ useEffect(()=>{fetch("/api/admin/settings",{cache:"no-store"}).then(async response=>{const data=await response.json();if(!response.ok)throw new Error(data.error||"Failed to load settings");setSettings({...defaults,...data.settings})}).catch(err=>setError(err.message)).finally(()=>setLoading(false))},[])
+ const update=(key:keyof Settings,value:string)=>setSettings(current=>({...current,[key]:value}))
+ const save=async()=>{setSaving(true);setMessage("");setError("");try{const response=await fetch("/api/admin/settings",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(settings)});const data=await response.json();if(!response.ok)throw new Error(data.error||"Failed to save settings");setSettings({...defaults,...data.settings});setMessage("Settings saved successfully.")}catch(err){setError(err instanceof Error?err.message:"Failed to save settings")}finally{setSaving(false)}}
+ const reset=()=>{setSettings(defaults);setMessage("");setError("")}
+ return <div className="admin-page space-y-7"><header><p className="admin-eyebrow">Configuration / Store</p><h1 className="admin-title">Settings</h1><p className="admin-subtitle">Control store identity, announcements and delivery pricing from one clean workspace.</p></header>{loading?<div className="admin-surface flex min-h-56 items-center justify-center"><div className="text-center"><div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-white/15 border-t-white"/><p className="mt-4 text-sm text-white/50">Loading settings…</p></div></div>:<div className="space-y-5"><section className="admin-surface"><SectionTitle title="Store identity" text="The public-facing basics of your NOORÉ storefront."/><div className="grid gap-4 md:grid-cols-2"><Field label="Site name" value={settings.siteName} onChange={v=>update("siteName",v)}/><SelectField label="Currency" value={settings.currency} onChange={v=>update("currency",v)} options={["PKR","USD"]}/></div></section><section className="admin-surface"><SectionTitle title="Announcement bar" text="Keep the storefront message current and concise."/><Field label="Announcement text" value={settings.announcementText} onChange={v=>update("announcementText",v)}/></section><section className="admin-surface"><SectionTitle title="Shipping" text="These values continue to drive your existing checkout delivery rules."/><div className="grid gap-4 md:grid-cols-3"><Field label="Free shipping threshold" type="number" value={settings.freeShippingThreshold} onChange={v=>update("freeShippingThreshold",v)}/><Field label="Standard shipping (PKR)" type="number" value={settings.standardShipping} onChange={v=>update("standardShipping",v)}/><Field label="Express shipping (PKR)" type="number" value={settings.expressShipping} onChange={v=>update("expressShipping",v)}/></div></section>{error&&<Alert tone="error">{error}</Alert>}{message&&<Alert tone="success">{message}</Alert>}<div className="flex flex-wrap gap-3"><button onClick={save} disabled={saving} className="admin-button-primary">{saving?"Saving…":"Save settings"}</button><button onClick={reset} disabled={saving} className="admin-button-secondary">Reset form</button></div></div>}</div>
 }
-
-type Settings = typeof defaults
-
-export default function AdminSettingsPage() {
-  const [settings, setSettings] = useState<Settings>(defaults)
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [message, setMessage] = useState("")
-  const [error, setError] = useState("")
-
-  useEffect(() => {
-    fetch("/api/admin/settings", { cache: "no-store" })
-      .then(async response => {
-        const data = await response.json()
-        if (!response.ok) throw new Error(data.error || "Failed to load settings")
-        setSettings({ ...defaults, ...data.settings })
-      })
-      .catch(err => setError(err.message))
-      .finally(() => setLoading(false))
-  }, [])
-
-  const update = (key: keyof Settings, value: string) => setSettings(current => ({ ...current, [key]: value }))
-
-  const save = async () => {
-    setSaving(true); setMessage(""); setError("")
-    try {
-      const response = await fetch("/api/admin/settings", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(settings),
-      })
-      const data = await response.json()
-      if (!response.ok) throw new Error(data.error || "Failed to save settings")
-      setSettings({ ...defaults, ...data.settings })
-      setMessage("Settings saved successfully.")
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save settings")
-    } finally { setSaving(false) }
-  }
-
-  const reset = () => { setSettings(defaults); setMessage(""); setError("") }
-
-  return (
-    <div className="max-w-5xl">
-      <h1 className="text-3xl font-semibold mb-2">Settings</h1>
-      <p className="text-secondary mb-8">Manage store-wide information and delivery pricing.</p>
-      {loading ? <div className="bg-white rounded-lg border border-cream p-6">Loading settings...</div> : (
-        <div className="space-y-6">
-          <section className="bg-white rounded-lg border border-cream p-6">
-            <h2 className="text-xl font-semibold mb-4">Site Settings</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Field label="Site Name" value={settings.siteName} onChange={v => update("siteName", v)} />
-              <div>
-                <label className="block text-sm font-medium mb-1">Currency</label>
-                <select value={settings.currency} onChange={e => update("currency", e.target.value)} className="w-full px-3 py-2 border border-cream rounded focus:outline-none focus:border-charcoal">
-                  <option value="PKR">PKR</option><option value="USD">USD</option>
-                </select>
-              </div>
-            </div>
-          </section>
-
-          <section className="bg-white rounded-lg border border-cream p-6">
-            <h2 className="text-xl font-semibold mb-4">Announcement Bar</h2>
-            <Field label="Announcement Text" value={settings.announcementText} onChange={v => update("announcementText", v)} />
-          </section>
-
-          <section className="bg-white rounded-lg border border-cream p-6">
-            <h2 className="text-xl font-semibold mb-4">Shipping Settings</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Field label="Free Shipping Threshold" type="number" value={settings.freeShippingThreshold} onChange={v => update("freeShippingThreshold", v)} />
-              <Field label="Standard Shipping (PKR)" type="number" value={settings.standardShipping} onChange={v => update("standardShipping", v)} />
-              <Field label="Express Shipping (PKR)" type="number" value={settings.expressShipping} onChange={v => update("expressShipping", v)} />
-            </div>
-          </section>
-
-          {error && <div className="rounded-md bg-red-50 text-red-700 px-4 py-3 text-sm">{error}</div>}
-          {message && <div className="rounded-md bg-green-50 text-green-700 px-4 py-3 text-sm">{message}</div>}
-          <div className="flex gap-4">
-            <button onClick={save} disabled={saving} className="bg-charcoal text-white px-6 py-2 rounded hover:bg-charcoal/80 disabled:opacity-50">{saving ? "Saving..." : "Save Settings"}</button>
-            <button onClick={reset} disabled={saving} className="border border-cream px-6 py-2 rounded hover:bg-cream disabled:opacity-50">Reset Form</button>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-function Field({ label, value, onChange, type = "text" }: { label: string; value: string; onChange: (value: string) => void; type?: string }) {
-  return <div>
-    <label className="block text-sm font-medium mb-1">{label}</label>
-    <input type={type} value={value} onChange={e => onChange(e.target.value)} min={type === "number" ? 0 : undefined} className="w-full px-3 py-2 border border-cream rounded focus:outline-none focus:border-charcoal" />
-  </div>
-}
+function SectionTitle({title,text}:{title:string;text:string}){return <div className="mb-5"><h2 className="text-base font-semibold text-white">{title}</h2><p className="mt-1 text-sm text-white/45">{text}</p></div>}
+function Field({label,value,onChange,type="text"}:{label:string;value:string;onChange:(v:string)=>void;type?:string}){return <label className="block text-sm"><span className="mb-2 block text-xs font-medium uppercase tracking-[0.12em] text-white/45">{label}</span><input type={type} value={value} onChange={e=>onChange(e.target.value)} min={type==="number"?0:undefined} className="admin-input"/></label>}
+function SelectField({label,value,onChange,options}:{label:string;value:string;onChange:(v:string)=>void;options:string[]}){return <label className="block text-sm"><span className="mb-2 block text-xs font-medium uppercase tracking-[0.12em] text-white/45">{label}</span><select value={value} onChange={e=>onChange(e.target.value)} className="admin-input">{options.map(o=><option key={o} value={o}>{o}</option>)}</select></label>}
+function Alert({children,tone}:{children:React.ReactNode;tone:string}){return <div className={`rounded-xl border px-4 py-3 text-sm ${tone==="error"?"border-red-400/20 bg-red-400/10 text-red-200":"border-emerald-400/20 bg-emerald-400/10 text-emerald-200"}`}>{children}</div>}

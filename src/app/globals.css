@@ -431,32 +431,72 @@ button, a, input, textarea, select {
   }
 }
 
-/* NOORÉ performance layer */
-main > section,
-main > div > section {
-  content-visibility: auto;
-  contain-intrinsic-size: 1px 720px;
+/* NOORÉ Admin Studio — modern dark workspace primitives */
+.admin-page {
+  min-height: calc(100vh - 2rem);
+  margin: -1rem;
+  padding: 1rem;
+  background: #101010;
+  color: #fff;
 }
-
-
-.noore-lite main > section,
-.noore-lite main > div > section {
-  content-visibility: auto;
+@media (min-width: 640px) {
+  .admin-page { margin: -1.5rem; padding: 1.5rem; }
 }
-
-.noore-lite *,
-.noore-lite *::before,
-.noore-lite *::after {
-  scroll-behavior: auto !important;
+@media (min-width: 1024px) {
+  .admin-page { margin: -2rem; padding: 2rem; }
 }
-
-.noore-lite .transition,
-.noore-lite .transition-all,
-.noore-lite .transition-opacity,
-.noore-lite .transition-transform {
-  transition-duration: 180ms !important;
+.admin-surface {
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 1rem;
+  background: linear-gradient(145deg, rgba(255,255,255,.055), rgba(255,255,255,.025));
+  padding: 1.25rem;
+  box-shadow: 0 14px 40px rgba(0,0,0,.14);
 }
-
-.noore-hidden * {
-  animation-play-state: paused !important;
+.admin-eyebrow {
+  color: rgba(255,255,255,.38);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+}
+.admin-title {
+  margin-top: .45rem;
+  color: #fff;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.05;
+  letter-spacing: -.02em;
+}
+.admin-subtitle { margin-top: .55rem; max-width: 48rem; color: rgba(255,255,255,.48); font-size: .9rem; line-height: 1.6; }
+.admin-input {
+  width: 100%;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: .75rem;
+  background: rgba(255,255,255,.045);
+  color: #fff;
+  padding: .75rem .9rem;
+  outline: none;
+  transition: border-color .18s ease, background .18s ease, box-shadow .18s ease;
+}
+.admin-input::placeholder { color: rgba(255,255,255,.25); }
+.admin-input:focus { border-color: rgba(255,255,255,.28); background: rgba(255,255,255,.065); box-shadow: 0 0 0 3px rgba(255,255,255,.045); }
+.admin-input option { background: #171717; color: #fff; }
+.admin-button-primary,
+.admin-button-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: .75rem;
+  padding: .7rem 1rem;
+  font-size: .8rem;
+  font-weight: 600;
+  transition: transform .18s ease, background .18s ease, border-color .18s ease, opacity .18s ease;
+}
+.admin-button-primary { border: 1px solid rgba(255,255,255,.85); background: #fff; color: #111; }
+.admin-button-primary:hover:not(:disabled) { transform: translateY(-1px); background: #f0f0f0; }
+.admin-button-secondary { border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.045); color: rgba(255,255,255,.82); }
+.admin-button-secondary:hover:not(:disabled) { transform: translateY(-1px); border-color: rgba(255,255,255,.24); background: rgba(255,255,255,.08); }
+.admin-button-primary:disabled, .admin-button-secondary:disabled { cursor: not-allowed; opacity: .4; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .admin-button-primary, .admin-button-secondary, .admin-input { transition: none; }
 }

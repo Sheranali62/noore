@@ -27,12 +27,12 @@ export function CouponActions({ id, active }: { id: string; active: boolean }) {
   }
 
   return (
-    <div className="flex gap-2 items-center">
-      <a href={`/admin/coupons/edit/${id}`} className="text-sm underline">Edit</a>
-      <button type="button" disabled={loading} onClick={() => update("PATCH", active ? "deactivate" : "activate")} className="text-sm underline disabled:opacity-50">
+    <div className="flex flex-wrap items-center gap-2">
+      <a href={`/admin/coupons/edit/${id}`} className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-white/75 hover:bg-white/[0.07]">Edit</a>
+      <button type="button" disabled={loading} onClick={() => update("PATCH", active ? "deactivate" : "activate")} className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-white/75 hover:bg-white/[0.07] disabled:opacity-50">
         {active ? "Deactivate" : "Activate"}
       </button>
-      <button type="button" disabled={loading} onClick={() => update("DELETE", "delete")} className="text-sm text-red-600 underline disabled:opacity-50">Delete</button>
+      <button type="button" disabled={loading} onClick={() => update("DELETE", "delete")} className="rounded-lg border border-red-400/20 bg-red-400/5 px-3 py-1.5 text-xs font-medium text-red-300 hover:bg-red-400/10 disabled:opacity-50">Delete</button>
     </div>
   )
 }

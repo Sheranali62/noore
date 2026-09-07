@@ -1,88 +1,29 @@
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
-export default async function AdminInventoryPage() {
-  const products = await prisma.product.findMany({
-    orderBy: { stock: "asc" },
-    where: { status: "ACTIVE" },
-  })
 
+export default async function AdminInventoryPage() {
+  const products = await prisma.product.findMany({ orderBy: { stock: "asc" }, where: { status: "ACTIVE" } })
   const lowStockProducts = products.filter(p => p.stock < 5)
   const outOfStockProducts = products.filter(p => p.stock === 0)
 
-  return (
-    <div>
-      <div className="flex justify-between items-center mb-8">
-        <div><p className="text-xs uppercase tracking-[0.2em] text-secondary">Stock control</p><h1 className="text-3xl font-semibold mt-2">Inventory</h1></div>
-        <div className="flex gap-2"><Link href="/admin/inventory/history" className="border border-cream bg-white rounded-lg px-4 py-2 text-sm">History</Link><a href="/api/admin/reports?type=inventory" className="bg-charcoal text-white rounded-lg px-4 py-2 text-sm">Export CSV</a></div>
-      </div>
+  return <div className="admin-page space-y-7">
+    <header className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+      <div><p className="admin-eyebrow">Operations / Stock control</p><h1 className="admin-title">Inventory</h1><p className="admin-subtitle">Monitor stock health and jump straight to product updates.</p></div>
+      <div className="flex flex-wrap gap-2"><Link href="/admin/inventory/history" className="admin-button-secondary">History</Link><a href="/api/admin/reports?type=inventory" className="admin-button-primary">Export CSV</a></div>
+    </header>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-lg border border-cream">
-          <p className="text-secondary text-sm">Total Products</p>
-          <p className="text-2xl font-semibold">{products.length}</p>
-        </div>
-        <div className="bg-white p-6 rounded-lg border border-cream">
-          <p className="text-secondary text-sm">Low Stock (&lt;5)</p>
-          <p className="text-2xl font-semibold text-amber-600">{lowStockProducts.length}</p>
-        </div>
-        <div className="bg-white p-6 rounded-lg border border-cream">
-          <p className="text-secondary text-sm">Out of Stock</p>
-          <p className="text-2xl font-semibold text-red-600">{outOfStockProducts.length}</p>
-        </div>
-      </div>
-
-      {/* Inventory Table */}
-      <div className="bg-white rounded-lg border border-cream overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-cream">
-              <tr>
-                <th className="text-left p-4 text-sm font-medium">Product</th>
-                <th className="text-left p-4 text-sm font-medium">SKU</th>
-                <th className="text-left p-4 text-sm font-medium">Stock</th>
-                <th className="text-left p-4 text-sm font-medium">Status</th>
-                <th className="text-left p-4 text-sm font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {products.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="text-center p-8 text-secondary">
-                    No products in inventory.
-                  </td>
-                </tr>
-              ) : (
-                products.map((product) => (
-                  <tr key={product.id} className="border-t border-cream hover:bg-cream/50 transition">
-                    <td className="p-4 font-medium">{product.name}</td>
-                    <td className="p-4 text-secondary">{product.sku}</td>
-                    <td className="p-4">
-                      <span className={product.stock === 0 ? "text-red-600 font-bold" : product.stock < 5 ? "text-amber-600" : ""}>
-                        {product.stock}
-                      </span>
-                    </td>
-                    <td className="p-4">
-                      {product.stock === 0 ? (
-                        <span className="px-2 py-1 rounded text-xs bg-red-100 text-red-800">Out of Stock</span>
-                      ) : product.stock < 5 ? (
-                        <span className="px-2 py-1 rounded text-xs bg-amber-100 text-amber-800">Low Stock</span>
-                      ) : (
-                        <span className="px-2 py-1 rounded text-xs bg-green-100 text-green-800">In Stock</span>
-                      )}
-                    </td>
-                    <td className="p-4">
-                      <Link href={`/admin/products/edit/${product.id}`} className="text-blue-600 hover:text-blue-800">
-                        Update Stock
-                      </Link>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <Stat label="Total products" value={products.length} hint="Active catalog" />
+      <Stat label="Low stock" value={lowStockProducts.length} hint="Below 5 units" tone="amber" />
+      <Stat label="Out of stock" value={outOfStockProducts.length} hint="Needs attention" tone="red" />
     </div>
-  )
+
+    <section className="admin-surface overflow-hidden p-0">
+      <div className="flex items-center justify-between border-b border-white/10 px-5 py-4 md:px-6"><div><h2 className="text-sm font-semibold text-white">Stock overview</h2><p className="mt-1 text-xs text-white/45">Sorted from lowest available stock.</p></div><span className="rounded-full bg-white/[0.05] px-3 py-1 text-xs text-white/55">{products.length} SKUs</span></div>
+      <div className="overflow-x-auto"><table className="w-full min-w-[680px]"><thead><tr className="border-b border-white/10 bg-white/[0.025] text-left text-[10px] uppercase tracking-[0.16em] text-white/40"><th className="px-6 py-4">Product</th><th className="px-6 py-4">SKU</th><th className="px-6 py-4">Stock</th><th className="px-6 py-4">Status</th><th className="px-6 py-4 text-right">Action</th></tr></thead><tbody>{products.length===0 ? <tr><td colSpan={5} className="px-6 py-16 text-center"><p className="font-medium text-white">No products in inventory</p><p className="mt-1 text-sm text-white/45">Your active products will appear here.</p></td></tr> : products.map(product => <tr key={product.id} className="border-b border-white/[0.07] last:border-0 hover:bg-white/[0.025]"><td className="px-6 py-5"><p className="font-medium text-white">{product.name}</p></td><td className="px-6 py-5 font-mono text-xs text-white/45">{product.sku}</td><td className="px-6 py-5"><span className={`text-lg font-semibold ${product.stock===0?"text-red-300":product.stock<5?"text-amber-300":"text-white"}`}>{product.stock}</span></td><td className="px-6 py-5">{product.stock===0?<Badge tone="red">Out of stock</Badge>:product.stock<5?<Badge tone="amber">Low stock</Badge>:<Badge tone="green">In stock</Badge>}</td><td className="px-6 py-5 text-right"><Link href={`/admin/products/edit/${product.id}`} className="text-sm font-medium text-white underline decoration-white/20 underline-offset-4 hover:decoration-white">Update stock</Link></td></tr>)}</tbody></table></div>
+    </section>
+  </div>
 }
+
+function Stat({label,value,hint,tone="default"}:{label:string;value:number;hint:string;tone?:string}) { const valueClass=tone==="red"?"text-red-300":tone==="amber"?"text-amber-300":"text-white"; return <div className="admin-surface"><p className="admin-eyebrow">{label}</p><p className={`mt-3 text-3xl font-semibold ${valueClass}`}>{value}</p><p className="mt-1 text-xs text-white/40">{hint}</p></div> }
+function Badge({children,tone}:{children:React.ReactNode;tone:string}) { const c=tone==="red"?"border-red-400/20 bg-red-400/10 text-red-200":tone==="amber"?"border-amber-400/20 bg-amber-400/10 text-amber-200":"border-emerald-400/20 bg-emerald-400/10 text-emerald-200"; return <span className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-medium ${c}`}>{children}</span> }

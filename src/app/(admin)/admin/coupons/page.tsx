@@ -3,65 +3,9 @@ import Link from "next/link"
 import { CouponActions } from "@/components/admin/coupon-actions"
 
 export default async function AdminCouponsPage() {
-  const coupons = await prisma.coupon.findMany({
-    orderBy: { createdAt: "desc" },
-  })
-
-  return (
-    <div>
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-semibold">Coupons</h1>
-        <Link href="/admin/coupons/add" className="bg-charcoal text-white px-4 py-2 rounded hover:bg-charcoal/80 transition">
-          + Add Coupon
-        </Link>
-      </div>
-
-      <div className="bg-white rounded-lg border border-cream overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-cream">
-              <tr>
-                <th className="text-left p-4 text-sm font-medium">Code</th>
-                <th className="text-left p-4 text-sm font-medium">Type</th>
-                <th className="text-left p-4 text-sm font-medium">Value</th>
-                <th className="text-left p-4 text-sm font-medium">Min Order</th>
-                <th className="text-left p-4 text-sm font-medium">Uses</th>
-                <th className="text-left p-4 text-sm font-medium">Expires</th>
-                <th className="text-left p-4 text-sm font-medium">Status</th>
-                <th className="text-left p-4 text-sm font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {coupons.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="text-center p-8 text-secondary">
-                    No coupons created yet.
-                  </td>
-                </tr>
-              ) : (
-                coupons.map((coupon) => (
-                  <tr key={coupon.id} className="border-t border-cream hover:bg-cream/50 transition">
-                    <td className="p-4 font-medium">#{coupon.code}</td>
-                    <td className="p-4 text-secondary">{coupon.type}</td>
-                    <td className="p-4">
-                      {coupon.type === "PERCENTAGE" ? `${coupon.value}%` : `PKR ${coupon.value}`}
-                    </td>
-                    <td className="p-4">PKR {coupon.minOrder.toLocaleString()}</td>
-                    <td className="p-4">{coupon.usedCount} / {coupon.usageLimit || "∞"}</td>
-                    <td className="p-4 text-secondary">{new Date(coupon.expiryDate).toLocaleDateString()}</td>
-                    <td className="p-4">
-                      <span className={`px-2 py-1 rounded text-xs ${coupon.active ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
-                        {coupon.active ? "Active" : "Inactive"}
-                      </span>
-                    </td>
-                    <td className="p-4"><CouponActions id={coupon.id} active={coupon.active} /></td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  )
+  const coupons = await prisma.coupon.findMany({ orderBy: { createdAt: "desc" } })
+  return <div className="admin-page space-y-7">
+    <header className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between"><div><p className="admin-eyebrow">Growth / Promotions</p><h1 className="admin-title">Coupons</h1><p className="admin-subtitle">Create, activate and monitor discount codes without changing your existing promotion rules.</p></div><Link href="/admin/coupons/add" className="admin-button-primary w-fit">+ Add coupon</Link></header>
+    <section className="admin-surface overflow-hidden p-0"><div className="flex items-center justify-between border-b border-white/10 px-5 py-4 md:px-6"><div><h2 className="text-sm font-semibold text-white">Promotion library</h2><p className="mt-1 text-xs text-white/45">{coupons.length} coupon{coupons.length===1?"":"s"} configured.</p></div></div><div className="overflow-x-auto"><table className="w-full min-w-[980px]"><thead><tr className="border-b border-white/10 bg-white/[0.025] text-left text-[10px] uppercase tracking-[0.16em] text-white/40"><th className="px-6 py-4">Code</th><th className="px-6 py-4">Type</th><th className="px-6 py-4">Value</th><th className="px-6 py-4">Min order</th><th className="px-6 py-4">Uses</th><th className="px-6 py-4">Expires</th><th className="px-6 py-4">Status</th><th className="px-6 py-4">Actions</th></tr></thead><tbody>{coupons.length===0?<tr><td colSpan={8} className="px-6 py-16 text-center"><p className="font-medium text-white">No coupons yet</p><p className="mt-1 text-sm text-white/45">Create your first promotion to see it here.</p></td></tr>:coupons.map(coupon=><tr key={coupon.id} className="border-b border-white/[0.07] last:border-0 hover:bg-white/[0.025]"><td className="px-6 py-5"><span className="rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1 font-mono text-xs font-semibold text-white">#{coupon.code}</span></td><td className="px-6 py-5 text-sm text-white/60">{coupon.type}</td><td className="px-6 py-5 font-medium text-white">{coupon.type==="PERCENTAGE"?`${coupon.value}%`:`PKR ${coupon.value}`}</td><td className="px-6 py-5 text-sm text-white/65">PKR {coupon.minOrder.toLocaleString()}</td><td className="px-6 py-5 text-sm text-white/65">{coupon.usedCount} / {coupon.usageLimit || "∞"}</td><td className="px-6 py-5 text-sm text-white/45">{new Date(coupon.expiryDate).toLocaleDateString()}</td><td className="px-6 py-5"><span className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-medium ${coupon.active?"border-emerald-400/20 bg-emerald-400/10 text-emerald-200":"border-white/10 bg-white/[0.04] text-white/45"}`}>{coupon.active?"Active":"Inactive"}</span></td><td className="px-6 py-5"><CouponActions id={coupon.id} active={coupon.active}/></td></tr>)}</tbody></table></div></section>
+  </div>
 }
