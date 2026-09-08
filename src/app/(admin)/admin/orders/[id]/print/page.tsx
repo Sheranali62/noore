@@ -3,12 +3,23 @@ import { prisma } from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
 
-function money(value: number) {
+function money(value: unknown) {
+  const amount =
+    typeof value === "number"
+      ? value
+      : typeof value === "bigint"
+        ? Number(value)
+        : typeof value === "string"
+          ? Number(value)
+          : value && typeof value === "object" && "toNumber" in value && typeof value.toNumber === "function"
+            ? value.toNumber()
+            : Number(value)
+
   return new Intl.NumberFormat("en-PK", {
     style: "currency",
     currency: "PKR",
     maximumFractionDigits: 0,
-  }).format(value)
+  }).format(Number.isFinite(amount) ? amount : 0)
 }
 
 function statusLabel(value: string) {
@@ -554,3 +565,4 @@ export default async function PrintOrderPage({
     </main>
   )
 }
+
