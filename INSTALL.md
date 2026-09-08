@@ -1,28 +1,31 @@
-# NOORÉ Categories + Courier Contracts Upgrade
+# NOORÉ Admin WOW UI v2
 
-## What this adds
-- Admin > Categories: unlimited main categories and sub-categories using a parent/child tree.
-- Product creation/editing loads active main categories and matching sub-categories from the database.
-- Admin > Couriers: save contracted courier company profiles once (account/contract/contact/pickup/API profile fields).
-- Order Management: select a saved courier company; its company name and contract profile are loaded automatically.
-- Existing manual courier/tracking fields remain available.
-- No fake catalog, customer, order, or courier data is created.
+This patch is a visual/UX refresh for the admin operations and customer-facing order documents.
 
-## Database
-The Prisma schema adds `Category` and `CourierCompany`, and adds optional `courierCompanyId` to `Order`.
+## Included
+- Orders workspace + order management styling
+- Premium invoice / packing slip
+- QR code linking to the NOORÉ storefront
+- Couriers workspace
+- Coupons workspace
+- Inventory workspace + inventory history
+- Homepage Builder
+- Settings workspace
 
-Run once after copying the patch into the real repo:
+## Mechanism preserved
+No database schema, API route, order workflow, courier booking integration, coupon calculation, inventory calculation, homepage data model, or settings persistence is intentionally changed by this UI patch.
 
-```bash
-npx prisma db push
-npx prisma generate
-```
+The invoice still reads the same order record and automatically prints. Packing mode still uses `?mode=packing`.
 
-Then build:
+## Apply
+Replace the matching files in your project, then run:
 
-```bash
+```powershell
+cd D:\NOORE\noore
 npm run build
-```
+git status
 
-## Important
-The courier profile stores the contract/account information so the admin does not retype it for every order. The patch does **not** claim to submit shipments to a carrier API automatically unless a real carrier API integration is configured. `apiBaseUrl`, `apiKey`, and `apiSecret` are reserved for that integration.
+git add "src/app/(admin)/admin/orders/page.tsx" "src/components/admin/orders-management.tsx" "src/app/(admin)/admin/orders/[id]/print/page.tsx" "src/app/(admin)/admin/couriers/page.tsx" "src/app/(admin)/admin/coupons/page.tsx" "src/app/(admin)/admin/inventory/page.tsx" "src/app/(admin)/admin/inventory/history/page.tsx" "src/app/(admin)/admin/homepage/page.tsx" "src/app/(admin)/admin/settings/page.tsx" "public/noore-website-qr.png"
+git commit -m "Upgrade admin operations and order documents UI"
+git push origin main
+```
