@@ -543,15 +543,6 @@ export default async function PrintOrderPage({
         </div>
       </article>
 
-      <div className="mx-auto mt-5 flex max-w-[900px] justify-end print:hidden">
-        <button
-          type="button"
-          onClick={() => window.print()}
-          className="rounded-full bg-black px-7 py-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-white transition hover:bg-neutral-800"
-        >
-          Print / Save PDF
-        </button>
-      </div>
 
       <script
         dangerouslySetInnerHTML={{
@@ -565,4 +556,5 @@ export default async function PrintOrderPage({
     </main>
   )
 }
+
 
