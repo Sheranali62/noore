@@ -43,26 +43,45 @@ export default async function PrintOrderPage({
   params: { id: string }
   searchParams?: { mode?: string }
 }) {
-  const order = await prisma.order.findUnique({
-    where: { id: params.id },
-    include: {
-      user: {
-        select: {
-          name: true,
-          email: true,
-        },
-      },
-      address: true,
-      items: {
-        include: {
-          product: true,
-          variant: true,
-        },
-      },
-    },
-  })
+  let order
 
-  if (!order) notFound()
+  try {
+    order = await prisma.order.findUnique({
+      where: { id: params.id },
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+        address: true,
+        items: {
+          include: {
+            product: {
+              select: {
+                name: true,
+                sku: true,
+              },
+            },
+            variant: {
+              select: {
+                color: true,
+                size: true,
+              },
+            },
+          },
+        },
+      },
+    })
+  } catch (error) {
+    console.error("NOORE print order database error:", error)
+    throw new Error("Unable to load this order for printing.")
+  }
+
+  if (!order) {
+    notFound()
+  }
 
   const packing = searchParams?.mode === "packing"
 
@@ -77,7 +96,6 @@ export default async function PrintOrderPage({
     "Customer"
 
   const customerEmail = order.user?.email || ""
-
   const customerPhone = order.address?.phone || ""
 
   const deliveryAddress = order.address
@@ -95,18 +113,12 @@ export default async function PrintOrderPage({
     <main className="min-h-screen bg-[#e9e7e2] px-3 py-5 text-[#151515] sm:px-6 sm:py-10 print:bg-white print:p-0">
       <article className="mx-auto w-full max-w-[900px] overflow-hidden bg-white shadow-[0_30px_100px_rgba(0,0,0,0.13)] print:max-w-none print:shadow-none">
 
-        {/* =========================================================
-            PREMIUM DOCUMENT HEADER
-        ========================================================== */}
         <header className="relative overflow-hidden bg-[#111111] text-white print:bg-[#111111]">
           <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full border border-white/[0.07]" />
           <div className="absolute -bottom-40 left-[48%] h-80 w-80 rounded-full border border-white/[0.05]" />
 
           <div className="relative px-7 py-8 sm:px-12 sm:py-10">
-
             <div className="flex items-start justify-between gap-8">
-
-              {/* Brand */}
               <div className="flex items-center gap-4">
                 <div className="flex h-[68px] w-[68px] items-center justify-center rounded-[18px] bg-[#f5f2ec] p-2">
                   <img
@@ -131,7 +143,6 @@ export default async function PrintOrderPage({
                 </div>
               </div>
 
-              {/* Document information */}
               <div className="text-right">
                 <p className="text-[9px] font-semibold uppercase tracking-[0.28em] text-white/40">
                   {packing ? "Order reference" : "Invoice number"}
@@ -147,9 +158,7 @@ export default async function PrintOrderPage({
               </div>
             </div>
 
-            {/* Header metadata */}
             <div className="mt-9 flex flex-wrap items-center gap-2 border-t border-white/10 pt-5">
-
               <span className="rounded-full border border-white/15 bg-white/[0.06] px-3 py-1.5 text-[9px] font-semibold uppercase tracking-[0.18em] text-white/75">
                 {packing ? "Fulfilment document" : "Official order document"}
               </span>
@@ -175,11 +184,7 @@ export default async function PrintOrderPage({
 
         <div className="px-7 py-8 sm:px-12 sm:py-10">
 
-          {/* =======================================================
-              CUSTOMER INFORMATION
-          ======================================================== */}
           <section className="grid gap-4 sm:grid-cols-2">
-
             <div className="border border-black/10 bg-[#faf9f6] p-6">
               <p className="text-[9px] font-semibold uppercase tracking-[0.26em] text-black/40">
                 Bill to
@@ -190,7 +195,9 @@ export default async function PrintOrderPage({
               </h2>
 
               <div className="mt-3 space-y-1 text-[11px] leading-5 text-black/55">
-                {customerEmail && <p className="break-all">{customerEmail}</p>}
+                {customerEmail && (
+                  <p className="break-all">{customerEmail}</p>
+                )}
                 {customerPhone && <p>{customerPhone}</p>}
               </div>
             </div>
@@ -210,11 +217,7 @@ export default async function PrintOrderPage({
             </div>
           </section>
 
-          {/* =======================================================
-              ORDER DETAILS
-          ======================================================== */}
           <section className="mt-10">
-
             <div className="mb-4 flex items-end justify-between gap-4">
               <div>
                 <p className="text-[9px] font-semibold uppercase tracking-[0.28em] text-black/40">
@@ -230,6 +233,7 @@ export default async function PrintOrderPage({
                 <p className="text-[9px] uppercase tracking-[0.2em] text-black/35">
                   Order date
                 </p>
+
                 <p className="mt-1 text-[11px] font-medium">
                   {formatDate(order.createdAt)}
                 </p>
@@ -237,9 +241,7 @@ export default async function PrintOrderPage({
             </div>
 
             <div className="overflow-hidden border border-black/10">
-
               <table className="w-full border-collapse">
-
                 <thead>
                   <tr className="bg-[#f3f0ea]">
                     <th className="px-4 py-4 text-left text-[9px] font-semibold uppercase tracking-[0.18em] text-black/45 sm:px-5">
@@ -264,7 +266,11 @@ export default async function PrintOrderPage({
                   {order.items.map((item, index) => (
                     <tr
                       key={item.id}
-                      className={index > 0 ? "border-t border-black/[0.08]" : ""}
+                      className={
+                        index > 0
+                          ? "border-t border-black/[0.08]"
+                          : ""
+                      }
                     >
                       <td className="px-4 py-5 sm:px-5">
                         <p className="text-[12px] font-semibold">
@@ -292,29 +298,23 @@ export default async function PrintOrderPage({
                     </tr>
                   ))}
                 </tbody>
-
               </table>
             </div>
           </section>
 
-          {/* =======================================================
-              FINANCIAL SUMMARY
-          ======================================================== */}
           {!packing && (
             <section className="mt-8 grid gap-6 md:grid-cols-[1fr_320px]">
-
               <div className="bg-[#111111] p-6 text-white">
-
                 <p className="text-[9px] font-semibold uppercase tracking-[0.26em] text-white/40">
                   Payment & fulfilment
                 </p>
 
                 <div className="mt-5 space-y-4">
-
                   <div className="flex items-center justify-between gap-4">
                     <span className="text-[11px] text-white/45">
                       Payment method
                     </span>
+
                     <span className="text-[11px] font-medium">
                       Cash on Delivery
                     </span>
@@ -324,6 +324,7 @@ export default async function PrintOrderPage({
                     <span className="text-[11px] text-white/45">
                       Payment status
                     </span>
+
                     <span className="text-[11px] font-medium">
                       {statusLabel(order.paymentStatus)}
                     </span>
@@ -333,6 +334,7 @@ export default async function PrintOrderPage({
                     <span className="text-[11px] text-white/45">
                       Order status
                     </span>
+
                     <span className="text-[11px] font-medium">
                       {statusLabel(order.status)}
                     </span>
@@ -352,25 +354,18 @@ export default async function PrintOrderPage({
                       </p>
                     </div>
                   )}
-
                 </div>
               </div>
 
               <div className="border border-black/10 p-6">
-
                 <div className="space-y-3 text-[11px]">
-
                   <div className="flex justify-between gap-5">
-                    <span className="text-black/45">
-                      Subtotal
-                    </span>
+                    <span className="text-black/45">Subtotal</span>
                     <span>{money(order.subtotal)}</span>
                   </div>
 
                   <div className="flex justify-between gap-5">
-                    <span className="text-black/45">
-                      Discount
-                    </span>
+                    <span className="text-black/45">Discount</span>
                     <span>
                       {order.discount > 0
                         ? `- ${money(order.discount)}`
@@ -379,9 +374,7 @@ export default async function PrintOrderPage({
                   </div>
 
                   <div className="flex justify-between gap-5">
-                    <span className="text-black/45">
-                      Shipping
-                    </span>
+                    <span className="text-black/45">Shipping</span>
                     <span>
                       {order.shipping === 0
                         ? "FREE"
@@ -389,12 +382,18 @@ export default async function PrintOrderPage({
                     </span>
                   </div>
 
+                  <div className="flex justify-between gap-5">
+                    <span className="text-black/45">Tax</span>
+                    <span>
+                      {order.tax === 0
+                        ? "INCLUDED"
+                        : money(order.tax)}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="mt-6 border-t-2 border-black pt-5">
-
                   <div className="flex items-end justify-between gap-5">
-
                     <div>
                       <p className="text-[9px] font-semibold uppercase tracking-[0.25em] text-black/40">
                         Total payable
@@ -408,19 +407,14 @@ export default async function PrintOrderPage({
                     <p className="text-[23px] font-semibold tracking-tight">
                       {money(order.total)}
                     </p>
-
                   </div>
                 </div>
               </div>
             </section>
           )}
 
-          {/* =======================================================
-              PACKING CHECKLIST
-          ======================================================== */}
           {packing && (
             <section className="mt-8">
-
               <div className="mb-4">
                 <p className="text-[9px] font-semibold uppercase tracking-[0.26em] text-black/40">
                   Fulfilment checklist
@@ -432,7 +426,6 @@ export default async function PrintOrderPage({
               </div>
 
               <div className="grid gap-3 sm:grid-cols-3">
-
                 {[
                   ["01", "Packed", "Confirm all ordered items"],
                   ["02", "Quality checked", "Verify garment and variant"],
@@ -457,23 +450,16 @@ export default async function PrintOrderPage({
                     </p>
                   </div>
                 ))}
-
               </div>
             </section>
           )}
 
-          {/* =======================================================
-              NOORE CUSTOMER EXPERIENCE
-          ======================================================== */}
           {!packing && (
             <section className="relative mt-10 overflow-hidden bg-[#f3f0ea] p-7 sm:p-9">
-
               <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full border border-black/[0.05]" />
 
               <div className="relative flex flex-col items-center justify-between gap-8 sm:flex-row">
-
                 <div className="max-w-[510px]">
-
                   <p className="text-[9px] font-semibold uppercase tracking-[0.3em] text-black/40">
                     A note from NOORE
                   </p>
@@ -505,7 +491,6 @@ export default async function PrintOrderPage({
                 </div>
 
                 <div className="shrink-0 text-center">
-
                   <div className="bg-white p-2 shadow-sm">
                     <img
                       src="/noore-website-qr.png"
@@ -518,18 +503,12 @@ export default async function PrintOrderPage({
                     Scan to visit NOORE
                   </p>
                 </div>
-
               </div>
             </section>
           )}
 
-          {/* =======================================================
-              FOOTER
-          ======================================================== */}
           <footer className="mt-9 border-t border-black/10 pt-6">
-
             <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-
               <div>
                 <p className="text-[17px] font-semibold tracking-[0.28em]">
                   NOORE
@@ -544,18 +523,15 @@ export default async function PrintOrderPage({
                 <p>noore-slf5.vercel.app</p>
                 <p>Thank you for shopping with NOORE.</p>
               </div>
-
             </div>
 
             <div className="mt-6 text-center text-[8px] uppercase tracking-[0.2em] text-black/25">
               This document was generated electronically by NOORE.
             </div>
           </footer>
-
         </div>
       </article>
 
-      {/* Print button */}
       <div className="mx-auto mt-5 flex max-w-[900px] justify-end print:hidden">
         <button
           type="button"
