@@ -1,0 +1,2 @@
+Added premium storefront polish: product-card hover, image sheen, badges, wishlist treatment, reveal/toast animations, reduced-motion support, and NooreRecentlyViewed component.
+Existing storefront/admin functionality is intentionally untouched.
