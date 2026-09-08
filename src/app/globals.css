@@ -500,3 +500,283 @@ button, a, input, textarea, select {
 @media (prefers-reduced-motion: reduce) {
   .admin-button-primary, .admin-button-secondary, .admin-input { transition: none; }
 }
+
+
+/* ============================================================
+   NOORÉ ADMIN STUDIO — CHARCOAL / PLUM / CHAMPAGNE THEME
+   Scoped to .admin-shell so the public storefront keeps its
+   existing palette. Existing admin page functionality/classes
+   remain intact; these rules only restyle the presentation.
+   ============================================================ */
+
+.admin-shell {
+  --admin-bg: #0e0c0d;
+  --admin-surface: #171316;
+  --admin-surface-2: #21171d;
+  --admin-surface-3: #2a1b24;
+  --admin-plum: #4a2038;
+  --admin-plum-2: #321526;
+  --admin-gold: #d6ae72;
+  --admin-gold-soft: #ead0a0;
+  --admin-ivory: #f7eee4;
+  --admin-muted: #aa9a96;
+  --admin-border: rgba(246, 238, 228, .10);
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 78% 0%, rgba(74,32,56,.20), transparent 30rem),
+    linear-gradient(135deg, #0e0c0d 0%, #121013 45%, #0e0c0d 100%);
+  color: var(--admin-ivory);
+}
+
+.admin-shell main {
+  color: var(--admin-ivory);
+}
+
+/* Common Tailwind surfaces */
+.admin-shell [class~="bg-background"] { background-color: transparent !important; }
+.admin-shell [class~="bg-white"],
+.admin-shell [class~="bg-white/95"],
+.admin-shell [class~="bg-white/90"] {
+  background-color: var(--admin-surface) !important;
+}
+.admin-shell [class~="bg-cream"],
+.admin-shell [class~="bg-cream/60"],
+.admin-shell [class~="bg-cream/50"],
+.admin-shell [class~="bg-cream/40"],
+.admin-shell [class~="bg-cream/30"],
+.admin-shell [class~="bg-gray-50"],
+.admin-shell [class~="bg-gray-100"],
+.admin-shell [class~="bg-stone-50"],
+.admin-shell [class~="bg-stone-100"] {
+  background-color: var(--admin-surface-2) !important;
+}
+.admin-shell [class~="bg-charcoal"] {
+  background-color: var(--admin-plum-2) !important;
+}
+.admin-shell [class~="bg-black"],
+.admin-shell [class~="bg-black/5"] {
+  background-color: var(--admin-bg) !important;
+}
+
+/* Borders */
+.admin-shell [class~="border-cream"],
+.admin-shell [class~="border-charcoal"],
+.admin-shell [class~="border-gray-100"],
+.admin-shell [class~="border-gray-200"],
+.admin-shell [class~="border-gray-300"],
+.admin-shell [class~="border-border"] {
+  border-color: var(--admin-border) !important;
+}
+.admin-shell [class~="border-black/5"],
+.admin-shell [class~="border-black/10"] {
+  border-color: var(--admin-border) !important;
+}
+
+/* Text */
+.admin-shell [class~="text-charcoal"],
+.admin-shell [class~="text-foreground"],
+.admin-shell [class~="text-black"] {
+  color: var(--admin-ivory) !important;
+}
+.admin-shell [class~="text-secondary"],
+.admin-shell [class~="text-black/30"],
+.admin-shell [class~="text-black/35"],
+.admin-shell [class~="text-black/40"],
+.admin-shell [class~="text-black/45"],
+.admin-shell [class~="text-black/50"],
+.admin-shell [class~="text-black/55"],
+.admin-shell [class~="text-black/60"],
+.admin-shell [class~="text-black/65"],
+.admin-shell [class~="text-charcoal/60"],
+.admin-shell [class~="text-charcoal/70"],
+.admin-shell [class~="text-charcoal/80"],
+.admin-shell [class~="text-gray-500"],
+.admin-shell [class~="text-gray-600"],
+.admin-shell [class~="text-gray-700"],
+.admin-shell [class~="text-gray-800"] {
+  color: var(--admin-muted) !important;
+}
+
+/* Dividers */
+.admin-shell [class~="divide-cream"] > :not([hidden]) ~ :not([hidden]),
+.admin-shell [class~="divide-black/5"] > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--admin-border) !important;
+}
+
+/* Buttons and links using the existing shared classes */
+.admin-shell .btn-primary {
+  background: var(--admin-gold) !important;
+  color: #25141c !important;
+  border-color: var(--admin-gold) !important;
+}
+.admin-shell .btn-primary:hover {
+  background: #e4c38d !important;
+}
+.admin-shell .btn-secondary {
+  color: var(--admin-ivory) !important;
+  border-color: rgba(214,174,114,.55) !important;
+}
+.admin-shell .btn-secondary:hover {
+  background: var(--admin-gold) !important;
+  color: #25141c !important;
+}
+
+/* Inputs / selects / textareas throughout admin */
+.admin-shell input,
+.admin-shell textarea,
+.admin-shell select {
+  background-color: #151114 !important;
+  color: var(--admin-ivory) !important;
+  border-color: rgba(246,238,228,.13) !important;
+  color-scheme: dark;
+}
+.admin-shell input::placeholder,
+.admin-shell textarea::placeholder {
+  color: #786a69 !important;
+}
+.admin-shell input:focus,
+.admin-shell textarea:focus,
+.admin-shell select:focus {
+  border-color: rgba(214,174,114,.70) !important;
+  box-shadow: 0 0 0 3px rgba(214,174,114,.08) !important;
+}
+.admin-shell option {
+  background: #171316 !important;
+  color: var(--admin-ivory) !important;
+}
+
+/* Tables */
+.admin-shell table {
+  border-color: var(--admin-border);
+}
+.admin-shell thead,
+.admin-shell [class~="bg-gray-100"] {
+  background-color: #2b1a24 !important;
+}
+.admin-shell tbody tr:hover {
+  background-color: rgba(214,174,114,.045) !important;
+}
+.admin-shell th {
+  color: #bfaea8;
+}
+.admin-shell td {
+  border-color: var(--admin-border);
+}
+
+/* Cards get a premium glass-charcoal treatment */
+.admin-shell [class~="rounded-xl"][class~="bg-white"],
+.admin-shell [class~="rounded-2xl"][class~="bg-white"],
+.admin-shell [class~="rounded-2xl"][class~="bg-cream"],
+.admin-shell [class~="rounded-xl"][class~="bg-cream"] {
+  box-shadow: 0 14px 40px rgba(0,0,0,.14);
+}
+
+/* Admin-specific reusable primitives */
+.admin-shell .admin-page {
+  margin: -1rem;
+  min-height: calc(100vh - 2rem);
+  padding: 1rem;
+  background:
+    radial-gradient(circle at 80% 0%, rgba(74,32,56,.22), transparent 32rem),
+    var(--admin-bg);
+}
+@media (min-width: 640px) {
+  .admin-shell .admin-page { margin: -1.5rem; padding: 1.5rem; }
+}
+@media (min-width: 1024px) {
+  .admin-shell .admin-page { margin: -2rem; padding: 2rem; }
+}
+
+.admin-shell .admin-surface {
+  border-color: var(--admin-border);
+  background: linear-gradient(145deg, rgba(255,255,255,.055), rgba(255,255,255,.018));
+  box-shadow: 0 18px 50px rgba(0,0,0,.22);
+}
+
+.admin-shell .admin-eyebrow {
+  color: rgba(214,174,114,.72);
+}
+
+.admin-shell .admin-title {
+  color: var(--admin-ivory);
+}
+
+.admin-shell .admin-subtitle {
+  color: rgba(247,238,228,.48);
+}
+
+.admin-shell .admin-input {
+  background: rgba(255,255,255,.045) !important;
+  border-color: rgba(255,255,255,.11) !important;
+  color: var(--admin-ivory) !important;
+}
+
+.admin-shell .admin-button-primary {
+  border-color: var(--admin-gold);
+  background: var(--admin-gold);
+  color: #25141c;
+}
+.admin-shell .admin-button-primary:hover:not(:disabled) {
+  background: #e4c38d;
+}
+.admin-shell .admin-button-secondary {
+  border-color: rgba(214,174,114,.35);
+  background: rgba(255,255,255,.035);
+  color: var(--admin-ivory);
+}
+.admin-shell .admin-button-secondary:hover:not(:disabled) {
+  border-color: rgba(214,174,114,.65);
+  background: rgba(214,174,114,.10);
+}
+
+/* Sidebar */
+.admin-shell aside {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(74,32,56,.30), transparent 22rem),
+    #0b0a0b !important;
+  border-right: 1px solid rgba(246,238,228,.07);
+}
+.admin-shell aside a[aria-current="page"] {
+  box-shadow: inset 3px 0 0 var(--admin-gold), 0 8px 28px rgba(0,0,0,.12);
+}
+.admin-shell aside .border-white\/10 {
+  border-color: rgba(246,238,228,.09) !important;
+}
+
+/* Mobile admin header */
+.admin-shell header {
+  background:
+    linear-gradient(135deg, #160f14, #321526) !important;
+}
+
+/* Gold accents for common action links */
+.admin-shell a:hover {
+  text-decoration-color: rgba(214,174,114,.55);
+}
+.admin-shell .text-secondary a,
+.admin-shell a.text-secondary {
+  color: var(--admin-gold-soft) !important;
+}
+
+/* Preserve explicit white text in dark cards */
+.admin-shell [class~="text-white"] {
+  color: #f7eee4 !important;
+}
+
+/* Scrollbar only while inside the admin workspace */
+.admin-shell ::-webkit-scrollbar-track {
+  background: #0b0a0b;
+}
+.admin-shell ::-webkit-scrollbar-thumb {
+  background: #4a3a40;
+}
+.admin-shell ::-webkit-scrollbar-thumb:hover {
+  background: #6c4a59;
+}
+
+/* Do not recolor the printable invoice canvas. */
+@media print {
+  .admin-shell {
+    background: transparent !important;
+  }
+}

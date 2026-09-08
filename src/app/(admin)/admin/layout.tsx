@@ -20,7 +20,7 @@ export default async function AdminLayout({
   const email = session.user.email ?? "Admin"
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="admin-shell min-h-screen bg-background text-foreground">
       {/* Desktop sidebar */}
       <aside className="fixed inset-y-0 left-0 hidden w-64 bg-charcoal p-6 text-white lg:block">
         <Link
