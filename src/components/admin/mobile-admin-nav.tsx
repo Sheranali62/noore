@@ -95,8 +95,8 @@ export default function MobileAdminNav({
               "focus:outline-none focus-visible:ring-2",
               "focus-visible:ring-white/50",
               open
-                ? "border-[#d6ae72] bg-[#d6ae72] text-[#211218]"
-                : "border-white/15 bg-white/[0.06] text-white hover:bg-white/[0.1]",
+                ? "border-white bg-white text-charcoal"
+                : "border-white/20 bg-white/10 text-white hover:bg-white/20",
             ].join(" ")}
           >
             {open ? (
@@ -128,7 +128,7 @@ export default function MobileAdminNav({
       {open && (
         <div
           role="menu"
-          className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-2xl border border-[#d6ae72]/20 bg-[#171116] p-3 shadow-2xl"
+          className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-2xl border border-white/10 bg-charcoal p-3 shadow-2xl"
         >
           <div className="mb-3 border-b border-white/10 px-2 pb-3">
             <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/40">
@@ -145,7 +145,7 @@ export default function MobileAdminNav({
           </div>
 
           <div className="mt-3 border-t border-white/10 pt-3">
-            <div className="rounded-xl border border-white/10 bg-[#241820] px-3 py-3 text-xs text-white/55">
+            <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-xs text-white/55">
               Production workspace
               <br />
               <span className="text-white/85">

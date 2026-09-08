@@ -53,7 +53,7 @@ const popularSearches = [
   "Sale",
 ]
 
-export function Header() {
+export function Header({ scrolled = false }: { scrolled?: boolean }) {
   const { count, toggleCart } = useCart()
 
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -341,7 +341,7 @@ export function Header() {
       {/* =========================================================
           DESKTOP / MOBILE HEADER
       ========================================================= */}
-      <header className="sticky top-0 z-50 border-b border-black/5 bg-cream/95 text-charcoal backdrop-blur-xl">
+      <header className={`sticky top-0 z-50 border-b border-black/5 text-charcoal backdrop-blur-xl transition-all duration-300 ${scrolled ? "bg-cream/90 shadow-[0_8px_30px_rgba(40,25,30,.08)]" : "bg-cream/95"}`}>
         <div className="mx-auto flex h-[68px] max-w-7xl items-center justify-between px-4 sm:px-5">
 
           {/* MOBILE MENU BUTTON */}
@@ -456,7 +456,7 @@ export function Header() {
               <ShoppingBag className="h-[18px] w-[18px]" />
 
               {count > 0 && (
-                <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-charcoal px-1 text-[9px] font-bold text-white">
+                <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-[#d6ae72] px-1 text-[9px] font-bold text-[#24151c] shadow-sm">
                   {count > 99 ? "99+" : count}
                 </span>
               )}
