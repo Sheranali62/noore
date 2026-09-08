@@ -205,7 +205,7 @@ export default async function PrintOrderPage({
 
           {/* BILL / SHIP */}
           <section className="relative grid gap-3.5 sm:grid-cols-2">
-            <div className="rounded-[18px] border border-[#d8c1ae] bg-[#f4e9df] p-5">
+            <div className="rounded-[18px] border border-[#d8c1ae] bg-[#da7a21] p-5">
               <div className="flex items-center gap-2.5">
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#5a2943] text-[8px] font-bold text-[#f8e9dc]">
                   01
@@ -260,7 +260,7 @@ export default async function PrintOrderPage({
                 </h2>
               </div>
 
-              <div className="rounded-full border border-[#d8c1ae] bg-[#f1e4da] px-3.5 py-2 text-right">
+              <div className="rounded-full border border-[#52351c] bg-[#a5571c] px-3.5 py-2 text-right">
                 <p className="text-[6px] uppercase tracking-[0.22em] text-[#967d75]">
                   Order date
                 </p>
@@ -270,10 +270,10 @@ export default async function PrintOrderPage({
               </div>
             </div>
 
-            <div className="mt-4 overflow-hidden rounded-[17px] border border-[#cdb3a3] bg-[#f4e9df]">
+            <div className="mt-4 overflow-hidden rounded-[17px] border border-[#cdb3a3] bg-[#4d3118]">
               <table className="w-full border-collapse">
                 <thead>
-                  <tr className="bg-[#4a2038] text-[#f7e9db]">
+                  <tr className="bg-[#4a2038] text-[#60482f]">
                     <th className="w-[7%] px-3 py-3 text-left text-[6px] font-bold uppercase tracking-[0.18em]">
                       #
                     </th>
@@ -298,8 +298,8 @@ export default async function PrintOrderPage({
                       key={item.id}
                       className={
                         index % 2 === 0
-                          ? "bg-[#f7eee6]"
-                          : "bg-[#efe0d5]"
+                          ? "bg-[#9a6d45]"
+                          : "bg-[#b87e55]"
                       }
                     >
                       <td className="px-3 py-4 text-[8px] font-semibold text-[#725b59]">
@@ -473,7 +473,7 @@ export default async function PrintOrderPage({
                 ].map(([number, title, note]) => (
                   <div
                     key={number}
-                    className="rounded-[15px] border border-[#d3bcae] bg-[#f1e4da] p-4"
+                    className="rounded-[15px] border border-[#71462a] bg-[#653d1e] p-4"
                   >
                     <div className="flex items-center gap-2">
                       <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#4a2038] text-[7px] font-bold text-white">
@@ -492,7 +492,7 @@ export default async function PrintOrderPage({
             </section>
           )}
 
-          <footer className="mt-5 border-t border-[#d5bfb0] pt-4">
+          <footer className="mt-5 border-t border-[#512f18] pt-4">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="font-serif text-[17px] font-semibold tracking-[0.18em] text-[#321526]">
