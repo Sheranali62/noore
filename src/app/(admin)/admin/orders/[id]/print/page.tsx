@@ -710,7 +710,7 @@ export default async function PrintOrderPage({
             </div>
 
             <div className="mt-7 flex items-center gap-3">
-              <span className="h-px flex-1 bg-[#e4dcd8]" />
+              <span className="h-px flex-1 bg-[#0c0908]" />
 
               <span className="text-[7px] font-bold uppercase tracking-[0.25em] text-[#b09d96]">
                 Made with care · NOORE
