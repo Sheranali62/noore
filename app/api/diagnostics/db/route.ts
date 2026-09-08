@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { PrismaClient } from "@prisma/client"
 import dns from "node:dns/promises"
 import net from "node:net"
+import tls from "node:tls"
 
 export const dynamic = "force-dynamic"
 export const runtime = "nodejs"
@@ -100,34 +101,64 @@ async function testTcp(host: string, port: number) {
   })
 }
 
-export async function GET() {
-  const startedAt = Date.now()
-  const dbInfo = getDatabaseInfo()
-
-  if (!dbInfo.configured || !dbInfo.host) {
-    return NextResponse.json(
-      {
-        ok: false,
-        stage: "environment",
-        database: dbInfo,
-        durationMs: Date.now() - startedAt,
-      },
-      { status: 500 }
-    )
-  }
-
-  const host = dbInfo.host
-  const port = Number(dbInfo.port || 5432)
-
-  const dnsResult = await testDns(host)
-  const tcpResult = await testTcp(host, port)
-
-  let prismaResult: {
+async function testTls(host: string, port: number) {
+  return new Promise<{
     ok: boolean
+    authorized?: boolean
+    protocol?: string
+    cipher?: string
+    remoteAddress?: string
     error?: string
-    productCount?: number
-  }
+  }>((resolve) => {
+    const socket = tls.connect({
+      host,
+      port,
+      servername: host,
+      rejectUnauthorized: true,
+    })
 
+    const timeout = setTimeout(() => {
+      socket.destroy()
+
+      resolve({
+        ok: false,
+        error: "TLS connection timed out after 7000ms",
+      })
+    }, 7000)
+
+    socket.once("secureConnect", () => {
+      clearTimeout(timeout)
+
+      const cipher = socket.getCipher()
+      const remoteAddress = socket.remoteAddress
+
+      const result = {
+        ok: true,
+        authorized: socket.authorized,
+        protocol: socket.getProtocol() || undefined,
+        cipher: cipher?.name,
+        remoteAddress,
+      }
+
+      socket.destroy()
+
+      resolve(result)
+    })
+
+    socket.once("error", (error) => {
+      clearTimeout(timeout)
+
+      socket.destroy()
+
+      resolve({
+        ok: false,
+        error: error.message,
+      })
+    })
+  })
+}
+
+async function testPrisma() {
   const prisma = new PrismaClient()
 
   try {
@@ -135,22 +166,49 @@ export async function GET() {
 
     const productCount = await prisma.product.count()
 
-    prismaResult = {
+    return {
       ok: true,
       productCount,
     }
   } catch (error) {
-    prismaResult = {
+    return {
       ok: false,
       error: error instanceof Error ? error.message : String(error),
     }
   } finally {
     await prisma.$disconnect().catch(() => {})
   }
+}
+
+export async function GET() {
+  const startedAt = Date.now()
+
+  const database = getDatabaseInfo()
+
+  if (!database.configured || !database.host) {
+    return NextResponse.json(
+      {
+        ok: false,
+        stage: "environment",
+        database,
+        durationMs: Date.now() - startedAt,
+      },
+      { status: 500 }
+    )
+  }
+
+  const host = database.host
+  const port = Number(database.port || 5432)
+
+  const dnsResult = await testDns(host)
+  const tcpResult = await testTcp(host, port)
+  const tlsResult = await testTls(host, port)
+  const prismaResult = await testPrisma()
 
   const allOk =
     dnsResult.ok &&
     tcpResult.ok &&
+    tlsResult.ok &&
     prismaResult.ok
 
   return NextResponse.json(
@@ -158,7 +216,7 @@ export async function GET() {
       ok: allOk,
       timestamp: new Date().toISOString(),
 
-      database: dbInfo,
+      database,
 
       dns: dnsResult,
 
@@ -167,6 +225,8 @@ export async function GET() {
         port,
         ...tcpResult,
       },
+
+      tls: tlsResult,
 
       prisma: prismaResult,
 
