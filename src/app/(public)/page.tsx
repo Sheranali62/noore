@@ -172,8 +172,8 @@ export default async function HomePage() {
                 A quieter kind of luxury.
               </h1>
               <div className="mt-7 flex flex-wrap gap-3">
-                <span className="bg-white px-6 py-3 text-[9px] font-semibold uppercase tracking-[0.2em] text-[#24191d]">Shop new arrivals</span>
-                <span className="border border-white/60 px-6 py-3 text-[9px] font-semibold uppercase tracking-[0.2em] text-white">Explore luxury</span>
+                <span className="border border-[#f7eee4] bg-[#f7eee4] px-6 py-3 text-[9px] font-semibold uppercase tracking-[0.2em] text-[#24191d] shadow-[0_8px_24px_rgba(0,0,0,.18)] transition-colors duration-200 hover:bg-[#d6ae72] hover:border-[#d6ae72]">Shop new arrivals</span>
+                <span className="border border-white/70 bg-black/10 px-6 py-3 text-[9px] font-semibold uppercase tracking-[0.2em] text-white transition-colors duration-200 hover:border-[#d6ae72] hover:bg-[#d6ae72] hover:text-[#24191d]">Explore luxury</span>
               </div>
             </div>
             <span className="absolute bottom-5 right-5 hidden text-[8px] uppercase tracking-[0.2em] text-white/55 md:block">01 / 03</span>
