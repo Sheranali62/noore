@@ -105,7 +105,7 @@ export function Header({ scrolled = false }: { scrolled?: boolean }) {
 
     fetch("/api/categories", {
       method: "GET",
-      cache: "no-store",
+      cache: "force-cache",
       headers: { Accept: "application/json" },
     })
       .then((response) => (response.ok ? response.json() : []))
