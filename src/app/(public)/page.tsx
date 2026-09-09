@@ -1,9 +1,10 @@
 export const dynamic = "force-dynamic"
+export const revalidate = 0
+
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { ProductCard } from "@/components/product/product-card"
 import { cookies } from "next/headers"
-import { unstable_cache } from "next/cache"
 import {
   getDominantInterest,
   PERSONALIZATION_COOKIE,
@@ -17,30 +18,30 @@ const worlds = [
     eyebrow: "The feminine edit",
     copy: "Modern silhouettes, festive layers and everyday refinement.",
     href: "/women",
-    image: "https://images.unsplash.com/photo-1485968579580-b6d095142e6e?w=1200&q=75&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1485968579580-b6d095142e6e?w=1500&auto=format&fit=crop",
   },
   {
     title: "Men",
     eyebrow: "The modern wardrobe",
     copy: "Tailored essentials and understated Pakistani style.",
     href: "/men",
-    image: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=1200&q=75&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=1500&auto=format&fit=crop",
   },
   {
     title: "Kids",
     eyebrow: "Little occasions",
     copy: "Playful occasionwear and easy everyday pieces.",
     href: "/kids",
-    image: "https://images.unsplash.com/photo-1503919545889-aef636e10ad4?w=1200&q=75&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1503919545889-aef636e10ad4?w=1500&auto=format&fit=crop",
   },
 ]
 
 const categories = [
-  ["Unstitched", "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=900&q=75&auto=format&fit=crop"],
-  ["Ready to Wear", "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=900&q=75&auto=format&fit=crop"],
-  ["Luxury", "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=900&q=75&auto=format&fit=crop"],
-  ["Men", "https://images.unsplash.com/photo-1617137968427-85924c800a22?w=900&q=75&auto=format&fit=crop"],
-  ["Accessories", "https://images.unsplash.com/photo-1523779917675-b6ed3a42a561?w=900&q=75&auto=format&fit=crop"],
+  ["Unstitched", "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=1000&auto=format&fit=crop"],
+  ["Ready to Wear", "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=1000&auto=format&fit=crop"],
+  ["Luxury", "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=1000&auto=format&fit=crop"],
+  ["Men", "https://images.unsplash.com/photo-1617137968427-85924c800a22?w=1000&auto=format&fit=crop"],
+  ["Accessories", "https://images.unsplash.com/photo-1523779917675-b6ed3a42a561?w=1000&auto=format&fit=crop"],
 ]
 
 const stories = [
@@ -48,14 +49,14 @@ const stories = [
     eyebrow: "The New Edit",
     title: "Quiet luxury, made for every day.",
     copy: "Refined silhouettes, considered details and effortless Pakistani elegance.",
-    image: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=1500&q=75&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=1800&auto=format&fit=crop",
     href: "/products?category=Ready%20to%20Wear",
   },
   {
     eyebrow: "Festive 2026",
     title: "Moments worth dressing for.",
     copy: "Statement pieces for celebrations, evenings and everything between.",
-    image: "https://images.unsplash.com/photo-1591369822096-ffd140ec948f?w=1500&q=75&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1591369822096-ffd140ec948f?w=1800&auto=format&fit=crop",
     href: "/products?category=Luxury",
   },
 ]
@@ -90,70 +91,31 @@ function personalize<
   return [...products].sort((a, b) => scoreProductInterest(b)[segment] - scoreProductInterest(a)[segment])
 }
 
-const homeProductSelect = {
-  id: true,
-  name: true,
-  slug: true,
-  price: true,
-  salePrice: true,
-  images: true,
-  category: true,
-  stock: true,
-  gender: true,
-} as const
-
-const getNewProducts = unstable_cache(
-  () => prisma.product.findMany({
-    where: { status: "ACTIVE" },
-    take: 24,
-    orderBy: { createdAt: "desc" },
-    select: homeProductSelect,
-  }),
-  ["noore-home-new-products"],
-  { revalidate: 120 },
-)
-
-const getSaleProducts = unstable_cache(
-  () => prisma.product.findMany({
-    where: { status: "ACTIVE", salePrice: { not: null } },
-    take: 12,
-    orderBy: { createdAt: "desc" },
-    select: homeProductSelect,
-  }),
-  ["noore-home-sale-products"],
-  { revalidate: 120 },
-)
-
-const getLimitedProducts = unstable_cache(
-  () => prisma.product.findMany({
-    where: { status: "ACTIVE", stock: { gt: 0, lte: 5 } },
-    take: 12,
-    orderBy: { stock: "asc" },
-    select: homeProductSelect,
-  }),
-  ["noore-home-limited-products"],
-  { revalidate: 120 },
-)
-
-const getPopularGroups = unstable_cache(
-  () => prisma.orderItem.groupBy({
-    by: ["productId"],
-    _sum: { quantity: true },
-    orderBy: { _sum: { quantity: "desc" } },
-    take: 8,
-  }),
-  ["noore-home-popular-products"],
-  { revalidate: 300 },
-)
-
 export default async function HomePage() {
   const { segment: interest } = readInterest()
 
   const [newRaw, saleRaw, limitedRaw, popularGroups] = await Promise.all([
-    getNewProducts(),
-    getSaleProducts(),
-    getLimitedProducts(),
-    getPopularGroups(),
+    prisma.product.findMany({
+      where: { status: "ACTIVE" },
+      take: 24,
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.product.findMany({
+      where: { status: "ACTIVE", salePrice: { not: null } },
+      take: 12,
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.product.findMany({
+      where: { status: "ACTIVE", stock: { gt: 0, lte: 5 } },
+      take: 12,
+      orderBy: { stock: "asc" },
+    }),
+    prisma.orderItem.groupBy({
+      by: ["productId"],
+      _sum: { quantity: true },
+      orderBy: { _sum: { quantity: "desc" } },
+      take: 8,
+    }),
   ])
 
   const newProducts = personalize(newRaw, interest).slice(0, 8)
@@ -162,10 +124,7 @@ export default async function HomePage() {
 
   const popularIds = popularGroups.map((x: any) => x.productId)
   const popularProducts = popularIds.length
-    ? await prisma.product.findMany({
-        where: { id: { in: popularIds }, status: "ACTIVE" },
-        select: homeProductSelect,
-      })
+    ? await prisma.product.findMany({ where: { id: { in: popularIds }, status: "ACTIVE" } })
     : []
   const popularMap = new Map(popularProducts.map((p) => [p.id, p]))
   const trendingProducts = personalize(
@@ -201,7 +160,7 @@ export default async function HomePage() {
           <Link href="/products" className="group relative min-h-[650px] overflow-hidden bg-[#24191d] text-white md:min-h-[790px]">
             <div
               className="absolute inset-0 bg-cover bg-center transition duration-[1200ms] ease-out group-hover:scale-[1.035]"
-              style={{ backgroundImage: "url('https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1600&q=75&auto=format&fit=crop')" }}
+              style={{ backgroundImage: "url('https://images.unsplash.com/photo-1483985988355-763728e1935b?w=2200&auto=format&fit=crop')" }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-black/5" />
             <div className="absolute left-5 top-5 flex items-center gap-3 text-[9px] uppercase tracking-[0.3em] text-white/70 md:left-8 md:top-8">
@@ -224,7 +183,7 @@ export default async function HomePage() {
             <Link href="/women" className="group relative min-h-[320px] overflow-hidden bg-[#321526] text-white md:min-h-0 md:flex-1">
               <div
                 className="absolute inset-0 bg-cover bg-center transition duration-[1000ms] group-hover:scale-[1.045]"
-                style={{ backgroundImage: "url('https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=1100&q=75&auto=format&fit=crop')" }}
+                style={{ backgroundImage: "url('https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=1400&auto=format&fit=crop')" }}
               />
               <div className="absolute inset-0 bg-black/25" />
               <div className="absolute inset-x-5 bottom-5 md:inset-x-7 md:bottom-7">
@@ -237,7 +196,7 @@ export default async function HomePage() {
             <Link href="/collections" className="group relative min-h-[320px] overflow-hidden bg-[#e4d7ca] text-[#24191d] md:min-h-0 md:flex-1">
               <div
                 className="absolute inset-0 bg-cover bg-center transition duration-[1000ms] group-hover:scale-[1.045]"
-                style={{ backgroundImage: "url('https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?w=1100&q=75&auto=format&fit=crop')" }}
+                style={{ backgroundImage: "url('https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?w=1400&auto=format&fit=crop')" }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent" />
               <div className="absolute inset-x-5 bottom-5 text-white md:inset-x-7 md:bottom-7">
@@ -311,7 +270,7 @@ export default async function HomePage() {
 
       {/* Full-width story */}
       <section className="relative min-h-[620px] overflow-hidden bg-[#24191d] text-white md:min-h-[760px]">
-        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1600&q=75&auto=format&fit=crop')" }} />
+        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=2200&auto=format&fit=crop')" }} />
         <div className="absolute inset-0 bg-gradient-to-r from-black/65 via-black/20 to-transparent" />
         <div className="relative mx-auto flex min-h-[620px] max-w-[1440px] items-end px-5 pb-12 md:min-h-[760px] md:items-center md:px-8 md:pb-0">
           <div className="max-w-2xl">

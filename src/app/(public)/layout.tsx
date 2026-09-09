@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { ArrowUp, X, Truck, Sparkles } from "lucide-react"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
 import Link from "next/link"
 import { Header } from "@/components/layout/header"
@@ -14,6 +14,7 @@ import { WhatsAppButton } from "@/components/shared/whatsapp-button"
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession()
   const pathname = usePathname()
+  const router = useRouter()
   const [announcement, setAnnouncement] = useState("FREE SHIPPING ON ORDERS ABOVE PKR 5,000")
   const [siteName, setSiteName] = useState("NOORÉ")
   const [announcementVisible, setAnnouncementVisible] = useState(true)
@@ -29,34 +30,17 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
   }, [])
 
   useEffect(() => {
-    let frame = 0
-    let lastProgress = -1
-
-    const update = () => {
-      frame = 0
+    const onScroll = () => {
       const scrollTop = window.scrollY
       const max = document.documentElement.scrollHeight - window.innerHeight
       setScrolled(scrollTop > 16)
       setShowTop(scrollTop > 600)
-      const progress = max > 0 ? Math.min(100, (scrollTop / max) * 100) : 0
-      if (Math.abs(progress - lastProgress) >= 1) {
-        lastProgress = progress
-        setScrollProgress(progress)
-      }
+      setScrollProgress(max > 0 ? Math.min(100, (scrollTop / max) * 100) : 0)
     }
 
-    const onScroll = () => {
-      if (!frame) frame = window.requestAnimationFrame(update)
-    }
-
-    update()
+    onScroll()
     window.addEventListener("scroll", onScroll, { passive: true })
-    window.addEventListener("resize", onScroll, { passive: true })
-    return () => {
-      window.removeEventListener("scroll", onScroll)
-      window.removeEventListener("resize", onScroll)
-      if (frame) window.cancelAnimationFrame(frame)
-    }
+    return () => window.removeEventListener("scroll", onScroll)
   }, [])
 
   const dismissAnnouncement = () => {
@@ -79,10 +63,50 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
     }).catch(() => {})
   }, [])
 
-  // Do not periodically refresh the whole storefront.
-  // Full router.refresh() calls were causing avoidable database/render work
-  // while customers were simply browsing. Product data is cached/revalidated
-  // server-side instead.
+  // Keep public storefront content fresh without doing a full browser reload.
+  // router.refresh() updates server-rendered data while preserving cart/UI state.
+  useEffect(() => {
+    const refreshEveryMs = 60_000
+    const idleForMs = 8_000
+    let lastInteraction = Date.now()
+
+    const markInteraction = () => {
+      lastInteraction = Date.now()
+    }
+
+    const refreshPage = () => {
+      if (document.visibilityState !== "visible") return
+
+      if (pathname === "/checkout" || pathname.startsWith("/checkout/")) return
+
+      const active = document.activeElement
+      const isEditing =
+        active instanceof HTMLInputElement ||
+        active instanceof HTMLTextAreaElement ||
+        active instanceof HTMLSelectElement ||
+        active?.hasAttribute("contenteditable")
+
+      const menuOpen = document.querySelector("[data-noore-menu-open=\"true\"]")
+      const dialogOpen = document.querySelector("[role=dialog]")
+      const userIsActive = Date.now() - lastInteraction < idleForMs
+
+      if (isEditing || menuOpen || dialogOpen || userIsActive) return
+
+      router.refresh()
+    }
+
+    window.addEventListener("pointerdown", markInteraction, { passive: true })
+    window.addEventListener("keydown", markInteraction)
+    window.addEventListener("scroll", markInteraction, { passive: true })
+
+    const interval = window.setInterval(refreshPage, refreshEveryMs)
+    return () => {
+      window.clearInterval(interval)
+      window.removeEventListener("pointerdown", markInteraction)
+      window.removeEventListener("keydown", markInteraction)
+      window.removeEventListener("scroll", markInteraction)
+    }
+  }, [pathname, router])
 
   return <>
     {/* Floating luxury announcement */}

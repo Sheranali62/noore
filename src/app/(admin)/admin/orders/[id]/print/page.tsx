@@ -1,4 +1,4 @@
-﻿import { notFound } from "next/navigation"
+import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
@@ -108,7 +108,23 @@ export default async function PrintOrderPage({
     : "—"
 
   return (
-    <main className="min-h-screen bg-[#e9ddd5] px-3 py-5 text-[#2b1a24] sm:px-6 sm:py-8 print:bg-[#f5eee6] print:p-0">
+    <>
+      <div className="noore-print-stage print:hidden" aria-hidden="true">
+        <div className="noore-printer-wrap">
+          <p className="noore-printer-kicker">NOORÉ DOCUMENT STUDIO</p>
+          <div className="noore-printer">
+            <div className="noore-printer-top" />
+            <div className="noore-printer-slot"><div className="noore-printer-screen">PRINTING...</div></div>
+            <div className="noore-printer-button" />
+            <div className="noore-printer-tray" />
+            <div className="noore-printer-paper" />
+          </div>
+          <h2 className="noore-print-title">Preparing your {packing ? "packing slip" : "invoice"}</h2>
+          <p className="noore-print-subtitle">A refined document, ready to print</p>
+        </div>
+      </div>
+
+      <main className="min-h-screen bg-[#e9ddd5] px-3 py-5 text-[#2b1a24] sm:px-6 sm:py-8 print:bg-[#f5eee6] print:p-0">
       <article className="mx-auto w-full max-w-[794px] overflow-hidden rounded-[26px] border border-[#d5bda9] bg-[#f8f1e8] shadow-[0_30px_90px_rgba(48,25,37,0.18)] print:max-w-none print:rounded-none print:border-0 print:shadow-none">
 
         {/* TOP BRAND AREA */}
@@ -517,11 +533,12 @@ export default async function PrintOrderPage({
         dangerouslySetInnerHTML={{
           __html: `
             window.addEventListener("load", () => {
-              setTimeout(() => window.print(), 500)
+              setTimeout(() => window.print(), 2100)
             })
           `,
         }}
       />
     </main>
+    </>
   )
 }
