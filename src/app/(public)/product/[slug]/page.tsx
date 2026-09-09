@@ -6,6 +6,9 @@ import { productJsonLd } from "@/lib/structured-data"
 export const dynamic = "force-dynamic"
 export const revalidate = 0
 
+// Product availability is intentionally dynamic, while the related-product
+// payload is kept small to reduce server work and network transfer.
+
 export async function generateMetadata({
   params,
 }: {
@@ -104,6 +107,17 @@ export default async function ProductPage({
     take: 4,
     orderBy: {
       createdAt: "desc",
+    },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      price: true,
+      salePrice: true,
+      images: true,
+      category: true,
+      stock: true,
+      gender: true,
     },
   })
 
