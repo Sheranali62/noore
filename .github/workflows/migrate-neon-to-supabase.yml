@@ -1,3 +1,4 @@
+
 name: Backup Neon and migrate NOORE database to Supabase
 
 on:
@@ -20,6 +21,7 @@ jobs:
   backup-and-optional-restore:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+
     env:
       OLD_DATABASE_URL: ${{ secrets.OLD_DATABASE_URL }}
       SUPABASE_DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL }}
@@ -29,31 +31,119 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -n "$OLD_DATABASE_URL" || { echo "OLD_DATABASE_URL secret is missing"; exit 1; }
-          test -n "$SUPABASE_DATABASE_URL" || { echo "SUPABASE_DATABASE_URL secret is missing"; exit 1; }
+
+          test -n "$OLD_DATABASE_URL" || {
+            echo "OLD_DATABASE_URL secret is missing"
+            exit 1
+          }
+
+          test -n "$SUPABASE_DATABASE_URL" || {
+            echo "SUPABASE_DATABASE_URL secret is missing"
+            exit 1
+          }
+
           echo "Both database secrets are present."
 
-      - name: Test connections and create Neon backup
+      - name: Test connections, inspect Neon and create backup
         shell: bash
         run: |
           set -euo pipefail
+
           mkdir -p "$RUNNER_TEMP/noore-db-backup"
+
           docker run --rm \
             -e OLD_DATABASE_URL \
             -e SUPABASE_DATABASE_URL \
             -v "$RUNNER_TEMP/noore-db-backup:/backup" \
             postgres:18 \
             bash -ceu '
-              echo "Testing old Neon connection..."
-              psql "$OLD_DATABASE_URL" -v ON_ERROR_STOP=1 -Atc "SELECT current_database(), current_user;"
-              echo "Testing Supabase connection..."
-              psql "$SUPABASE_DATABASE_URL" -v ON_ERROR_STOP=1 -Atc "SELECT current_database(), current_user;"
-              echo "Creating a custom-format backup of the public schema..."
-              pg_dump "$OLD_DATABASE_URL" --format=custom --no-owner --no-acl --schema=public --file=/backup/noore-neon-backup.dump
-              echo "Backup created."
-              pg_restore --list /backup/noore-neon-backup.dump >/backup/backup-contents.txt
+
+              echo "=================================="
+              echo "TESTING OLD NEON CONNECTION"
+              echo "=================================="
+
+              psql "$OLD_DATABASE_URL" \
+                -v ON_ERROR_STOP=1 \
+                -Atc "SELECT current_database(), current_user;"
+
+              echo "=================================="
+              echo "TESTING NEW SUPABASE CONNECTION"
+              echo "=================================="
+
+              psql "$SUPABASE_DATABASE_URL" \
+                -v ON_ERROR_STOP=1 \
+                -Atc "SELECT current_database(), current_user;"
+
+              echo "=================================="
+              echo "INSPECTING OLD NEON DATABASE"
+              echo "=================================="
+
+              echo "Public database tables and estimated records:"
+
+              psql "$OLD_DATABASE_URL" \
+                -v ON_ERROR_STOP=1 \
+                -c "
+                  SELECT
+                    schemaname,
+                    relname AS table_name,
+                    n_live_tup AS estimated_records
+                  FROM pg_stat_user_tables
+                  WHERE schemaname = current_schema()
+                  ORDER BY relname;
+                "
+
+              TABLE_COUNT=$(psql "$OLD_DATABASE_URL" \
+                -v ON_ERROR_STOP=1 \
+                -Atc "
+                  SELECT count(*)
+                  FROM pg_class
+                  WHERE relnamespace = (
+                    SELECT oid
+                    FROM pg_namespace
+                    WHERE nspname = current_schema()
+                  )
+                  AND relkind IN (chr(114), chr(112));
+                ")
+
+              echo "Total public tables: $TABLE_COUNT"
+
+              if [ "$TABLE_COUNT" -eq 0 ]; then
+                echo "ERROR: No public tables found. Backup stopped safely."
+                exit 1
+              fi
+
+              echo "=================================="
+              echo "CREATING NEON DATABASE BACKUP"
+              echo "=================================="
+
+              pg_dump "$OLD_DATABASE_URL" \
+                --format=custom \
+                --no-owner \
+                --no-acl \
+                --schema=public \
+                --file=/backup/noore-neon-backup.dump
+
+              echo "Backup created successfully."
+
+              echo "=================================="
+              echo "VERIFYING BACKUP CONTENTS"
+              echo "=================================="
+
+              pg_restore --list \
+                /backup/noore-neon-backup.dump \
+                > /backup/backup-contents.txt
+
+              echo "Backup contents:"
+              cat /backup/backup-contents.txt
+
+              echo "Backup entry count:"
               wc -l /backup/backup-contents.txt
+
+              echo "Backup file size:"
               ls -lh /backup/noore-neon-backup.dump
+
+              echo "Backup verification inspection completed."
+
             '
 
       - name: Upload Neon backup artifact
@@ -69,22 +159,45 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+
           docker run --rm \
             -e SUPABASE_DATABASE_URL \
             -v "$RUNNER_TEMP/noore-db-backup:/backup" \
-            postgres:17 \
+            postgres:18 \
             bash -ceu '
-              echo "Restoring backup into Supabase in one transaction..."
+
+              echo "=================================="
+              echo "RESTORING BACKUP INTO SUPABASE"
+              echo "=================================="
+
+              test -s /backup/noore-neon-backup.dump
+
               pg_restore "$SUPABASE_DATABASE_URL" \
                 --no-owner \
                 --no-acl \
                 --exit-on-error \
                 --single-transaction \
                 /backup/noore-neon-backup.dump
+
               echo "Restore completed successfully."
-              psql "$SUPABASE_DATABASE_URL" -v ON_ERROR_STOP=1 -Atc "SELECT count(*) FROM information_schema.tables WHERE table_schema = '''public''' AND table_type = '''BASE TABLE''';"
+
+              echo "Verifying restored tables:"
+
+              psql "$SUPABASE_DATABASE_URL" \
+                -v ON_ERROR_STOP=1 \
+                -c "
+                  SELECT
+                    table_name
+                  FROM information_schema.tables
+                  WHERE table_schema = current_schema()
+                    AND table_type = chr(66) || chr(65) || chr(83) || chr(69) || chr(32) || chr(84) || chr(65) || chr(66) || chr(76) || chr(69)
+                  ORDER BY table_name;
+                "
+
             '
 
       - name: Backup-only notice
         if: ${{ !inputs.restore_to_supabase }}
-        run: echo "Backup-only run completed. Review the uploaded artifact before running again with restore_to_supabase enabled."
+        run: |
+          echo "Backup-only run completed."
+          echo "Review the database inspection and uploaded artifact before restoring."
