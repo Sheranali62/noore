@@ -4,7 +4,6 @@ import CredentialsProvider from "next-auth/providers/credentials"
 import GoogleProvider from "next-auth/providers/google"
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import { prisma } from "./prisma"
-import bcrypt from "bcryptjs"
 import NextAuth from "next-auth"
 
 const providers: NextAuthOptions["providers"] = [
@@ -17,20 +16,57 @@ const providers: NextAuthOptions["providers"] = [
     async authorize(credentials) {
       if (!credentials?.email || !credentials?.password) return null
 
-      const user = await prisma.user.findUnique({
-        where: { email: credentials.email },
-      })
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+      if (!supabaseUrl || !supabaseAnonKey) return null
 
-      if (!user || !user.password) return null
+      try {
+        const authResponse = await fetch(
+          `${supabaseUrl.replace(/\/$/, "")}/auth/v1/token?grant_type=password`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              apikey: supabaseAnonKey,
+            },
+            body: JSON.stringify({
+              email: credentials.email.trim().toLowerCase(),
+              password: credentials.password,
+            }),
+            cache: "no-store",
+          }
+        )
 
-      const isValid = await bcrypt.compare(credentials.password, user.password)
-      if (!isValid) return null
+        if (!authResponse.ok) return null
 
-      return {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
+        const authResult = await authResponse.json()
+        const email = authResult.user?.email?.toLowerCase()
+        if (!email) return null
+
+        const metadata = authResult.user.user_metadata ?? {}
+        const name =
+          metadata.full_name ?? metadata.name ?? metadata.display_name ?? null
+
+        const user = await prisma.user.upsert({
+          where: { email },
+          update: name ? { name } : {},
+          create: {
+            email,
+            name,
+            password: null,
+            role: "CUSTOMER",
+          },
+        })
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+        }
+      } catch (error) {
+        console.error("Credentials authentication failed:", error)
+        return null
       }
     },
   }),
