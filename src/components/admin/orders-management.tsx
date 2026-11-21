@@ -42,7 +42,7 @@ const date = (value: string) => new Date(value).toLocaleString("en-PK", { dateSt
 function exportCsv(rows: OrderRow[]) {
   const header = ["Order", "Customer", "Email", "Phone", "City", "Total", "Status", "Payment", "Payment status", "Courier", "Tracking", "Created"]
   const csv = [header, ...rows.map(o => [o.orderNumber, o.user?.name ?? "Customer", o.user?.email ?? "", o.address?.phone ?? "", o.address?.city ?? "", o.total, statusLabels[o.status] ?? o.status, o.paymentMethod, o.paymentStatus, o.courier ?? "", o.trackingNumber ?? "", o.createdAt])]
-    .map(row => row.map(v => `"${String(v ?? "").replaceAll('"', '""')}"`).join(",")).join("\\n")
+    .map(row => row.map(v => `"${String(v ?? "").replaceAll('"', '""')}"`).join(",")).join("\n")
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8" })
   const url = URL.createObjectURL(blob)
   const a = document.createElement("a"); a.href = url; a.download = `noore-orders-${new Date().toISOString().slice(0, 10)}.csv`; a.click()
