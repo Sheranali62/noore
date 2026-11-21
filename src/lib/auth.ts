@@ -47,14 +47,22 @@ const providers: NextAuthOptions["providers"] = [
         const name =
           metadata.full_name ?? metadata.name ?? metadata.display_name ?? null
 
+        // Only the explicitly configured account can be promoted automatically.
+        // Supabase still verifies the password before this code is reached.
+        const superAdminEmail = process.env.SUPER_ADMIN_EMAIL?.trim().toLowerCase()
+        const isConfiguredSuperAdmin = Boolean(superAdminEmail && email === superAdminEmail)
+
         const user = await prisma.user.upsert({
           where: { email },
-          update: name ? { name } : {},
+          update: {
+            ...(name ? { name } : {}),
+            ...(isConfiguredSuperAdmin ? { role: "SUPER_ADMIN" as const } : {}),
+          },
           create: {
             email,
             name,
             password: null,
-            role: "CUSTOMER",
+            role: isConfiguredSuperAdmin ? "SUPER_ADMIN" : "CUSTOMER",
           },
         })
 
