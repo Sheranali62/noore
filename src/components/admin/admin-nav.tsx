@@ -2,78 +2,56 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import {
+  BarChart3,
+  Boxes,
+  ClipboardList,
+  FolderTree,
+  Gift,
+  Home,
+  Image,
+  Package,
+  Settings,
+  Truck,
+  Users,
+} from "lucide-react"
 
 const items = [
-  ["/admin", "Dashboard"],
-  ["/admin/products", "Products"],
-  ["/admin/categories", "Categories"],
-  ["/admin/orders", "Orders"],
-  ["/admin/couriers", "Couriers"],
-  ["/admin/customers", "Customers"],
-  ["/admin/coupons", "Coupons"],
-  ["/admin/inventory", "Inventory"],
-  ["/admin/homepage", "Homepage"],
-  ["/admin/settings", "Settings"],
+  { href: "/admin", label: "Dashboard", icon: Home },
+  { href: "/admin/products", label: "Products", icon: Package },
+  { href: "/admin/categories", label: "Categories", icon: FolderTree },
+  { href: "/admin/orders", label: "Orders", icon: ClipboardList },
+  { href: "/admin/couriers", label: "Couriers", icon: Truck },
+  { href: "/admin/customers", label: "Customers", icon: Users },
+  { href: "/admin/coupons", label: "Coupons", icon: Gift },
+  { href: "/admin/inventory", label: "Inventory", icon: Boxes },
+  { href: "/admin/homepage", label: "Homepage", icon: Image },
+  { href: "/admin/analytics", label: "Reports", icon: BarChart3 },
+  { href: "/admin/settings", label: "Settings", icon: Settings },
 ] as const
 
-type AdminNavProps = {
-  mobile?: boolean
-}
-
-export default function AdminNav({ mobile = false }: AdminNavProps) {
+export default function AdminNav({ mobile = false }: { mobile?: boolean }) {
   const pathname = usePathname()
-
   return (
-    <nav
-      className={
-        mobile
-          ? "flex flex-col gap-1.5"
-          : "space-y-1"
-      }
-      aria-label="Admin navigation"
-    >
-      {items.map(([href, label]) => {
-        const active =
-          href === "/admin"
-            ? pathname === href
-            : pathname.startsWith(href)
-
+    <nav className={mobile ? "flex flex-col gap-1.5" : "space-y-1.5"} aria-label="Admin navigation">
+      {items.map(({ href, label, icon: Icon }) => {
+        const active = href === "/admin" ? pathname === href : pathname.startsWith(href)
         return (
           <Link
             key={href}
             href={href}
             className={[
-              "group flex min-h-[44px] items-center rounded-xl px-3.5 py-3",
-              "text-sm font-medium transition-all duration-200",
-              "focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60",
-              mobile
-                ? active
-                  ? "bg-white text-slate-950 shadow-sm"
-                  : "text-white hover:bg-white/10 hover:text-white active:bg-white/15"
-                : active
-                  ? "bg-white/15 text-white"
-                  : "text-white/85 hover:bg-white/10 hover:text-white",
+              "group flex min-h-[45px] items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-medium transition-all duration-200",
+              "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#e4c28e]/70",
+              active
+                ? "bg-gradient-to-r from-[#e6c47f] to-[#c2944e] text-[#17110a] shadow-[0_5px_20px_rgba(214,174,114,.16)]"
+                : "text-white/75 hover:bg-white/[0.07] hover:text-white",
             ].join(" ")}
             aria-current={active ? "page" : undefined}
           >
-            <span
-              className={
-                mobile
-                  ? active
-                    ? "truncate"
-                    : "truncate"
-                  : "truncate"
-              }
-            >
-              {label}
-            </span>
-
-            {mobile && active && (
-              <span
-                className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-slate-950"
-                aria-hidden="true"
-              />
-            )}
+            <Icon className={`h-[18px] w-[18px] shrink-0 ${active ? "text-[#17110a]" : "text-[#d6ae72]/80 group-hover:text-[#e4c28e]"}`} />
+            <span className="truncate">{label}</span>
+            {active && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-[#17110a]" />}
           </Link>
         )
       })}
