@@ -1,14 +1,8 @@
 
-name: Backup Neon and migrate NOORE database to Supabase
+name: Diagnose and inspect NOORE Neon database
 
 on:
   workflow_dispatch:
-    inputs:
-      restore_to_supabase:
-        description: "Restore the verified backup into Supabase (leave false for backup-only run)"
-        required: true
-        type: boolean
-        default: false
 
 permissions:
   contents: read
@@ -18,16 +12,15 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  backup-and-optional-restore:
+  inspect-neon-database:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
 
     env:
       OLD_DATABASE_URL: ${{ secrets.OLD_DATABASE_URL }}
-      SUPABASE_DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL }}
 
     steps:
-      - name: Check required secrets are configured
+      - name: Check Neon secret
         shell: bash
         run: |
           set -euo pipefail
@@ -37,167 +30,134 @@ jobs:
             exit 1
           }
 
-          test -n "$SUPABASE_DATABASE_URL" || {
-            echo "SUPABASE_DATABASE_URL secret is missing"
-            exit 1
-          }
+          echo "Neon database secret is configured."
 
-          echo "Both database secrets are present."
-
-      - name: Test connections, inspect Neon and create backup
+      - name: Inspect all Neon schemas and tables
         shell: bash
         run: |
           set -euo pipefail
 
-          mkdir -p "$RUNNER_TEMP/noore-db-backup"
+          mkdir -p "$RUNNER_TEMP/noore-diagnostics"
 
           docker run --rm \
             -e OLD_DATABASE_URL \
-            -e SUPABASE_DATABASE_URL \
-            -v "$RUNNER_TEMP/noore-db-backup:/backup" \
+            -v "$RUNNER_TEMP/noore-diagnostics:/report" \
             postgres:18 \
             bash -ceu '
 
-              echo "=================================="
-              echo "TESTING OLD NEON CONNECTION"
-              echo "=================================="
+              REPORT=/report/neon-database-report.txt
+
+              echo "====================================" | tee "$REPORT"
+              echo "NOORE NEON DATABASE DIAGNOSTIC REPORT" | tee -a "$REPORT"
+              echo "====================================" | tee -a "$REPORT"
+
+              echo "" | tee -a "$REPORT"
+              echo "1. DATABASE CONNECTION INFORMATION" | tee -a "$REPORT"
 
               psql "$OLD_DATABASE_URL" \
                 -v ON_ERROR_STOP=1 \
-                -Atc "SELECT current_database(), current_user;"
-
-              echo "=================================="
-              echo "TESTING NEW SUPABASE CONNECTION"
-              echo "=================================="
-
-              psql "$SUPABASE_DATABASE_URL" \
-                -v ON_ERROR_STOP=1 \
-                -Atc "SELECT current_database(), current_user;"
-
-              echo "=================================="
-              echo "INSPECTING OLD NEON DATABASE"
-              echo "=================================="
-
-              echo "Public database tables and estimated records:"
-
-              psql "$OLD_DATABASE_URL" \
-                -v ON_ERROR_STOP=1 \
+                -P pager=off \
                 -c "
                   SELECT
-                    schemaname,
+                    current_database() AS database_name,
+                    current_user AS database_user,
+                    current_schema() AS current_schema,
+                    current_schemas(true) AS search_path,
+                    version() AS postgres_version;
+                " | tee -a "$REPORT"
+
+              echo "" | tee -a "$REPORT"
+              echo "2. ALL AVAILABLE SCHEMAS" | tee -a "$REPORT"
+
+              psql "$OLD_DATABASE_URL" \
+                -v ON_ERROR_STOP=1 \
+                -P pager=off \
+                -c "
+                  SELECT
+                    schema_name
+                  FROM information_schema.schemata
+                  ORDER BY schema_name;
+                " | tee -a "$REPORT"
+
+              echo "" | tee -a "$REPORT"
+              echo "3. ALL USER TABLES ACROSS ALL SCHEMAS" | tee -a "$REPORT"
+
+              psql "$OLD_DATABASE_URL" \
+                -v ON_ERROR_STOP=1 \
+                -P pager=off \
+                -c "
+                  SELECT
+                    schemaname AS schema_name,
                     relname AS table_name,
                     n_live_tup AS estimated_records
                   FROM pg_stat_user_tables
-                  WHERE schemaname = current_schema()
-                  ORDER BY relname;
-                "
+                  ORDER BY schemaname, relname;
+                " | tee -a "$REPORT"
 
-              TABLE_COUNT=$(psql "$OLD_DATABASE_URL" \
+              echo "" | tee -a "$REPORT"
+              echo "4. TABLE COUNTS BY SCHEMA" | tee -a "$REPORT"
+
+              psql "$OLD_DATABASE_URL" \
                 -v ON_ERROR_STOP=1 \
-                -Atc "
-                  SELECT count(*)
-                  FROM pg_class
-                  WHERE relnamespace = (
-                    SELECT oid
-                    FROM pg_namespace
-                    WHERE nspname = current_schema()
+                -P pager=off \
+                -c "
+                  SELECT
+                    schemaname AS schema_name,
+                    count(*) AS table_count
+                  FROM pg_tables
+                  WHERE schemaname NOT IN (
+                    '\''pg_catalog'\'',
+                    '\''information_schema'\''
                   )
-                  AND relkind IN (chr(114), chr(112));
-                ")
+                  GROUP BY schemaname
+                  ORDER BY schemaname;
+                " | tee -a "$REPORT"
 
-              echo "Total public tables: $TABLE_COUNT"
+              echo "" | tee -a "$REPORT"
+              echo "5. ALL NON-SYSTEM DATABASE OBJECTS" | tee -a "$REPORT"
 
-              if [ "$TABLE_COUNT" -eq 0 ]; then
-                echo "ERROR: No public tables found. Backup stopped safely."
-                exit 1
-              fi
+              psql "$OLD_DATABASE_URL" \
+                -v ON_ERROR_STOP=1 \
+                -P pager=off \
+                -c "
+                  SELECT
+                    n.nspname AS schema_name,
+                    c.relname AS object_name,
+                    CASE c.relkind
+                      WHEN '\''r'\'' THEN '\''TABLE'\''
+                      WHEN '\''p'\'' THEN '\''PARTITIONED TABLE'\''
+                      WHEN '\''v'\'' THEN '\''VIEW'\''
+                      WHEN '\''m'\'' THEN '\''MATERIALIZED VIEW'\''
+                      WHEN '\''f'\'' THEN '\''FOREIGN TABLE'\''
+                      ELSE c.relkind::text
+                    END AS object_type
+                  FROM pg_class c
+                  JOIN pg_namespace n ON n.oid = c.relnamespace
+                  WHERE n.nspname NOT IN (
+                    '\''pg_catalog'\'',
+                    '\''information_schema'\''
+                  )
+                  AND c.relkind IN (
+                    '\''r'\'', '\''p'\'', '\''v'\'', '\''m'\'', '\''f'\''
+                  )
+                  ORDER BY n.nspname, c.relname;
+                " | tee -a "$REPORT"
 
-              echo "=================================="
-              echo "CREATING NEON DATABASE BACKUP"
-              echo "=================================="
+              echo "" | tee -a "$REPORT"
+              echo "6. DIAGNOSTIC COMPLETED" | tee -a "$REPORT"
 
-              pg_dump "$OLD_DATABASE_URL" \
-                --format=custom \
-                --no-owner \
-                --no-acl \
-                --schema=public \
-                --file=/backup/noore-neon-backup.dump
-
-              echo "Backup created successfully."
-
-              echo "=================================="
-              echo "VERIFYING BACKUP CONTENTS"
-              echo "=================================="
-
-              pg_restore --list \
-                /backup/noore-neon-backup.dump \
-                > /backup/backup-contents.txt
-
-              echo "Backup contents:"
-              cat /backup/backup-contents.txt
-
-              echo "Backup entry count:"
-              wc -l /backup/backup-contents.txt
-
-              echo "Backup file size:"
-              ls -lh /backup/noore-neon-backup.dump
-
-              echo "Backup verification inspection completed."
+              echo "Report saved successfully."
+              ls -lh "$REPORT"
 
             '
 
-      - name: Upload Neon backup artifact
+      - name: Upload diagnostic report
         uses: actions/upload-artifact@v4
         with:
-          name: noore-neon-database-backup
-          path: ${{ runner.temp }}/noore-db-backup/
+          name: noore-neon-diagnostic-report
+          path: ${{ runner.temp }}/noore-diagnostics/neon-database-report.txt
           retention-days: 7
           if-no-files-found: error
 
-      - name: Restore backup into Supabase
-        if: ${{ inputs.restore_to_supabase }}
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          docker run --rm \
-            -e SUPABASE_DATABASE_URL \
-            -v "$RUNNER_TEMP/noore-db-backup:/backup" \
-            postgres:18 \
-            bash -ceu '
-
-              echo "=================================="
-              echo "RESTORING BACKUP INTO SUPABASE"
-              echo "=================================="
-
-              test -s /backup/noore-neon-backup.dump
-
-              pg_restore "$SUPABASE_DATABASE_URL" \
-                --no-owner \
-                --no-acl \
-                --exit-on-error \
-                --single-transaction \
-                /backup/noore-neon-backup.dump
-
-              echo "Restore completed successfully."
-
-              echo "Verifying restored tables:"
-
-              psql "$SUPABASE_DATABASE_URL" \
-                -v ON_ERROR_STOP=1 \
-                -c "
-                  SELECT
-                    table_name
-                  FROM information_schema.tables
-                  WHERE table_schema = current_schema()
-                    AND table_type = chr(66) || chr(65) || chr(83) || chr(69) || chr(32) || chr(84) || chr(65) || chr(66) || chr(76) || chr(69)
-                  ORDER BY table_name;
-                "
-
-            '
-
-      - name: Backup-only notice
-        if: ${{ !inputs.restore_to_supabase }}
-        run: |
-          echo "Backup-only run completed."
-          echo "Review the database inspection and uploaded artifact before restoring."
+      - name: Finish
+        run: echo "Neon diagnostic completed. No database changes were made."
