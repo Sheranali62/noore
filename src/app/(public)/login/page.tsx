@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { signIn } from "next-auth/react"
+import { getSession, signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 
@@ -73,7 +73,10 @@ export default function LoginPage() {
       if (result?.error) {
         setError("Invalid email or password")
       } else {
-        router.push("/account")
+        const session = await getSession()
+        const role = session?.user?.role
+        const staffRoles = ["SUPER_ADMIN", "ADMIN", "PRODUCT_MANAGER", "ORDER_MANAGER", "CONTENT_MANAGER"]
+        router.replace(role && staffRoles.includes(role) ? "/admin" : "/account")
         router.refresh()
       }
     } catch {
