@@ -1,0 +1,90 @@
+name: Backup Neon and migrate NOORE database to Supabase
+
+on:
+  workflow_dispatch:
+    inputs:
+      restore_to_supabase:
+        description: "Restore the verified backup into Supabase (leave false for backup-only run)"
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: noore-database-migration
+  cancel-in-progress: false
+
+jobs:
+  backup-and-optional-restore:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      OLD_DATABASE_URL: ${{ secrets.OLD_DATABASE_URL }}
+      SUPABASE_DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL }}
+
+    steps:
+      - name: Check required secrets are configured
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$OLD_DATABASE_URL" || { echo "OLD_DATABASE_URL secret is missing"; exit 1; }
+          test -n "$SUPABASE_DATABASE_URL" || { echo "SUPABASE_DATABASE_URL secret is missing"; exit 1; }
+          echo "Both database secrets are present."
+
+      - name: Test connections and create Neon backup
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/noore-db-backup"
+          docker run --rm \
+            -e OLD_DATABASE_URL \
+            -e SUPABASE_DATABASE_URL \
+            -v "$RUNNER_TEMP/noore-db-backup:/backup" \
+            postgres:17 \
+            bash -ceu '
+              echo "Testing old Neon connection..."
+              psql "$OLD_DATABASE_URL" -v ON_ERROR_STOP=1 -Atc "SELECT current_database(), current_user;"
+              echo "Testing Supabase connection..."
+              psql "$SUPABASE_DATABASE_URL" -v ON_ERROR_STOP=1 -Atc "SELECT current_database(), current_user;"
+              echo "Creating a custom-format backup of the public schema..."
+              pg_dump "$OLD_DATABASE_URL" --format=custom --no-owner --no-acl --schema=public --file=/backup/noore-neon-backup.dump
+              echo "Backup created."
+              pg_restore --list /backup/noore-neon-backup.dump >/backup/backup-contents.txt
+              wc -l /backup/backup-contents.txt
+              ls -lh /backup/noore-neon-backup.dump
+            '
+
+      - name: Upload Neon backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: noore-neon-database-backup
+          path: ${{ runner.temp }}/noore-db-backup/
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Restore backup into Supabase
+        if: ${{ inputs.restore_to_supabase }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            -e SUPABASE_DATABASE_URL \
+            -v "$RUNNER_TEMP/noore-db-backup:/backup" \
+            postgres:17 \
+            bash -ceu '
+              echo "Restoring backup into Supabase in one transaction..."
+              pg_restore "$SUPABASE_DATABASE_URL" \
+                --no-owner \
+                --no-acl \
+                --exit-on-error \
+                --single-transaction \
+                /backup/noore-neon-backup.dump
+              echo "Restore completed successfully."
+              psql "$SUPABASE_DATABASE_URL" -v ON_ERROR_STOP=1 -Atc "SELECT count(*) FROM information_schema.tables WHERE table_schema = '''public''' AND table_type = '''BASE TABLE''';"
+            '
+
+      - name: Backup-only notice
+        if: ${{ !inputs.restore_to_supabase }}
+        run: echo "Backup-only run completed. Review the uploaded artifact before running again with restore_to_supabase enabled."
