@@ -1,11 +1,9 @@
 import Link from "next/link"
 import {
-  ArrowDownRight,
   ArrowUpRight,
   BarChart3,
   Box,
   Boxes,
-  CheckCircle2,
   CircleDollarSign,
   Clock3,
   Package,
