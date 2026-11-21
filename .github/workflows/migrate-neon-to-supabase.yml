@@ -42,7 +42,7 @@ jobs:
             -e OLD_DATABASE_URL \
             -e SUPABASE_DATABASE_URL \
             -v "$RUNNER_TEMP/noore-db-backup:/backup" \
-            postgres:17 \
+            postgres:18 \
             bash -ceu '
               echo "Testing old Neon connection..."
               psql "$OLD_DATABASE_URL" -v ON_ERROR_STOP=1 -Atc "SELECT current_database(), current_user;"
