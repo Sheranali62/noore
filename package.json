@@ -4,11 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma db push --schema=prisma/schema.prisma && prisma generate --schema=prisma/schema.prisma && next build",
+    "build": "prisma generate --schema=prisma/schema.prisma && next build",
     "start": "next start",
     "lint": "next lint",
     "db:generate": "prisma generate --schema=prisma/schema.prisma",
-    "db:push": "prisma db push --schema=prisma/schema.prisma",
+    "db:push": "prisma db push",
     "db:seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
   },
   "dependencies": {
@@ -23,7 +23,7 @@
     "@radix-ui/react-slot": "^1.0.5",
     "@radix-ui/react-toast": "^1.1.5",
     "bcryptjs": "^2.4.3",
-    "class-variance-authority": "^0.7.0",
+    "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
     "lucide-react": "^0.294.0",
@@ -43,7 +43,7 @@
     "@types/react": "^18.2.55",
     "@types/react-dom": "^18.2.19",
     "@types/ws": "^8.18.1",
-    "autoprefixer": "^10.4.17",
+    "autoprefixer": "^10.0.2",
     "postcss": "^8.4.35",
     "prisma": "^5.22.0",
     "tailwindcss": "^3.4.1",
