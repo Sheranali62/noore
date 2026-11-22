@@ -108,31 +108,31 @@ export default function WishlistPage() {
 
   if (!session) {
     return (
-      <div className="min-h-screen bg-cream py-16 px-4">
-        <div className="max-w-2xl mx-auto bg-white border border-cream rounded-3xl p-8 md:p-12 text-center shadow-sm">
-          <div className="mx-auto w-16 h-16 rounded-full border border-cream flex items-center justify-center text-3xl">
+      <div className="min-h-screen bg-[#24211c] py-16 px-4">
+        <div className="max-w-2xl mx-auto bg-[#171615] border border-[#3a3328] rounded-3xl p-8 md:p-12 text-center shadow-sm">
+          <div className="mx-auto w-16 h-16 rounded-full border border-[#3a3328] flex items-center justify-center text-3xl">
             ♡
           </div>
-          <p className="mt-6 text-xs uppercase tracking-[0.25em] text-secondary">
+          <p className="mt-6 text-xs uppercase tracking-[0.25em] text-[#b9b0a2]">
             NOORÉ Private Edit
           </p>
           <h1 className="font-editorial text-4xl md:text-5xl mt-3">
             Your wishlist is personal
           </h1>
-          <p className="text-secondary mt-4 max-w-lg mx-auto leading-7">
+          <p className="text-[#b9b0a2] mt-4 max-w-lg mx-auto leading-7">
             Sign in to save your favourite NOORÉ pieces and access your edit
             from any device.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-3 mt-8">
             <Link
               href="/login"
-              className="bg-charcoal text-white rounded-xl px-7 py-3 font-medium hover:opacity-90 transition"
+              className="bg-[#c6a15b] text-[#171615] rounded-xl px-7 py-3 font-medium hover:opacity-90 transition"
             >
               Sign in
             </Link>
             <Link
               href="/register"
-              className="border border-charcoal/15 rounded-xl px-7 py-3 font-medium hover:bg-cream transition"
+              className="border border-[#8d7448] rounded-xl px-7 py-3 font-medium hover:bg-[#24211c] transition"
             >
               Create account
             </Link>
@@ -144,49 +144,49 @@ export default function WishlistPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-cream flex items-center justify-center">
+      <div className="min-h-screen bg-[#24211c] flex items-center justify-center">
         <div className="text-center">
           <div className="mx-auto animate-spin rounded-full h-10 w-10 border-2 border-charcoal/20 border-b-charcoal" />
-          <p className="mt-4 text-sm text-secondary">Loading your edit…</p>
+          <p className="mt-4 text-sm text-[#b9b0a2]">Loading your edit…</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-cream py-8 md:py-12">
+    <div className="min-h-screen bg-[#24211c] py-8 md:py-12">
       <div className="max-w-7xl mx-auto px-4">
         <header className="mb-8 md:mb-10">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-5">
             <div>
-              <p className="text-xs uppercase tracking-[0.28em] text-secondary">
+              <p className="text-xs uppercase tracking-[0.28em] text-[#b9b0a2]">
                 Saved by you
               </p>
               <h1 className="font-editorial text-4xl md:text-5xl font-semibold mt-2">
                 My Wishlist
               </h1>
-              <p className="text-secondary mt-2">
+              <p className="text-[#b9b0a2] mt-2">
                 Your private edit of pieces worth keeping close.
               </p>
             </div>
 
             {items.length > 0 && (
-              <div className="grid grid-cols-3 border border-cream bg-white rounded-2xl overflow-hidden min-w-[280px]">
-                <div className="px-4 py-3 text-center border-r border-cream">
+              <div className="grid grid-cols-3 border border-[#3a3328] bg-[#171615] rounded-2xl overflow-hidden min-w-[280px]">
+                <div className="px-4 py-3 text-center border-r border-[#3a3328]">
                   <div className="font-semibold">{items.length}</div>
-                  <div className="text-[10px] uppercase tracking-wider text-secondary mt-1">
+                  <div className="text-[10px] uppercase tracking-wider text-[#b9b0a2] mt-1">
                     Saved
                   </div>
                 </div>
-                <div className="px-4 py-3 text-center border-r border-cream">
+                <div className="px-4 py-3 text-center border-r border-[#3a3328]">
                   <div className="font-semibold">{inStockCount}</div>
-                  <div className="text-[10px] uppercase tracking-wider text-secondary mt-1">
+                  <div className="text-[10px] uppercase tracking-wider text-[#b9b0a2] mt-1">
                     Available
                   </div>
                 </div>
                 <div className="px-4 py-3 text-center">
                   <div className="font-semibold">{saleCount}</div>
-                  <div className="text-[10px] uppercase tracking-wider text-secondary mt-1">
+                  <div className="text-[10px] uppercase tracking-wider text-[#b9b0a2] mt-1">
                     On Sale
                   </div>
                 </div>
@@ -196,30 +196,30 @@ export default function WishlistPage() {
         </header>
 
         {items.length === 0 ? (
-          <section className="bg-white rounded-3xl border border-cream px-6 py-16 md:py-24 text-center shadow-sm">
-            <div className="mx-auto w-20 h-20 rounded-full border border-cream flex items-center justify-center text-4xl">
+          <section className="bg-[#171615] rounded-3xl border border-[#3a3328] px-6 py-16 md:py-24 text-center shadow-sm">
+            <div className="mx-auto w-20 h-20 rounded-full border border-[#3a3328] flex items-center justify-center text-4xl">
               ♡
             </div>
-            <p className="mt-7 text-xs uppercase tracking-[0.25em] text-secondary">
+            <p className="mt-7 text-xs uppercase tracking-[0.25em] text-[#b9b0a2]">
               Your edit awaits
             </p>
             <h2 className="font-editorial text-3xl md:text-4xl font-semibold mt-2">
               Nothing saved yet
             </h2>
-            <p className="text-secondary mt-3 max-w-md mx-auto leading-7">
+            <p className="text-[#b9b0a2] mt-3 max-w-md mx-auto leading-7">
               Explore the collection and tap the heart on pieces you want to
               keep for later.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-3 mt-8">
               <Link
                 href="/new-in"
-                className="bg-charcoal text-white px-7 py-3 rounded-xl font-medium hover:opacity-90 transition"
+                className="bg-[#c6a15b] text-[#171615] px-7 py-3 rounded-xl font-medium hover:opacity-90 transition"
               >
                 Explore New In
               </Link>
               <Link
                 href="/products"
-                className="border border-charcoal/15 px-7 py-3 rounded-xl font-medium hover:bg-cream transition"
+                className="border border-[#8d7448] px-7 py-3 rounded-xl font-medium hover:bg-[#24211c] transition"
               >
                 Shop All
               </Link>
@@ -245,9 +245,9 @@ export default function WishlistPage() {
                 return (
                   <article
                     key={item.id}
-                    className="group bg-white rounded-2xl border border-cream overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-300"
+                    className="group bg-[#171615] rounded-2xl border border-[#3a3328] overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-300"
                   >
-                    <div className="relative aspect-[3/4] bg-cream overflow-hidden">
+                    <div className="relative aspect-[3/4] bg-[#24211c] overflow-hidden">
                       <Link
                         href={`/product/${product.slug}`}
                         aria-label={`View ${product.name}`}
@@ -263,12 +263,12 @@ export default function WishlistPage() {
                       <div className="absolute inset-x-0 top-0 p-3 flex items-start justify-between pointer-events-none">
                         <div>
                           {isOnSale && (
-                            <span className="inline-flex bg-charcoal text-white text-[10px] font-semibold tracking-wider px-2.5 py-1.5 rounded-full">
+                            <span className="inline-flex bg-[#c6a15b] text-[#171615] text-[10px] font-semibold tracking-wider px-2.5 py-1.5 rounded-full">
                               {discount}% OFF
                             </span>
                           )}
                           {!inStock && (
-                            <span className="inline-flex bg-white/95 text-charcoal text-[10px] font-semibold tracking-wider px-2.5 py-1.5 rounded-full mt-2">
+                            <span className="inline-flex bg-[#171615]/95 text-[#f5f0e7] text-[10px] font-semibold tracking-wider px-2.5 py-1.5 rounded-full mt-2">
                               OUT OF STOCK
                             </span>
                           )}
@@ -279,7 +279,7 @@ export default function WishlistPage() {
                           aria-label={`Remove ${product.name} from wishlist`}
                           disabled={isBusy}
                           onClick={() => removeFromWishlist(product.id)}
-                          className="pointer-events-auto w-10 h-10 rounded-full bg-white/95 backdrop-blur flex items-center justify-center text-lg hover:bg-white transition disabled:opacity-50"
+                          className="pointer-events-auto w-10 h-10 rounded-full bg-[#171615]/95 backdrop-blur flex items-center justify-center text-lg hover:bg-[#171615] transition disabled:opacity-50"
                         >
                           {isBusy ? "…" : "♥"}
                         </button>
@@ -287,12 +287,12 @@ export default function WishlistPage() {
                     </div>
 
                     <div className="p-4 md:p-5">
-                      <p className="text-[10px] uppercase tracking-[0.18em] text-secondary">
+                      <p className="text-[10px] uppercase tracking-[0.18em] text-[#b9b0a2]">
                         {product.category}
                       </p>
 
                       <Link href={`/product/${product.slug}`}>
-                        <h3 className="font-medium text-sm md:text-base mt-2 line-clamp-2 hover:text-secondary transition">
+                        <h3 className="font-medium text-sm md:text-base mt-2 line-clamp-2 hover:text-[#b9b0a2] transition">
                           {product.name}
                         </h3>
                       </Link>
@@ -302,7 +302,7 @@ export default function WishlistPage() {
                           PKR {displayPrice.toLocaleString()}
                         </span>
                         {isOnSale && (
-                          <span className="text-xs text-secondary line-through">
+                          <span className="text-xs text-[#b9b0a2] line-through">
                             PKR {product.price.toLocaleString()}
                           </span>
                         )}
@@ -314,8 +314,8 @@ export default function WishlistPage() {
                         onClick={() => moveToCart(item)}
                         className={`w-full mt-4 py-2.5 rounded-xl text-sm font-medium transition ${
                           inStock
-                            ? "bg-charcoal text-white hover:opacity-90"
-                            : "bg-black/5 text-secondary cursor-not-allowed"
+                            ? "bg-[#c6a15b] text-[#171615] hover:opacity-90"
+                            : "bg-black/5 text-[#b9b0a2] cursor-not-allowed"
                         } disabled:opacity-60`}
                       >
                         {isBusy
@@ -333,7 +333,7 @@ export default function WishlistPage() {
             <div className="mt-8 flex justify-center">
               <Link
                 href="/products"
-                className="inline-flex items-center justify-center border border-charcoal/15 bg-white px-7 py-3 rounded-xl text-sm font-medium hover:bg-cream transition"
+                className="inline-flex items-center justify-center border border-[#8d7448] bg-[#171615] px-7 py-3 rounded-xl text-sm font-medium hover:bg-[#24211c] transition"
               >
                 Continue Shopping
               </Link>
