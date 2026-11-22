@@ -3,6 +3,53 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import { format } from "date-fns"
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://noore-nine.vercel.app"
+
+export async function generateMetadata({ params }: { params: { slug: string } }) {
+  const post = await prisma.blogPost.findUnique({
+    where: { slug: params.slug, published: true },
+    select: {
+      title: true,
+      excerpt: true,
+      content: true,
+      image: true,
+      author: true,
+      publishedAt: true,
+      slug: true,
+    },
+  })
+
+  if (!post) {
+    return { title: "Story not found | NOORÉ", robots: { index: false, follow: false } }
+  }
+
+  const plainText = post.content.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()
+  const description = (post.excerpt || plainText || `Read ${post.title} in the NOORÉ Journal.`).slice(0, 160)
+  const canonicalUrl = `${SITE_URL.replace(/\/$/, "")}/blog/${post.slug}`
+
+  return {
+    title: `${post.title} | NOORÉ Journal`,
+    description,
+    alternates: { canonical: canonicalUrl },
+    openGraph: {
+      type: "article",
+      url: canonicalUrl,
+      title: post.title,
+      description,
+      siteName: "NOORÉ",
+      publishedTime: post.publishedAt?.toISOString(),
+      authors: [post.author],
+      images: post.image ? [{ url: post.image, alt: post.title }] : undefined,
+    },
+    twitter: {
+      card: post.image ? "summary_large_image" : "summary",
+      title: post.title,
+      description,
+      images: post.image ? [post.image] : undefined,
+    },
+  }
+}
+
 export default async function BlogDetailPage({ params }: { params: { slug: string } }) {
   const post = await prisma.blogPost.findUnique({
     where: { slug: params.slug, published: true },
@@ -50,7 +97,7 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
             </p>
           )}
 
-          <div 
+          <div
             className="prose prose-lg max-w-none mt-6"
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
