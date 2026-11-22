@@ -7,20 +7,22 @@ import { GoogleAnalytics } from "@/components/analytics/google-analytics"
 import { AutoDayNightTheme } from "@/components/theme/auto-day-night"
 import { PerformanceOptimizer } from "@/components/performance/performance-optimizer"
 
-const inter = Inter({ 
-  subsets: ["latin"], 
+const inter = Inter({
+  subsets: ["latin"],
   variable: "--font-sans",
   display: "swap",
 })
 
-const playfair = Playfair_Display({ 
-  subsets: ["latin"], 
+const playfair = Playfair_Display({
+  subsets: ["latin"],
   variable: "--font-editorial",
   display: "swap",
 })
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://noore-nine.vercel.app"
+
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "NOORÉ — Premium Pakistani Fashion",
     template: "%s | NOORÉ",
@@ -38,7 +40,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "NOORÉ — Premium Pakistani Fashion",
     description: "Timeless silhouettes rooted in Pakistani craft. Luxury pret, unstitched, men's wear, accessories.",
-    url: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+    url: SITE_URL,
     siteName: "NOORÉ",
     images: [
       {
@@ -86,7 +88,6 @@ export const metadata: Metadata = {
     yandex: process.env.YANDEX_VERIFICATION || "",
   },
   category: "fashion",
-  alternates: { canonical: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000" },
 }
 
 export default function RootLayout({
@@ -108,9 +109,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-screen bg-background font-sans antialiased">
         <a href="#main-content" className="skip-link">Skip to content</a>
-        {/* Google Analytics */}
         {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && <GoogleAnalytics />}
-        
         <Providers>
           <AutoDayNightTheme />
           <PerformanceOptimizer />
