@@ -25,9 +25,27 @@ export function ProductCard({ id, name, slug, price, salePrice, image, hoverImag
   const [added, setAdded] = useState(false)
   const [wishlistBusy, setWishlistBusy] = useState(false)
   const [notice, setNotice] = useState("")
+  const [imageFailed, setImageFailed] = useState(false)
   const isOnSale = typeof salePrice === "number" && salePrice < price
   const displayPrice = isOnSale ? salePrice : price
   const discount = isOnSale ? Math.round(((price - salePrice) / price) * 100) : 0
+  const colorHex = (value: string) => {
+    const color = value.trim().toLowerCase().replace(/[_-]+/g, " ")
+    const palette: Record<string, string> = {
+      black: "#171717", white: "#ffffff", ivory: "#f3ead8", cream: "#f2eadb",
+      "off white": "#f4f0e8", beige: "#d8c4a4", tan: "#c49a6c", brown: "#79533b",
+      chocolate: "#4b2e23", grey: "#888888", gray: "#888888", charcoal: "#343434",
+      silver: "#c0c0c0", gold: "#c6a15b", champagne: "#d6bd91", red: "#b32632",
+      maroon: "#702632", burgundy: "#70263d", pink: "#e7a6b4", blush: "#e9b8b5",
+      rose: "#d88b91", peach: "#efb89b", orange: "#dc7937", yellow: "#e7c64b",
+      mustard: "#c49a24", green: "#477454", olive: "#74733d", mint: "#a9cdbb",
+      blue: "#376caa", navy: "#202f50", "navy blue": "#202f50", sky: "#83b8d8",
+      teal: "#287f7c", purple: "#75518e", lavender: "#b8a5d5",
+    }
+    if (palette[color]) return palette[color]
+    const match = Object.entries(palette).find(([name]) => color.includes(name))
+    return match?.[1] || "#b8b1a7"
+  }
 
   const handleAddToCart = () => {
     if (stock === 0) return
@@ -40,7 +58,7 @@ export function ProductCard({ id, name, slug, price, salePrice, image, hoverImag
     <article className="group">
       <div className="relative overflow-hidden bg-[#e9e2d7] aspect-[3/4]">
         <Link href={`/product/${slug}`} data-noore-gender={gender || ""} className="block h-full" aria-label={`View ${name}`}>
-          <img loading="lazy" decoding="async" src={image || "/placeholder.jpg"} alt={name} className="h-full w-full object-cover transition-all duration-700 group-hover:scale-[1.035]" />
+          <img loading="lazy" decoding="async" src={imageFailed ? "/placeholder.jpg" : image || "/placeholder.jpg"} alt={`${name} — ${category}`} onError={() => setImageFailed(true)} sizes="(max-width: 639px) 50vw, (max-width: 1023px) 33vw, 25vw" className="h-full w-full object-cover transition-all duration-700 group-hover:scale-[1.035]" />
           {hoverImage && (
             <img loading="lazy" decoding="async" src={hoverImage} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
           )}
@@ -100,7 +118,7 @@ export function ProductCard({ id, name, slug, price, salePrice, image, hoverImag
 
         {colors.length > 0 && (
           <div className="mt-3 flex items-center gap-1.5" aria-label={`${colors.length} available colors`}>
-            {colors.slice(0, 5).map((color) => <span key={color} title={color} className="h-3 w-3 rounded-full border border-black/15 bg-neutral-300" />)}
+            {colors.slice(0, 5).map((color) => <span key={color} title={color} aria-label={color} className="h-3.5 w-3.5 rounded-full border border-black/15 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.04)]" style={{ backgroundColor: colorHex(color) }} />)}
             {colors.length > 5 && <span className="ml-1 text-[9px] text-secondary">+{colors.length - 5}</span>}
           </div>
         )}
