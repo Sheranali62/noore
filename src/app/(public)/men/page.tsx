@@ -57,7 +57,7 @@ export default async function MenPage() {
           href: name === "New Arrivals"
             ? "/products?gender=Men&sort=newest"
             : name === "Sale"
-              ? "/products?gender=Men&sale=true"
+              ? "/products?gender=Men&sale=1"
               : `/products?gender=Men&category=${encodeURIComponent(name)}`
         }))}
       />
