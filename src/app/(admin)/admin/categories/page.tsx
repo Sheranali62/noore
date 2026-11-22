@@ -13,7 +13,7 @@ interface Category {
   sortOrder: number
   createdAt?: string
   updatedAt?: string
-  _count?: { children: number }
+  _count?: { children: number; products?: number }
 }
 
 interface CategoryNode extends Category {
@@ -289,6 +289,29 @@ export default function AdminCategoriesPage() {
     setExpanded({})
   }
 
+  function exportCategories() {
+    const headers = ["Name", "Slug", "Parent", "Description", "Status", "Products", "Sort Order"]
+    const rows = categories.map((category) => [
+      category.name,
+      category.slug,
+      category.parent?.name || "",
+      category.description || "",
+      category.active ? "Active" : "Inactive",
+      String(category._count?.products ?? 0),
+      String(category.sortOrder),
+    ])
+    const csv = [headers, ...rows]
+      .map((row) => row.map((value) => `"${value.replace(/"/g, '""')}"`).join(","))
+      .join("\\r\\n")
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" })
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement("a")
+    anchor.href = url
+    anchor.download = "noore-categories.csv"
+    anchor.click()
+    URL.revokeObjectURL(url)
+  }
+
   function renderTree(nodes: CategoryNode[], depth = 0): React.ReactNode {
     return nodes.map((node) => {
       const hasChildren = node.children.length > 0
@@ -305,7 +328,7 @@ export default function AdminCategoriesPage() {
               type="button"
               onClick={() => hasChildren && toggleExpanded(node.id)}
               disabled={!hasChildren}
-              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs transition ${hasChildren ? "border-white/15 bg-white/[0.04] text-white hover:bg-white hover:text-black" : "border-transparent text-white/20"}`}
+              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs transition ${hasChildren ? "border-white/15 bg-white/[0.04] text-white hover:bg-[#e6c47f] hover:text-[#17110a]" : "border-transparent text-white/20"}`}
             >
               {hasChildren ? (isExpanded ? "−" : "+") : "•"}
             </button>
@@ -319,14 +342,15 @@ export default function AdminCategoriesPage() {
               </div>
               <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-white/35">
                 <span>/{node.slug}</span>
+                <span>{node._count?.products ?? 0} product{(node._count?.products ?? 0) === 1 ? "" : "s"}</span>
                 {hasChildren && <span>{node.children.length} child{node.children.length === 1 ? "" : "ren"}</span>}
                 {node.description && <span className="truncate">{node.description}</span>}
               </div>
             </div>
 
             <div className="hidden shrink-0 items-center gap-1.5 sm:flex">
-              <button type="button" onClick={() => startAdd(node.id)} className="rounded-full border border-white/10 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/55 transition hover:border-white/30 hover:bg-white hover:text-black">+ Child</button>
-              <button type="button" onClick={() => startEdit(node)} className="rounded-full border border-white/10 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/55 transition hover:border-white/30 hover:bg-white hover:text-black">Edit</button>
+              <button type="button" onClick={() => startAdd(node.id)} className="rounded-full border border-white/10 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/55 transition hover:border-white/30 hover:bg-[#e6c47f] hover:text-[#17110a]">+ Child</button>
+              <button type="button" onClick={() => startEdit(node)} className="rounded-full border border-white/10 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/55 transition hover:border-white/30 hover:bg-[#e6c47f] hover:text-[#17110a]">Edit</button>
               <button type="button" onClick={() => deleteCategory(node)} disabled={deleting === node.id || Boolean(node._count?.children)} className="rounded-full border border-red-400/15 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-red-300 transition hover:border-red-300 hover:bg-red-400/10 disabled:cursor-not-allowed disabled:opacity-25">{deleting === node.id ? "..." : "Delete"}</button>
             </div>
           </div>
@@ -343,7 +367,7 @@ export default function AdminCategoriesPage() {
     })
   }
 
-  const inputClass = "w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white placeholder:text-white/25 outline-none transition focus:border-white/35 focus:bg-black/30"
+  const inputClass = "w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white placeholder:text-white/25 outline-none transition focus:border-[#d6ae72]/70 focus:bg-black/30"
 
   return (
     <div className="mx-auto max-w-[1500px] space-y-6 text-white">
@@ -359,7 +383,7 @@ export default function AdminCategoriesPage() {
             <p className="mt-3 max-w-2xl text-sm leading-6 text-white/45">Design the NOORÉ catalog hierarchy. Create departments, subcategories and deeper levels without leaving this workspace.</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={() => startAdd()} className="rounded-full bg-white px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.17em] text-black transition hover:bg-white/90">+ Main Category</button>
+            <button type="button" onClick={() => startAdd()} className="rounded-full bg-gradient-to-r from-[#e6c47f] to-[#c2944e] px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.17em] text-[#17110a] transition hover:brightness-110">+ Main Category</button>
             <button type="button" onClick={expandAll} className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-3 text-[10px] font-semibold uppercase tracking-[0.17em] text-white/65 transition hover:border-white/25 hover:bg-white/[0.07] hover:text-white">Expand All</button>
             <button type="button" onClick={collapseAll} className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-3 text-[10px] font-semibold uppercase tracking-[0.17em] text-white/65 transition hover:border-white/25 hover:bg-white/[0.07] hover:text-white">Collapse</button>
           </div>
@@ -418,12 +442,12 @@ export default function AdminCategoriesPage() {
             {parentPickerOpen && (
               <div className="absolute left-0 right-0 top-[76px] z-50 overflow-hidden rounded-2xl border border-white/10 bg-[#171717] shadow-2xl shadow-black/50">
                 <div className="border-b border-white/[0.07] p-3">
-                  <input autoFocus value={parentSearch} onChange={(event) => setParentSearch(event.target.value)} placeholder="Search parent categories..." className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white placeholder:text-white/25 outline-none focus:border-white/25" />
+                  <input autoFocus value={parentSearch} onChange={(event) => setParentSearch(event.target.value)} placeholder="Search parent categories..." className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white placeholder:text-white/25 outline-none focus:border-[#d6ae72]/60" />
                 </div>
                 <div className="max-h-64 overflow-y-auto p-2">
-                  <button type="button" onClick={() => { updateForm("parentId", ""); setParentPickerOpen(false); setParentSearch("") }} className={`mb-1 flex w-full items-center rounded-xl px-3 py-2.5 text-left text-sm transition ${!form.parentId ? "bg-white text-black" : "text-white/70 hover:bg-white/[0.06] hover:text-white"}`}>No parent · Main category</button>
+                  <button type="button" onClick={() => { updateForm("parentId", ""); setParentPickerOpen(false); setParentSearch("") }} className={`mb-1 flex w-full items-center rounded-xl px-3 py-2.5 text-left text-sm transition ${!form.parentId ? "bg-[#e6c47f] text-[#17110a]" : "text-white/70 hover:bg-white/[0.06] hover:text-white"}`}>No parent · Main category</button>
                   {filteredParentOptions.map(({ category, depth }) => (
-                    <button key={category.id} type="button" onClick={() => { updateForm("parentId", category.id); setParentPickerOpen(false); setParentSearch(""); setExpanded((current) => ({ ...current, [category.id]: true })) }} className={`flex w-full items-center rounded-xl px-3 py-2.5 text-left text-sm transition ${form.parentId === category.id ? "bg-white text-black" : "text-white/70 hover:bg-white/[0.06] hover:text-white"}`} style={{ paddingLeft: 12 + depth * 18 }}>
+                    <button key={category.id} type="button" onClick={() => { updateForm("parentId", category.id); setParentPickerOpen(false); setParentSearch(""); setExpanded((current) => ({ ...current, [category.id]: true })) }} className={`flex w-full items-center rounded-xl px-3 py-2.5 text-left text-sm transition ${form.parentId === category.id ? "bg-[#e6c47f] text-[#17110a]" : "text-white/70 hover:bg-white/[0.06] hover:text-white"}`} style={{ paddingLeft: 12 + depth * 18 }}>
                       <span className="mr-2 text-white/25">{depth > 0 ? "└" : "◆"}</span>{category.name}
                     </button>
                   ))}
@@ -449,7 +473,7 @@ export default function AdminCategoriesPage() {
           </div>
 
           <div className="flex flex-col gap-2 pt-1 sm:flex-row lg:col-span-2">
-            <button type="submit" disabled={saving} className="rounded-full bg-white px-6 py-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-black transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-50">{saving ? "Saving..." : editing ? "Update Category" : "Create Category"}</button>
+            <button type="submit" disabled={saving} className="rounded-full bg-gradient-to-r from-[#e6c47f] to-[#c2944e] px-6 py-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#17110a] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50">{saving ? "Saving..." : editing ? "Update Category" : "Create Category"}</button>
             <button type="button" onClick={() => startAdd()} disabled={saving} className="rounded-full border border-white/10 px-6 py-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/55 transition hover:border-white/25 hover:text-white disabled:opacity-50">Clear</button>
           </div>
         </form>
@@ -459,12 +483,15 @@ export default function AdminCategoriesPage() {
         <div className="border-b border-white/[0.07] p-5 sm:p-7">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div><p className="text-[9px] font-semibold uppercase tracking-[0.25em] text-white/35">Catalog tree</p><h2 className="mt-1 text-xl font-medium">{categories.length} {categories.length === 1 ? "category" : "categories"}</h2></div>
-            <div className="w-full lg:max-w-md"><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search by category, slug or description..." className="w-full rounded-full border border-white/10 bg-black/20 px-4 py-2.5 text-sm text-white placeholder:text-white/25 outline-none transition focus:border-white/25" /></div>
+            <div className="flex w-full flex-col gap-2 sm:flex-row lg:max-w-2xl">
+              <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search by category, slug or description..." className="min-w-0 flex-1 rounded-full border border-white/10 bg-black/20 px-4 py-2.5 text-sm text-white placeholder:text-white/25 outline-none transition focus:border-[#d6ae72]/60" />
+              <button type="button" onClick={exportCategories} disabled={categories.length === 0} className="rounded-full border border-[#d6ae72]/40 px-5 py-2.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#e4c28e] transition hover:bg-[#d6ae72]/10 disabled:opacity-40">Export CSV</button>
+            </div>
           </div>
         </div>
 
         {loading ? <div className="p-12 text-center text-sm text-white/35">Loading catalog structure...</div> : filteredTree.length === 0 ? (
-          <div className="p-12 text-center"><div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-xl text-white/45">+</div><h3 className="mt-4 text-base font-medium">{search ? "No categories found" : "Your catalog is empty"}</h3><p className="mx-auto mt-2 max-w-md text-sm leading-6 text-white/30">{search ? "Try another search term." : "Create your first main category to start building the NOORÉ catalog."}</p>{!search && <button type="button" onClick={() => startAdd()} className="mt-5 rounded-full bg-white px-5 py-2.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-black">+ Create Main Category</button>}</div>
+          <div className="p-12 text-center"><div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-xl text-white/45">+</div><h3 className="mt-4 text-base font-medium">{search ? "No categories found" : "Your catalog is empty"}</h3><p className="mx-auto mt-2 max-w-md text-sm leading-6 text-white/30">{search ? "Try another search term." : "Create your first main category to start building the NOORÉ catalog."}</p>{!search && <button type="button" onClick={() => startAdd()} className="mt-5 rounded-full bg-gradient-to-r from-[#e6c47f] to-[#c2944e] px-5 py-2.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#17110a]">+ Create Main Category</button>}</div>
         ) : <div>{renderTree(filteredTree)}</div>}
       </section>
 
