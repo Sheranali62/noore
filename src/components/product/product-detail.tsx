@@ -26,6 +26,7 @@ const money = (value: number) => `PKR ${value.toLocaleString()}`
 export function ProductDetail({ product, relatedProducts }: Props) {
   const { addItem } = useCart()
   const [selectedImage, setSelectedImage] = useState(0)
+  const [failedImages, setFailedImages] = useState<Record<string, boolean>>({})
   const [quantity, setQuantity] = useState(1)
   const initialVariant = product.variants.find(v => v.stock > 0) || product.variants[0]
   const [selectedColor, setSelectedColor] = useState(initialVariant?.color || "")
@@ -55,6 +56,8 @@ export function ProductDetail({ product, relatedProducts }: Props) {
   const reviewCount = product.reviews.length
   const averageRating = reviewCount ? product.reviews.reduce((sum, r) => sum + r.rating, 0) / reviewCount : 0
   const displayImages = images.length ? images : ["/placeholder.jpg"]
+  const imageSource = (src: string) => failedImages[src] ? "/placeholder.jpg" : src
+  const markImageFailed = (src: string) => setFailedImages(current => ({ ...current, [src]: true }))
 
   useEffect(() => {
     setSelectedImage(0)
@@ -174,7 +177,7 @@ export function ProductDetail({ product, relatedProducts }: Props) {
                   aria-label={`View image ${i + 1}`}
                   aria-current={selectedImage === i}
                 >
-                  <img src={img} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                  <img src={imageSource(img)} alt={`${product.name} image ${i + 1}`} loading="lazy" decoding="async" onError={() => markImageFailed(img)} className="h-full w-full object-cover" />
                 </button>
               ))}
             </div>
@@ -183,10 +186,11 @@ export function ProductDetail({ product, relatedProducts }: Props) {
               <div className="relative aspect-[4/5] w-full sm:aspect-[3/4]">
                 <img
                   key={displayImages[selectedImage]}
-                  src={displayImages[selectedImage]}
-                  alt={product.name}
+                  src={imageSource(displayImages[selectedImage])}
+                  alt={`${product.name} — product view ${selectedImage + 1}`}
                   fetchPriority="high"
                   decoding="async"
+                  onError={() => markImageFailed(displayImages[selectedImage])}
                   className="h-full w-full object-cover transition-opacity duration-300"
                 />
                 {isOnSale && <span className="absolute left-4 top-4 bg-[#21171d] px-3 py-1.5 text-[9px] font-semibold uppercase tracking-[0.18em] text-white">Sale · {discount}%</span>}
@@ -228,7 +232,7 @@ export function ProductDetail({ product, relatedProducts }: Props) {
             <p className="mt-2 text-[10px] uppercase tracking-[0.16em] text-secondary">Prices include applicable taxes</p>
           </div>
 
-          {product.description && <p className="mt-6 max-w-xl text-sm leading-7 text-secondary">{product.description}</p>}
+          {product.description ? <div className="mt-6 border-l-2 border-[#b8945e] bg-[#f7f2e9] px-5 py-4"><p className="mb-2 text-[9px] font-semibold uppercase tracking-[0.22em] text-[#9b7542]">The NOORÉ edit</p><p className="max-w-xl whitespace-pre-line text-sm leading-7 text-[#62584e]">{product.description}</p></div> : <div className="mt-6 border-l-2 border-[#b8945e]/60 bg-[#f7f2e9] px-5 py-4"><p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[#9b7542]">Product details</p><p className="mt-2 text-sm leading-7 text-[#62584e]">Explore the product specifications below for available details about this piece.</p></div>}
 
           {product.variants.length > 0 && <div className="mt-7 space-y-7">
             <div>
@@ -273,7 +277,7 @@ export function ProductDetail({ product, relatedProducts }: Props) {
 
       {inStock && <div className="fixed inset-x-0 bottom-0 z-40 border-t border-black/10 bg-white/95 p-3 shadow-2xl backdrop-blur md:hidden"><div className="flex items-center gap-3"><div className="min-w-0 flex-1"><p className="truncate text-xs font-medium">{product.name}</p><p className="text-[11px] text-secondary">{money(currentPrice)} · {selectedVariant ? `${selectedVariant.color} / ${selectedVariant.size}` : "Ready to ship"}</p></div><button type="button" onClick={handleAddToCart} className="flex h-11 shrink-0 items-center gap-2 bg-[#b8945e] px-5 text-[10px] font-semibold uppercase tracking-[.16em] text-[#17130e]"><ShoppingBag className="h-4 w-4" /> Add to Bag</button></div></div>}
 
-      {zoomOpen && <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#171316]/95 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Product image viewer" onClick={() => setZoomOpen(false)}><button type="button" onClick={() => setZoomOpen(false)} className="absolute right-5 top-5 rounded-full bg-white p-2" aria-label="Close image viewer"><X className="h-5 w-5" /></button><img src={displayImages[selectedImage]} alt={product.name} className="max-h-[92vh] max-w-[92vw] object-contain" onClick={e => e.stopPropagation()} /></div>}
+      {zoomOpen && <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#171316]/95 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Product image viewer" onClick={() => setZoomOpen(false)}><button type="button" onClick={() => setZoomOpen(false)} className="absolute right-5 top-5 rounded-full bg-white p-2" aria-label="Close image viewer"><X className="h-5 w-5" /></button><img src={imageSource(displayImages[selectedImage])} alt={`${product.name} enlarged view`} onError={() => markImageFailed(displayImages[selectedImage])} className="max-h-[92vh] max-w-[92vw] object-contain" onClick={e => e.stopPropagation()} /></div>}
     </div>
   )
 }
