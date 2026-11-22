@@ -46,15 +46,15 @@ export default function CartPage() {
   return (
     <main className="bg-[#11100f] min-h-screen">
       <div className="border-b border-[#3a3328] bg-[#171615]">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-3 py-4 flex items-center justify-between gap-3 sm:px-4">
           <Link href="/products" className="inline-flex items-center gap-2 text-sm text-[#b9b0a2] hover:text-[#f5f0e7] transition">
             <ArrowLeft size={16} /> Continue shopping
           </Link>
-          <p className="text-xs uppercase tracking-[0.22em] font-medium">Your bag · {itemCountLabel}</p>
+          <p className="text-right text-[10px] uppercase tracking-[0.16em] font-medium sm:text-xs sm:tracking-[0.22em]">Your bag · {itemCountLabel}</p>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
+      <div className="max-w-7xl mx-auto px-3 pb-28 pt-6 sm:px-4 sm:py-8 md:py-12">
        <div className="mb-8 border border-[#3a3328] bg-[#171615] px-5 py-4">
          <div className="flex items-center justify-between gap-4 text-xs">
            <div>
@@ -67,9 +67,9 @@ export default function CartPage() {
            <div className="h-full bg-charcoal transition-all duration-500" style={{ width: `${progress}%` }} />
          </div>
        </div>
-        <div className="mb-8 md:mb-10">
+        <div className="mb-6 sm:mb-8 md:mb-10">
           <p className="text-xs uppercase tracking-[0.28em] text-[#b9b0a2]">Shopping bag</p>
-          <h1 className="font-editorial mt-2 text-4xl md:text-5xl font-semibold">Your edit</h1>
+          <h1 className="font-editorial mt-2 text-3xl font-semibold sm:text-4xl md:text-5xl">Your edit</h1>
         </div>
 
         <div className="grid lg:grid-cols-[1fr_390px] gap-8 lg:gap-12 items-start">
@@ -83,9 +83,9 @@ export default function CartPage() {
                 const variantLabel = (item as any).variantLabel as string | undefined
                 const itemKey = item.id || item.productId
                 return (
-                  <article key={itemKey} className="p-4 sm:p-5 flex gap-4 md:gap-6">
+                  <article key={itemKey} className="p-3 sm:p-5 flex gap-3 sm:gap-4 md:gap-6">
                     <Link href={`/product/${item.slug}`} className="shrink-0">
-                      <img src={item.image} alt={item.name} className="w-28 h-36 sm:w-32 sm:h-40 object-cover bg-[#24211c]" />
+                      <img src={item.image} alt={item.name} className="h-28 w-20 sm:h-40 sm:w-32 object-cover bg-[#24211c]" />
                     </Link>
                     <div className="min-w-0 flex-1">
                       <div className="flex justify-between gap-3">
@@ -99,7 +99,7 @@ export default function CartPage() {
                         <p className="font-medium whitespace-nowrap">PKR {(item.price * item.quantity).toLocaleString()}</p>
                       </div>
 
-                      <div className="mt-8 flex items-center justify-between gap-3">
+                      <div className="mt-5 flex items-center justify-between gap-2 sm:mt-8 sm:gap-3">
                         <div className="flex items-center border border-[#4a4030]">
                           <button aria-label="Decrease quantity" onClick={() => updateQuantity(itemKey, item.quantity - 1)} className="h-9 w-9 flex items-center justify-center hover:bg-[#24211c] transition">
                             <Minus size={14} />
@@ -156,7 +156,7 @@ export default function CartPage() {
           </aside>
         </div>
       </div>
-    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#4a4030] bg-[#171615]/95 p-3 shadow-2xl backdrop-blur lg:hidden">
+    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#4a4030] bg-[#171615]/95 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-2xl backdrop-blur lg:hidden">
       <div className="mx-auto flex max-w-7xl items-center gap-3">
         <div className="min-w-0 flex-1">
           <p className="text-[10px] uppercase tracking-[0.16em] text-[#b9b0a2]">Total</p>
