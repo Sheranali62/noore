@@ -109,30 +109,24 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
   }, [pathname, router])
 
   return <>
-    {/* Floating luxury announcement */}
+    <Header scrolled={scrolled} />
     {announcementVisible && (
-      <div className="pointer-events-none fixed inset-x-0 top-[76px] z-[70] flex justify-center px-3 sm:top-[82px]">
-        <div className="pointer-events-auto relative flex max-w-[min(92vw,760px)] items-center gap-3 overflow-hidden rounded-full border border-[#d6ae72]/30 bg-[#24151c]/95 px-4 py-2.5 text-[#f8eee5] shadow-[0_14px_40px_rgba(36,21,28,.24)] backdrop-blur-xl sm:px-5">
-          <span className="relative flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#d6ae72]/15 text-[#d6ae72]">
-            <Truck className="h-3.5 w-3.5" />
-            <span className="absolute inset-0 animate-ping rounded-full border border-[#d6ae72]/20" />
-          </span>
-          <div className="min-w-0 overflow-hidden whitespace-nowrap text-[8px] font-semibold uppercase tracking-[.16em] sm:text-[9px] sm:tracking-[.2em]">
-            <div className="noore-announcement-track flex w-max items-center gap-8">
-              <span>{announcement}</span><span className="text-[#d6ae72]">✦</span>
-              <span>Cash on Delivery across Pakistan</span><span className="text-[#d6ae72]">✦</span>
-              <span>Easy order tracking</span><span className="text-[#d6ae72]">✦</span>
-              <span>{announcement}</span>
-            </div>
-          </div>
-          <button type="button" onClick={dismissAnnouncement} className="ml-1 grid h-7 w-7 shrink-0 place-items-center rounded-full border border-white/10 bg-white/[.06] text-white/55 transition hover:bg-white/10 hover:text-white" aria-label="Dismiss announcement">
-            <X className="h-3.5 w-3.5" />
+      <div className="relative z-40 border-b border-[#d6ae72]/20 bg-[#1b1916] text-[#f8eee5]">
+        <div className="mx-auto flex min-h-9 max-w-7xl items-center justify-center gap-3 px-10 py-2 text-center">
+          <Truck className="h-3.5 w-3.5 shrink-0 text-[#d6ae72]" />
+          <p className="text-[8px] font-semibold uppercase tracking-[.18em] sm:text-[9px] sm:tracking-[.24em]">
+            <span>{announcement}</span>
+            <span className="mx-3 text-[#d6ae72]">✦</span>
+            <span>Cash on Delivery across Pakistan</span>
+            <span className="mx-3 text-[#d6ae72]">✦</span>
+            <span>Easy order tracking</span>
+          </p>
+          <button type="button" onClick={dismissAnnouncement} className="absolute right-4 grid h-6 w-6 place-items-center rounded-full border border-white/10 text-white/55 transition hover:border-[#d6ae72]/50 hover:text-[#d6ae72]" aria-label="Dismiss announcement">
+            <X className="h-3 w-3" />
           </button>
         </div>
       </div>
     )}
-
-    <Header scrolled={scrolled} />
     <div className="fixed left-0 right-0 top-[68px] z-[55] h-px bg-black/5">
       <div className="h-full origin-left bg-[#d6ae72] transition-[width] duration-100" style={{ width: `${scrollProgress}%` }} />
     </div>
