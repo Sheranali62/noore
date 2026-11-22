@@ -302,7 +302,7 @@ export default function AdminCategoriesPage() {
     ])
     const csv = [headers, ...rows]
       .map((row) => row.map((value) => `"${value.replace(/"/g, '""')}"`).join(","))
-      .join("\\r\\n")
+      .join("\r\n")
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" })
     const url = URL.createObjectURL(blob)
     const anchor = document.createElement("a")
