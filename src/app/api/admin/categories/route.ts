@@ -209,7 +209,22 @@ export async function GET() {
       },
     })
 
-    return NextResponse.json(categories)
+    const productCounts = await prisma.product.groupBy({
+      by: ["category"],
+      _count: { _all: true },
+    })
+    const countByCategory = new Map(
+      productCounts.map((item) => [item.category.trim().toLowerCase(), item._count._all]),
+    )
+    const categoriesWithProductCounts = categories.map((category) => ({
+      ...category,
+      _count: {
+        ...category._count,
+        products: countByCategory.get(category.name.trim().toLowerCase()) ?? 0,
+      },
+    }))
+
+    return NextResponse.json(categoriesWithProductCounts)
   } catch (error) {
     console.error("Get categories error:", error)
 
