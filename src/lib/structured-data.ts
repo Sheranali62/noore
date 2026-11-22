@@ -3,6 +3,8 @@ export function productJsonLd({ product, url, siteUrl }: { product: any; url: st
   const ratingCount = product.reviews?.length || 0
   const approvedReviews = (product.reviews || []).filter((r: any) => r.approved)
   const ratingValue = approvedReviews.length ? approvedReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / approvedReviews.length : undefined
+  const canonicalUrl = new URL(url, siteUrl).toString()
+
   return {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -10,11 +12,11 @@ export function productJsonLd({ product, url, siteUrl }: { product: any; url: st
     description: product.description || undefined,
     sku: product.sku,
     category: product.category,
-    image: product.images?.map((image: string) => image.startsWith("http") ? image : `${siteUrl}${image}`),
+    image: product.images?.map((image: string) => image.startsWith("http") ? image : new URL(image, siteUrl).toString()),
     brand: { "@type": "Brand", name: "NOORÉ" },
     offers: {
       "@type": "Offer",
-      url,
+      url: canonicalUrl,
       priceCurrency: "PKR",
       price: price.toFixed(2),
       availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
