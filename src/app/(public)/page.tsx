@@ -204,8 +204,9 @@ export default async function HomePage() {
                 <h2 className="mt-2 font-editorial text-4xl leading-none md:text-5xl">Stories in every collection.</h2>
                 <span className="mt-4 inline-block text-[9px] font-semibold uppercase tracking-[0.2em] underline underline-offset-4">Explore →</span>
               </div>
-            </div>
+            </Link>
           </div>
+        </div>
         </div>
       </section>
 
