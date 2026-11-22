@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useMemo, useState } from "react"
-import { ArrowDownToLine, CalendarDays, CheckCircle2, Clock3, Copy, Gift, Plus, Search, TicketPercent, ToggleLeft, Users } from "lucide-react"
+import { ArrowDownToLine, CalendarDays, CheckCircle2, Clock3, Copy, Gift, Plus, Search, ToggleLeft, Users } from "lucide-react"
 import { CouponActions } from "@/components/admin/coupon-actions"
 
 type Coupon = {
@@ -76,7 +76,7 @@ export default function CouponsWorkspace({ coupons }: { coupons: Coupon[] }) {
       </header>
 
       <div className="mb-6 grid grid-cols-2 gap-3 xl:grid-cols-4">
-        <Metric icon={TicketPercent} label="Total coupons" value={coupons.length.toLocaleString()} />
+        <Metric icon={Gift} label="Total coupons" value={coupons.length.toLocaleString()} />
         <Metric icon={CheckCircle2} label="Active campaigns" value={activeCount.toLocaleString()} />
         <Metric icon={Clock3} label="Expired coupons" value={expiredCount.toLocaleString()} />
         <Metric icon={Users} label="Recorded uses" value={usedCount.toLocaleString()} />
@@ -155,7 +155,7 @@ export default function CouponsWorkspace({ coupons }: { coupons: Coupon[] }) {
   )
 }
 
-function Metric({ icon: Icon, label, value }: { icon: typeof TicketPercent; label: string; value: string }) {
+function Metric({ icon: Icon, label, value }: { icon: typeof Gift; label: string; value: string }) {
   return <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-4"><div className="flex items-center gap-2 text-[#d6ae72]"><Icon className="h-4 w-4" /><span className="text-[9px] font-semibold uppercase tracking-[0.17em] text-white/40">{label}</span></div><p className="mt-3 text-2xl font-semibold tabular-nums text-white">{value}</p></div>
 }
 
