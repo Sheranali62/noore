@@ -181,58 +181,56 @@ export default async function HomePage() {
         </div>
       )}
 
-      {/* HERO — NOORÉ campaign */}
+      {/* Editorial campaign hero */}
       <section className="mx-auto max-w-[1600px] px-3 pt-3 sm:px-5 md:px-8 md:pt-6">
-        <div className="grid gap-3 md:min-h-[760px] md:grid-cols-[1.6fr_0.9fr]">
-          <div className="group relative min-h-[560px] overflow-hidden bg-[#24191d] text-white sm:min-h-[680px] md:min-h-[760px]">
-            <div
-              className="absolute inset-0 bg-cover bg-center transition duration-[1200ms] ease-out group-hover:scale-[1.035]"
-              style={{ backgroundImage: "url('https://images.unsplash.com/photo-1483985988355-763728e1935b?w=2200&auto=format&fit=crop')" }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-black/5" />
-            <div className="absolute left-5 top-5 flex items-center gap-3 text-[9px] uppercase tracking-[0.3em] text-white/70 md:left-8 md:top-8">
-              <span>NOORÉ</span><span className="h-px w-8 bg-[#d6ae72]" /><span>{interestLabel || "New season"}</span>
-            </div>
-            <div className="absolute inset-x-5 bottom-7 md:inset-x-8 md:bottom-10">
-              <p className="font-serif text-sm italic text-white/70">A wardrobe with a point of view.</p>
-              <h1 className="mt-3 max-w-3xl font-editorial text-5xl font-medium leading-[0.9] tracking-[-0.03em] sm:text-6xl md:text-8xl">
-                Elegance, in every detail.
+        <div className="grid overflow-hidden border border-[#c5a16a]/20 bg-[#211d19] md:min-h-[680px] md:grid-cols-[0.82fr_1.18fr]">
+          <div className="relative flex min-h-[430px] flex-col justify-between px-6 py-8 sm:px-10 sm:py-11 md:min-h-[680px] md:px-12 md:py-14 lg:px-16">
+            <div className="absolute left-0 top-10 h-20 w-px bg-[#c5a16a] md:top-14 md:h-28" />
+            <div>
+              <div className="flex items-center gap-3 text-[9px] font-semibold uppercase tracking-[0.3em] text-[#d6b77c]">
+                <span>NOORÉ</span><span className="h-px w-8 bg-[#b8945e]/70" /><span>{interestLabel || "The new season"}</span>
+              </div>
+              <p className="mt-14 font-serif text-base italic text-[#d7c9b5]/75 md:mt-20 md:text-lg">A wardrobe with a point of view.</p>
+              <h1 className="mt-5 max-w-xl font-editorial text-[3.45rem] font-medium leading-[0.88] tracking-[-0.045em] sm:text-7xl lg:text-[5.6rem]">
+                Elegance,<br />in every<br /><span className="text-[#d6b77c]">detail.</span>
               </h1>
-              <div className="mt-7 flex flex-wrap gap-3">
-                <Link href="/products?sort=newest" className="border border-[#f7eee4] bg-[#f7eee4] px-5 py-3 text-[9px] font-semibold uppercase tracking-[0.2em] text-[#24191d] shadow-[0_8px_24px_rgba(0,0,0,.18)] transition-colors duration-200 hover:bg-[#d6ae72] hover:border-[#d6ae72] sm:px-6">Shop new arrivals</Link>
-                <Link href="/products?category=Luxury" className="border border-white/70 bg-black/10 px-5 py-3 text-[9px] font-semibold uppercase tracking-[0.2em] text-white transition-colors duration-200 hover:border-[#d6ae72] hover:bg-[#d6ae72] hover:text-[#24191d] sm:px-6">Explore luxury</Link>
+              <p className="mt-6 max-w-sm text-sm leading-7 text-[#e5ded3]/65">
+                Discover considered pieces for everyday moments and occasions worth remembering.
+              </p>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link href="/products?sort=newest" className="inline-flex min-h-12 items-center justify-center border border-[#d6b77c] bg-[#d6b77c] px-6 text-[9px] font-bold uppercase tracking-[0.2em] text-[#211d19] transition-colors hover:border-[#f0e9df] hover:bg-[#f0e9df]">
+                  Discover the new edit <span className="ml-3 text-sm">↗</span>
+                </Link>
+                <Link href="/products?category=Luxury" className="inline-flex min-h-12 items-center justify-center border border-white/25 px-6 text-[9px] font-semibold uppercase tracking-[0.2em] text-white/85 transition-colors hover:border-[#d6b77c] hover:text-[#d6b77c]">
+                  Explore luxury
+                </Link>
               </div>
             </div>
-            <span className="absolute bottom-5 right-5 hidden text-[8px] uppercase tracking-[0.2em] text-white/55 md:block">01 / 03</span>
+            <div className="mt-12 flex items-center justify-between border-t border-white/10 pt-5 text-[8px] uppercase tracking-[0.22em] text-white/40 md:mt-16">
+              <span>Designed in Pakistan</span><span>01 — The NOORÉ edit</span>
+            </div>
           </div>
-
-          <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-1 md:grid-rows-2">
-            <Link href="/women" className="group relative min-h-[300px] overflow-hidden bg-[#321526] text-white md:min-h-0">
-              <div
-                className="absolute inset-0 bg-cover bg-center transition duration-[1000ms] group-hover:scale-[1.045]"
-                style={{ backgroundImage: "url('https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=1400&auto=format&fit=crop')" }}
-              />
-              <div className="absolute inset-0 bg-black/25" />
-              <div className="absolute inset-x-5 bottom-5 md:inset-x-7 md:bottom-7">
-                <p className="text-[8px] uppercase tracking-[0.28em] text-white/65">01 · Women</p>
-                <h2 className="mt-2 font-editorial text-4xl leading-none md:text-5xl">The feminine edit.</h2>
-                <span className="mt-4 inline-block text-[9px] font-semibold uppercase tracking-[0.2em] underline underline-offset-4">Discover →</span>
-              </div>
-            </Link>
-
-            <Link href="/collections" className="group relative min-h-[300px] overflow-hidden bg-[#e4d7ca] text-[#24191d] md:min-h-0">
-              <div
-                className="absolute inset-0 bg-cover bg-center transition duration-[1000ms] group-hover:scale-[1.045]"
-                style={{ backgroundImage: "url('https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?w=1400&auto=format&fit=crop')" }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent" />
-              <div className="absolute inset-x-5 bottom-5 text-white md:inset-x-7 md:bottom-7">
-                <p className="text-[8px] uppercase tracking-[0.28em] text-white/65">02 · Collections</p>
-                <h2 className="mt-2 font-editorial text-4xl leading-none md:text-5xl">A world of considered style.</h2>
-                <span className="mt-4 inline-block text-[9px] font-semibold uppercase tracking-[0.2em] underline underline-offset-4">Explore →</span>
-              </div>
-            </Link>
+          <div className="group relative min-h-[430px] overflow-hidden bg-[#3b3029] sm:min-h-[560px] md:min-h-[680px]">
+            <div className="absolute inset-0 bg-cover bg-[center_35%] transition-transform duration-[1400ms] ease-out group-hover:scale-[1.035]" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=2200&auto=format&fit=crop')" }} />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-black/10" />
+            <div className="absolute left-5 top-5 border border-white/30 bg-black/15 px-4 py-3 backdrop-blur-sm sm:left-7 sm:top-7">
+              <p className="text-[8px] uppercase tracking-[0.25em] text-white/65">The season’s point of view</p>
+              <p className="mt-1 font-editorial text-2xl text-white sm:text-3xl">Effortless. Elevated.</p>
+            </div>
+            <div className="absolute bottom-5 right-5 flex items-center gap-3 text-[8px] font-semibold uppercase tracking-[0.22em] text-white/75 sm:bottom-7 sm:right-7">
+              <span className="h-px w-8 bg-[#d6b77c]" /><span>Discover your style</span>
+            </div>
           </div>
+        </div>
+        <div className="grid grid-cols-2 border-x border-b border-[#c5a16a]/20 bg-[#191816]">
+          <Link href="/women" className="group flex items-center justify-between gap-3 border-r border-[#c5a16a]/20 px-5 py-4 transition-colors hover:bg-[#25211c] sm:px-8 sm:py-5">
+            <span><span className="block text-[8px] uppercase tracking-[0.22em] text-[#c5b99f]/55">01 / Discover</span><span className="mt-1 block font-editorial text-xl sm:text-2xl">The feminine edit</span></span>
+            <span className="text-lg text-[#d6b77c] transition-transform group-hover:translate-x-1">↗</span>
+          </Link>
+          <Link href="/collections" className="group flex items-center justify-between gap-3 px-5 py-4 transition-colors hover:bg-[#25211c] sm:px-8 sm:py-5">
+            <span><span className="block text-[8px] uppercase tracking-[0.22em] text-[#c5b99f]/55">02 / Explore</span><span className="mt-1 block font-editorial text-xl sm:text-2xl">Curated collections</span></span>
+            <span className="text-lg text-[#d6b77c] transition-transform group-hover:translate-x-1">↗</span>
+          </Link>
         </div>
       </section>
 
@@ -430,7 +428,7 @@ export default async function HomePage() {
                     )}
                   </div>
                   <p className="mt-5 text-[8px] font-semibold uppercase tracking-[0.22em] text-black/45">{post.category || "NOORÉ Journal"}{post.publishedAt ? ` · ${new Intl.DateTimeFormat("en-PK", { day: "numeric", month: "short", year: "numeric" }).format(post.publishedAt)}` : ""}</p>
-                  <h3 className="mt-2 font-editorial text-3xl leading-tight md:text-4xl transition group-hover:text-[#8c6840]">{post.title}</h3>
+                  <h3 className="mt-2 font-editorial text-3xl leading-tight transition group-hover:text-[#8c6840] md:text-4xl">{post.title}</h3>
                   {post.excerpt && <p className="mt-3 line-clamp-3 text-sm leading-6 text-black/55">{post.excerpt}</p>}
                   <span className="mt-4 inline-block text-[9px] font-semibold uppercase tracking-[0.18em] underline underline-offset-4">Read story →</span>
                 </Link>
