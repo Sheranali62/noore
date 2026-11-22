@@ -38,7 +38,7 @@ export function ProductCard({ id, name, slug, price, salePrice, image, hoverImag
 
   return (
     <article className="group">
-      <div className="relative overflow-hidden bg-[#f1eee8] aspect-[3/4]">
+      <div className="relative overflow-hidden bg-[#e9e2d7] aspect-[3/4]">
         <Link href={`/product/${slug}`} data-noore-gender={gender || ""} className="block h-full" aria-label={`View ${name}`}>
           <img loading="lazy" decoding="async" src={image || "/placeholder.jpg"} alt={name} className="h-full w-full object-cover transition-all duration-700 group-hover:scale-[1.035]" />
           {hoverImage && (
@@ -47,7 +47,7 @@ export function ProductCard({ id, name, slug, price, salePrice, image, hoverImag
         </Link>
 
         <div className="absolute left-3 top-3 flex flex-col gap-1.5">
-          {isOnSale && <span className="bg-charcoal px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.18em] text-white">Sale · {discount}%</span>}
+          {isOnSale && <span className="bg-[#b8945e] px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.18em] text-[#17130e]">Sale · {discount}%</span>}
           {stock === 0 && <span className="bg-white/95 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.18em] text-charcoal">Sold out</span>}
           {stock > 0 && stock < 5 && <span className="bg-white/95 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.18em] text-charcoal">Only {stock} left</span>}
         </div>
@@ -66,14 +66,14 @@ export function ProductCard({ id, name, slug, price, salePrice, image, hoverImag
             window.setTimeout(() => setNotice(""), 1800)
           }}
           aria-label={liked ? "Remove from wishlist" : "Add to wishlist"}
-          className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white/90 backdrop-blur transition hover:bg-white disabled:opacity-60"
+          className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full border border-[#d6b77c]/35 bg-[#171513]/85 text-[#f3dfb8] backdrop-blur transition hover:bg-[#b8945e] hover:text-[#17130e] disabled:opacity-60"
         >
           <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} />
         </button>
         {notice && <span className="absolute right-3 top-14 bg-charcoal px-3 py-2 text-[9px] font-semibold uppercase tracking-wider text-white">{notice}</span>}
 
         <div className="absolute inset-x-3 bottom-3 translate-y-2 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
-          <button type="button" onClick={handleAddToCart} disabled={stock === 0} className="flex w-full items-center justify-center gap-2 bg-charcoal px-4 py-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-white transition hover:bg-black disabled:cursor-not-allowed disabled:bg-white/90 disabled:text-secondary">
+          <button type="button" onClick={handleAddToCart} disabled={stock === 0} className="flex w-full items-center justify-center gap-2 bg-[#b8945e] px-4 py-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#17130e] transition hover:bg-[#d6b77c] disabled:cursor-not-allowed disabled:bg-white/90 disabled:text-secondary">
             <ShoppingBag className="h-3.5 w-3.5" />
             {stock === 0 ? "Unavailable" : added ? "Added to bag" : "Quick add"}
           </button>
@@ -85,7 +85,7 @@ export function ProductCard({ id, name, slug, price, salePrice, image, hoverImag
           <div className="min-w-0">
             <p className="text-[9px] uppercase tracking-[0.2em] text-secondary">{category}</p>
             <Link href={`/product/${slug}`} data-noore-gender={gender || ""} className="mt-1 block">
-              <h3 className="truncate text-sm font-medium tracking-wide text-charcoal transition group-hover:underline group-hover:underline-offset-4">{name}</h3>
+              <h3 className="truncate text-sm font-medium tracking-wide text-charcoal transition group-hover:text-[#9b7542] group-hover:underline group-hover:underline-offset-4">{name}</h3>
             </Link>
           </div>
           <Link href={`/product/${slug}`} data-noore-gender={gender || ""} aria-label={`Open ${name}`} className="mt-1 shrink-0 opacity-40 transition group-hover:opacity-100">
@@ -94,7 +94,7 @@ export function ProductCard({ id, name, slug, price, salePrice, image, hoverImag
         </div>
 
         <div className="mt-2 flex items-center gap-2">
-          <span className="text-sm font-semibold">PKR {displayPrice.toLocaleString()}</span>
+          <span className="text-sm font-semibold text-[#241d16]">PKR {displayPrice.toLocaleString()}</span>
           {isOnSale && <span className="text-xs text-secondary line-through">PKR {price.toLocaleString()}</span>}
         </div>
 
