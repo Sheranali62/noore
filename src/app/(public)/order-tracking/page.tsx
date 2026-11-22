@@ -2,6 +2,7 @@
 
 import { useSearchParams } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
+import { Search, PackageCheck, Truck, ShieldCheck, Star } from "lucide-react"
 
 type Order = {
   orderNumber: string
@@ -25,7 +26,7 @@ const statuses = [
   ["CONFIRMED", "Confirmed", "Your order has been confirmed."],
   ["PROCESSING", "Processing", "Your pieces are being prepared."],
   ["PACKED", "Packed", "Your order has been packed."],
-  ["SHIPPED", "Shipped", "Your order is on the way."],
+  ["SHIPPED", "Shipped", "Your order is on its way."],
   ["OUT_FOR_DELIVERY", "Out for delivery", "Your order is with the delivery team."],
   ["DELIVERED", "Delivered", "Your order has arrived."],
 ] as const
@@ -45,17 +46,16 @@ export default function OrderTrackingPage() {
 
   const currentIndex = useMemo(() => statuses.findIndex(([status]) => status === order?.status), [order?.status])
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
     setError("")
     setOrder(null)
-
     try {
       const response = await fetch(`/api/orders/track?orderNumber=${encodeURIComponent(orderNumber.trim())}&email=${encodeURIComponent(email.trim())}`)
       const data = await response.json()
       if (!response.ok) {
-        setError(data.error || "Order not found")
+        setError(data.error || "We could not find an order with those details. Please check and try again.")
         return
       }
       setOrder(data.order)
@@ -66,81 +66,86 @@ export default function OrderTrackingPage() {
     }
   }
 
-  return (
-    <div className="min-h-screen bg-cream py-8 md:py-14">
-      <div className="max-w-4xl mx-auto px-4">
-        <div className="text-center max-w-2xl mx-auto">
-          <p className="text-xs uppercase tracking-[0.28em] text-secondary">NOORÉ delivery</p>
-          <h1 className="font-editorial text-4xl md:text-5xl mt-2">Track your order</h1>
-          <p className="text-secondary mt-3">Enter the order number and email used at checkout to see the latest status.</p>
-        </div>
+  const isException = order?.status === "CANCELLED" || order?.status === "REFUNDED"
 
-        <div className="bg-white border border-cream rounded-3xl p-5 md:p-7 mt-8">
-          <form onSubmit={handleSubmit} className="grid md:grid-cols-[1fr_1fr_auto] gap-3 items-end">
-            <label className="text-sm font-medium">
+  return (
+    <main className="min-h-screen bg-[#211b1d] py-10 text-[#f5f0e7] md:py-16">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6">
+        <header className="mx-auto max-w-2xl text-center">
+          <div className="mx-auto grid h-14 w-14 place-items-center rounded-full border border-[#b8945e]/40 bg-[#b8945e]/10 text-[#d5b77e]">
+            <PackageCheck className="h-6 w-6" />
+          </div>
+          <p className="mt-5 text-[10px] font-semibold uppercase tracking-[0.28em] text-[#c6a879]">NOORÉ delivery service</p>
+          <h1 className="mt-3 font-editorial text-4xl md:text-5xl">Track your order</h1>
+          <p className="mt-4 text-sm leading-7 text-[#c2b8b0]">Your order journey, all in one place. Enter the order number and email address used at checkout to view the latest status.</p>
+        </header>
+
+        <section className="mx-auto mt-9 max-w-3xl rounded-3xl border border-[#51423a] bg-[#171315] p-5 shadow-2xl sm:p-7" aria-label="Order lookup">
+          <form onSubmit={handleSubmit} className="grid gap-4 md:grid-cols-[1fr_1fr_auto] md:items-end">
+            <label className="block text-xs font-semibold uppercase tracking-[0.13em] text-[#d8cfc5]">
               Order number
-              <input value={orderNumber} onChange={(e) => setOrderNumber(e.target.value)} required className="mt-2 w-full px-4 py-3 border border-cream rounded-xl outline-none focus:border-charcoal" placeholder="NOO-1234567890-123" />
+              <input value={orderNumber} onChange={e => setOrderNumber(e.target.value)} required autoComplete="off" spellCheck={false} className="mt-2.5 w-full rounded-xl border border-[#51423a] bg-[#211b1d] px-4 py-3.5 text-sm font-normal normal-case tracking-normal text-white outline-none placeholder:text-[#81756d] focus:border-[#c6a15b] focus:ring-2 focus:ring-[#c6a15b]/20" placeholder="e.g. NOO-1234567890-123" />
             </label>
-            <label className="text-sm font-medium">
+            <label className="block text-xs font-semibold uppercase tracking-[0.13em] text-[#d8cfc5]">
               Email address
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="mt-2 w-full px-4 py-3 border border-cream rounded-xl outline-none focus:border-charcoal" placeholder="you@example.com" />
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} required autoComplete="email" className="mt-2.5 w-full rounded-xl border border-[#51423a] bg-[#211b1d] px-4 py-3.5 text-sm font-normal normal-case tracking-normal text-white outline-none placeholder:text-[#81756d] focus:border-[#c6a15b] focus:ring-2 focus:ring-[#c6a15b]/20" placeholder="you@example.com" />
             </label>
-            <button disabled={loading} className="bg-charcoal text-white rounded-xl px-6 py-3.5 font-semibold disabled:opacity-50">
-              {loading ? "Checking…" : "Track order"}
+            <button type="submit" disabled={loading || !orderNumber.trim() || !email.trim()} className="inline-flex h-[50px] items-center justify-center gap-2 rounded-xl bg-[#c6a15b] px-6 text-xs font-bold uppercase tracking-[0.14em] text-[#171315] transition hover:bg-[#d8b978] disabled:cursor-wait disabled:opacity-50">
+              <Search className="h-4 w-4" />{loading ? "Checking…" : "Track order"}
             </button>
           </form>
-        </div>
+          <p className="mt-4 flex items-center gap-2 text-[11px] text-[#a99d92]"><ShieldCheck className="h-4 w-4 shrink-0 text-[#c6a15b]" /> Your order details are only shown when both details match.</p>
+        </section>
 
-        {error && <div className="mt-5 bg-red-50 border border-red-200 text-red-700 rounded-2xl p-4 text-sm">{error}</div>}
+        {error && <div className="mx-auto mt-5 max-w-3xl rounded-2xl border border-red-900/60 bg-red-950/40 p-4 text-sm text-red-200" role="alert">{error}</div>}
 
         {order && (
-          <div className="space-y-6 mt-6">
-            <section className="bg-white border border-cream rounded-3xl p-6 md:p-8">
-              <div className="flex flex-wrap justify-between gap-4">
+          <div className="mx-auto mt-7 max-w-3xl space-y-6" aria-live="polite">
+            <section className="rounded-3xl border border-[#51423a] bg-[#171315] p-5 sm:p-8">
+              <div className="flex flex-wrap items-start justify-between gap-5">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-secondary">Order</p>
-                  <h2 className="font-editorial text-3xl mt-1">#{order.orderNumber}</h2>
-                  <p className="text-sm text-secondary mt-1">{new Date(order.createdAt).toLocaleDateString()}</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-[#c6a879]">Order confirmed in our system</p>
+                  <h2 className="mt-2 break-all font-editorial text-3xl sm:text-4xl">#{order.orderNumber}</h2>
+                  <p className="mt-2 text-xs text-[#a99d92]">Placed {new Date(order.createdAt).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })}</p>
                 </div>
-                <div className="text-right">
-                  <p className="text-xs uppercase tracking-wide text-secondary">Total</p>
-                  <p className="text-2xl font-semibold mt-1">PKR {order.total.toLocaleString()}</p>
-                  <p className="text-xs text-secondary mt-1">Cash on Delivery</p>
+                <div className="min-w-[130px] rounded-2xl border border-[#51423a] bg-[#211b1d] p-4 sm:text-right">
+                  <p className="text-[10px] uppercase tracking-[0.16em] text-[#a99d92]">Order total</p>
+                  <p className="mt-1 text-xl font-semibold tabular-nums">PKR {order.total.toLocaleString()}</p>
+                  <p className="mt-1 text-[10px] text-[#c6a879]">Cash on Delivery</p>
                 </div>
               </div>
 
               {order.trackingNumber && (
-                <div className="mt-5 rounded-2xl bg-cream/60 p-4">
-                  <p className="text-xs text-secondary">Courier tracking number</p>
-                  <p className="font-semibold mt-1">{order.trackingNumber}</p>
+                <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#b8945e]/30 bg-[#c6a15b]/10 p-4">
+                  <div><p className="text-[10px] uppercase tracking-[0.16em] text-[#b9aa98]">Courier tracking number</p><p className="mt-1 break-all font-semibold tracking-wide text-[#f5f0e7]">{order.trackingNumber}</p></div>
+                  <Truck className="h-5 w-5 text-[#c6a15b]" />
                 </div>
               )}
 
-              {(order.status === "CANCELLED" || order.status === "REFUNDED") ? (
-                <div className="mt-6 rounded-2xl bg-red-50 border border-red-100 p-5">
-                  <p className="font-semibold">{order.status === "CANCELLED" ? "Order cancelled" : "Order refunded"}</p>
-                  <p className="text-sm text-secondary mt-1">This order is no longer moving through the delivery journey.</p>
+              {isException ? (
+                <div className="mt-7 rounded-2xl border border-red-900/50 bg-red-950/30 p-5">
+                  <p className="font-semibold text-red-200">{order.status === "CANCELLED" ? "Order cancelled" : "Order refunded"}</p>
+                  <p className="mt-1 text-sm leading-6 text-[#c2b8b0]">This order is no longer moving through the delivery journey. Please contact our support team if you need assistance.</p>
                 </div>
               ) : (
                 <div className="mt-8">
+                  <div className="mb-6 flex items-center justify-between gap-3">
+                    <div><p className="text-[10px] uppercase tracking-[0.2em] text-[#c6a879]">Live order journey</p><h3 className="mt-1 font-editorial text-2xl">Delivery progress</h3></div>
+                    <span className="rounded-full border border-[#b8945e]/40 bg-[#b8945e]/10 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-[#d8bd8d]">{order.status.replaceAll("_", " ")}</span>
+                  </div>
                   {statuses.map(([status, label, description], index) => {
                     const completed = currentIndex >= 0 && index <= currentIndex
                     const current = index === currentIndex
                     return (
                       <div key={status} className="flex gap-4">
-                        <div className="flex flex-col items-center">
-                          <div className={`w-11 h-11 rounded-full flex items-center justify-center text-sm font-semibold ${completed ? "bg-charcoal text-white" : "bg-cream text-secondary"}`}>
-                            {completed ? "✓" : index + 1}
-                          </div>
-                          {index < statuses.length - 1 && <div className={`w-px h-12 ${index < currentIndex ? "bg-charcoal" : "bg-cream"}`} />}
+                        <div className="flex shrink-0 flex-col items-center">
+                          <div className={`grid h-10 w-10 place-items-center rounded-full border text-xs font-semibold ${completed ? "border-[#c6a15b] bg-[#c6a15b] text-[#171315]" : "border-[#51423a] bg-[#211b1d] text-[#a99d92]"}`}>{completed ? "✓" : index + 1}</div>
+                          {index < statuses.length - 1 && <div className={`h-12 w-px ${index < currentIndex ? "bg-[#c6a15b]" : "bg-[#51423a]"}`} />}
                         </div>
-                        <div className="pb-7">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className={`font-medium ${completed ? "text-charcoal" : "text-secondary"}`}>{label}</p>
-                            {current && <span className="text-[10px] uppercase tracking-wide rounded-full bg-charcoal text-white px-2 py-1">Current</span>}
-                          </div>
-                          <p className="text-sm text-secondary mt-1">{description}</p>
-                          {status === "PENDING" && <p className="text-xs text-secondary mt-1">Placed {new Date(order.createdAt).toLocaleString()}</p>}
+                        <div className="min-w-0 pb-7">
+                          <div className="flex flex-wrap items-center gap-2"><p className={`text-sm font-medium ${completed ? "text-[#f5f0e7]" : "text-[#a99d92]"}`}>{label}</p>{current && <span className="rounded-full bg-[#c6a15b] px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-[#171315]">Current status</span>}</div>
+                          <p className="mt-1 text-xs leading-5 text-[#a99d92]">{description}</p>
+                          {status === "PENDING" && <p className="mt-1 text-[10px] text-[#81756d]">Placed {new Date(order.createdAt).toLocaleString()}</p>}
                         </div>
                       </div>
                     )
@@ -149,30 +154,27 @@ export default function OrderTrackingPage() {
               )}
             </section>
 
-            <section className="bg-white border border-cream rounded-3xl p-6 md:p-8">
-              <div className="flex justify-between items-center">
-                <h2 className="font-editorial text-2xl">Order items</h2>
-                <p className="text-sm text-secondary">{order.items.length} item{order.items.length === 1 ? "" : "s"}</p>
-              </div>
-              <div className="mt-5 divide-y divide-cream">
-                {order.items.map((item) => (
-                  <div key={item.id} className="py-4 first:pt-0 last:pb-0 flex gap-4">
-                    <div className="w-16 h-20 bg-cream rounded-xl overflow-hidden shrink-0">
-                      <img src={item.product.images[0] || "/placeholder.jpg"} alt={item.product.name} className="w-full h-full object-cover" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium">{item.product.name}</p>
-                      {item.variant && <p className="text-xs text-secondary mt-1">{item.variant.color} / {item.variant.size}</p>}
-                      <p className="text-sm text-secondary mt-2">Qty {item.quantity} × PKR {item.price.toLocaleString()}</p>
-                    </div>
-                    <p className="font-semibold">PKR {item.total.toLocaleString()}</p>
+            <section className="rounded-3xl border border-[#51423a] bg-[#171315] p-5 sm:p-8">
+              <div className="flex items-center justify-between gap-3"><div><p className="text-[10px] uppercase tracking-[0.2em] text-[#c6a879]">Your purchase</p><h3 className="mt-1 font-editorial text-2xl">Order items</h3></div><span className="text-xs text-[#a99d92]">{order.items.length} item{order.items.length === 1 ? "" : "s"}</span></div>
+              <div className="mt-5 divide-y divide-[#51423a]">
+                {order.items.map(item => (
+                  <div key={item.id} className="flex gap-4 py-4 first:pt-0 last:pb-0">
+                    <div className="h-20 w-16 shrink-0 overflow-hidden rounded-xl bg-[#211b1d] sm:h-24 sm:w-20"><img src={item.product.images[0] || "/placeholder.jpg"} alt={item.product.name} className="h-full w-full object-cover" /></div>
+                    <div className="min-w-0 flex-1"><p className="text-sm font-medium text-[#f5f0e7]">{item.product.name}</p>{item.variant && <p className="mt-1 text-xs text-[#a99d92]">{item.variant.color} / {item.variant.size}</p>}<p className="mt-2 text-xs text-[#a99d92]">Qty {item.quantity} × PKR {item.price.toLocaleString()}</p></div>
+                    <p className="shrink-0 text-sm font-semibold tabular-nums text-[#f5f0e7]">PKR {item.total.toLocaleString()}</p>
                   </div>
                 ))}
               </div>
             </section>
           </div>
         )}
+
+        <footer className="mx-auto mt-10 flex max-w-3xl flex-wrap items-center justify-center gap-x-6 gap-y-3 border-t border-[#51423a] pt-6 text-[10px] uppercase tracking-[0.14em] text-[#a99d92]">
+          <span className="inline-flex items-center gap-2"><Truck className="h-4 w-4 text-[#c6a15b]" /> Nationwide delivery</span>
+          <span className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-[#c6a15b]" /> Secure order lookup</span>
+          <span className="inline-flex items-center gap-2"><Star className="h-4 w-4 text-[#c6a15b]" /> NOORÉ service</span>
+        </footer>
       </div>
-    </div>
+    </main>
   )
 }
