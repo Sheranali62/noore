@@ -20,38 +20,42 @@ export function DepartmentCategories({
   categories: Category[]
 }) {
   return (
-    <section className="mx-auto max-w-[1600px] px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
-      <div className="mb-7 max-w-3xl sm:mb-10">
-        <p className="text-[10px] font-medium uppercase tracking-[0.32em] text-black/50 dark:text-white/50">{eyebrow}</p>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">{title}</h1>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-black/60 dark:text-white/60 sm:text-base">{description}</p>
-      </div>
+    <section className="bg-[#171513] text-[#f5f0e7]">
+      <div className="mx-auto max-w-[1600px] px-4 py-10 sm:px-6 sm:py-14 lg:px-8 lg:py-20">
+        <div className="mb-8 max-w-3xl border-b border-[#c9a66b]/25 pb-7 sm:mb-10 sm:pb-9">
+          <p className="text-[9px] font-semibold uppercase tracking-[0.32em] text-[#d6b77c]">{eyebrow}</p>
+          <h1 className="mt-3 font-editorial text-4xl font-medium leading-[.98] tracking-[-.025em] sm:text-5xl lg:text-6xl">{title}</h1>
+          <p className="mt-4 max-w-2xl text-sm leading-7 text-[#c9c0b4] sm:text-base">{description}</p>
+        </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5">
-        {categories.map((category) => (
-          <Link
-            key={category.name}
-            href={category.href}
-            className="group overflow-hidden rounded-2xl border border-black/10 bg-white transition duration-300 hover:-translate-y-1 hover:border-black/20 hover:shadow-xl dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-white/20"
-          >
-            <div className="relative aspect-[4/5] overflow-hidden bg-black/5 dark:bg-white/5">
-              <Image
-                src={category.image}
-                alt={category.name}
-                fill
-                sizes="(max-width: 639px) 50vw, (max-width: 1023px) 33vw, (max-width: 1279px) 25vw, 20vw"
-                className="object-cover transition duration-700 group-hover:scale-[1.04]"
-              />
-              <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/45 to-transparent" />
-              <span className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-sm text-black shadow-sm backdrop-blur transition group-hover:translate-x-0.5 dark:bg-black/75 dark:text-white">↗</span>
-            </div>
-            <div className="p-4 sm:p-5">
-              <h2 className="text-sm font-semibold sm:text-base">{category.name}</h2>
-              <p className="mt-1.5 line-clamp-2 text-[11px] leading-5 text-black/55 dark:text-white/55 sm:text-xs">{category.description}</p>
-              <span className="mt-3 inline-block text-[9px] font-medium uppercase tracking-[0.22em] text-black/50 dark:text-white/50">Shop edit</span>
-            </div>
-          </Link>
-        ))}
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
+          {categories.map((category, index) => (
+            <Link
+              key={category.name}
+              href={category.href}
+              className="group relative isolate overflow-hidden border border-[#d6ae72]/15 bg-[#211c1b] text-white transition duration-300 hover:-translate-y-1 hover:border-[#d6ae72]/55"
+            >
+              <div className="relative aspect-[.78] overflow-hidden bg-[#28211e]">
+                <Image
+                  src={category.image}
+                  alt={category.name}
+                  fill
+                  sizes="(max-width: 639px) 50vw, (max-width: 1023px) 33vw, (max-width: 1279px) 25vw, 20vw"
+                  className="object-cover transition duration-700 group-hover:scale-[1.06]"
+                  priority={index < 4}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#100d0d]/95 via-[#100d0d]/10 to-transparent" />
+                <span className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full border border-white/30 bg-black/25 text-sm text-[#f0d8a8] backdrop-blur-sm transition group-hover:border-[#d6ae72] group-hover:bg-[#d6ae72] group-hover:text-[#171513]">↗</span>
+                <div className="absolute inset-x-4 bottom-4 sm:inset-x-5 sm:bottom-5">
+                  <p className="mb-1 text-[8px] font-semibold uppercase tracking-[.22em] text-[#d6b77c]">NOORÉ EDIT</p>
+                  <h2 className="font-editorial text-2xl leading-none sm:text-3xl">{category.name}</h2>
+                  <p className="mt-2 line-clamp-2 text-[10px] leading-4 text-white/70 sm:text-xs">{category.description}</p>
+                  <span className="mt-3 inline-block border-b border-[#d6ae72]/70 pb-1 text-[8px] font-semibold uppercase tracking-[.2em] text-[#f0d8a8]">Shop category</span>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
     </section>
   )
