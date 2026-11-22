@@ -87,6 +87,7 @@ export default async function ProductPage({
           comment: true,
           verified: true,
           createdAt: true,
+          user: { select: { name: true } },
         },
       },
     },
@@ -135,6 +136,7 @@ export default async function ProductPage({
     ...product,
     reviews: product.reviews.map((review) => ({
       ...review,
+      author: review.user?.name || "NOORÉ customer",
       createdAt: review.createdAt.toISOString(),
     })),
   }
