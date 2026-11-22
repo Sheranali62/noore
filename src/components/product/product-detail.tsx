@@ -27,8 +27,9 @@ export function ProductDetail({ product, relatedProducts }: Props) {
   const { addItem } = useCart()
   const [selectedImage, setSelectedImage] = useState(0)
   const [quantity, setQuantity] = useState(1)
-  const [selectedColor, setSelectedColor] = useState(product.variants[0]?.color || "")
-  const [selectedSize, setSelectedSize] = useState(product.variants[0]?.size || "")
+  const initialVariant = product.variants.find(v => v.stock > 0) || product.variants[0]
+  const [selectedColor, setSelectedColor] = useState(initialVariant?.color || "")
+  const [selectedSize, setSelectedSize] = useState(initialVariant?.size || "")
   const [zoomOpen, setZoomOpen] = useState(false)
   const [wishlist, setWishlist] = useState(false)
   const [wishlistBusy, setWishlistBusy] = useState(false)
@@ -39,8 +40,10 @@ export function ProductDetail({ product, relatedProducts }: Props) {
   const colors = useMemo(() => Array.from(new Set(product.variants.map(v => v.color))), [product.variants])
   const sizes = useMemo(() => Array.from(new Set(product.variants.map(v => v.size))), [product.variants])
   const selectedVariant = product.variants.length
-    ? (product.variants.find(v => v.color === selectedColor && v.size === selectedSize) || product.variants.find(v => v.color === selectedColor) || product.variants[0])
+    ? product.variants.find(v => v.color === selectedColor && v.size === selectedSize) || null
     : null
+  const availableColors = new Set(product.variants.filter(v => v.stock > 0).map(v => v.color))
+  const availableSizes = new Set(product.variants.filter(v => v.color === selectedColor && v.stock > 0).map(v => v.size))
   const currentPrice = selectedVariant?.price ?? product.salePrice ?? product.price
   const originalPrice = selectedVariant?.price && selectedVariant.price < product.price ? product.price : product.price
   const isOnSale = (selectedVariant?.price != null && selectedVariant.price < product.price) || (!selectedVariant?.price && !!product.salePrice && product.salePrice < product.price)
@@ -85,21 +88,16 @@ export function ProductDetail({ product, relatedProducts }: Props) {
   }
 
   const chooseColor = (color: string) => {
+    if (!availableColors.has(color)) return
+    const matchingSize = product.variants.find(v => v.color === color && v.size === selectedSize && v.stock > 0)
+    const firstAvailable = product.variants.find(v => v.color === color && v.stock > 0)
     setSelectedColor(color)
-    const match = product.variants.find(v => v.color === color && v.size === selectedSize)
-    if (!match) {
-      const first = product.variants.find(v => v.color === color)
-      if (first) setSelectedSize(first.size)
-    }
+    if (!matchingSize && firstAvailable) setSelectedSize(firstAvailable.size)
   }
 
   const chooseSize = (size: string) => {
+    if (!availableSizes.has(size)) return
     setSelectedSize(size)
-    const match = product.variants.find(v => v.color === selectedColor && v.size === size)
-    if (!match) {
-      const first = product.variants.find(v => v.size === size)
-      if (first) setSelectedColor(first.color)
-    }
   }
 
   const handleAddToCart = () => {
@@ -235,11 +233,11 @@ export function ProductDetail({ product, relatedProducts }: Props) {
           {product.variants.length > 0 && <div className="mt-7 space-y-7">
             <div>
               <div className="mb-3 flex items-center justify-between"><label className="text-xs font-semibold uppercase tracking-[0.16em]">Color <span className="font-normal normal-case tracking-normal text-secondary">— {selectedColor}</span></label></div>
-              <div className="flex flex-wrap gap-2">{colors.map(color => <button key={color} type="button" onClick={() => chooseColor(color)} className={`min-w-20 border px-4 py-2.5 text-xs transition ${selectedColor === color ? "border-[#b8945e] bg-[#b8945e] text-[#17130e]" : "border-border hover:border-charcoal hover:bg-white"}`}>{color}</button>)}</div>
+              <div className="flex flex-wrap gap-2">{colors.map(color => { const unavailable = !availableColors.has(color); return <button key={color} type="button" disabled={unavailable} aria-pressed={selectedColor === color} onClick={() => chooseColor(color)} className={`min-w-20 border px-4 py-2.5 text-xs transition ${selectedColor === color ? "border-[#b8945e] bg-[#b8945e] text-[#17130e]" : "border-border hover:border-charcoal hover:bg-white"} ${unavailable ? "cursor-not-allowed opacity-35 line-through" : ""}`}>{color}</button> })}</div>
             </div>
             <div>
               <div className="mb-3 flex items-center justify-between"><label className="text-xs font-semibold uppercase tracking-[0.16em]">Size <span className="font-normal normal-case tracking-normal text-secondary">— {selectedSize}</span></label><button type="button" onClick={() => flash("Size guide: XS 32–34, S 34–36, M 36–38, L 38–40, XL 40–42 inches chest")} className="flex items-center gap-1 text-[10px] uppercase tracking-[0.12em] underline underline-offset-4"><Ruler className="h-3.5 w-3.5" /> Size Guide</button></div>
-              <div className="flex flex-wrap gap-2">{sizes.map(size => { const variant = product.variants.find(v => v.color === selectedColor && v.size === size); const disabled = Boolean(variant && variant.stock <= 0); return <button key={size} type="button" disabled={disabled} onClick={() => chooseSize(size)} className={`min-w-14 border px-4 py-2.5 text-xs transition ${selectedSize === size ? "border-charcoal bg-charcoal text-white" : "border-border hover:border-charcoal hover:bg-white"} ${disabled ? "cursor-not-allowed opacity-30 line-through" : ""}`}>{size}</button> })}</div>
+              <div className="flex flex-wrap gap-2">{sizes.map(size => { const disabled = !availableSizes.has(size); return <button key={size} type="button" disabled={disabled} aria-pressed={selectedSize === size} onClick={() => chooseSize(size)} className={`min-w-14 border px-4 py-2.5 text-xs transition ${selectedSize === size ? "border-charcoal bg-charcoal text-white" : "border-border hover:border-charcoal hover:bg-white"} ${disabled ? "cursor-not-allowed opacity-30 line-through" : ""}`}>{size}</button> })}</div>
             </div>
           </div>}
 
@@ -249,11 +247,11 @@ export function ProductDetail({ product, relatedProducts }: Props) {
           </div>
 
           <div className="mt-6 grid grid-cols-[auto_1fr] gap-3">
-            <div className="flex h-12 items-center border border-border bg-white"><button type="button" onClick={() => setQuantity(Math.max(1, quantity - 1))} className="grid h-full w-11 place-items-center hover:bg-[#f7f2eb]" aria-label="Decrease quantity"><Minus className="h-4 w-4" /></button><span className="min-w-10 text-center text-sm">{quantity}</span><button type="button" onClick={() => setQuantity(Math.min(Math.max(1, availableStock), quantity + 1))} className="grid h-full w-11 place-items-center hover:bg-[#f7f2eb]" aria-label="Increase quantity"><Plus className="h-4 w-4" /></button></div>
+            <div className="flex h-12 items-center border border-border bg-white"><button type="button" onClick={() => setQuantity(Math.max(1, quantity - 1))} className="grid h-full w-11 place-items-center hover:bg-[#f7f2eb]" aria-label="Decrease quantity"><Minus className="h-4 w-4" /></button><span className="min-w-10 text-center text-sm" aria-live="polite">{quantity}</span><button type="button" onClick={() => setQuantity(Math.min(Math.max(1, availableStock), quantity + 1))} className="grid h-full w-11 place-items-center hover:bg-[#f7f2eb]" aria-label="Increase quantity"><Plus className="h-4 w-4" /></button></div>
             <button type="button" disabled={!inStock} onClick={handleAddToCart} className="flex h-12 items-center justify-center gap-2 bg-[#b8945e] px-6 text-xs font-semibold uppercase tracking-[0.18em] text-[#17130e] transition hover:bg-[#d6b77c] disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500"><ShoppingBag className="h-4 w-4" /> {inStock ? "Add to Bag" : "Out of Stock"}</button>
           </div>
 
-          <div className="mt-4 flex items-center gap-2 border border-[#d6ae72]/35 bg-[#f2e7d4] px-4 py-3 text-[10px] uppercase tracking-[0.14em] text-[#302416]"><Sparkles className="h-4 w-4 shrink-0 text-[#b28750]" /> Free delivery above PKR 5,000</div>
+          <div className="mt-4 space-y-2 border border-[#d6ae72]/35 bg-[#f2e7d4] px-4 py-3 text-[10px] uppercase tracking-[0.12em] text-[#302416]"><p className="flex items-center gap-2"><Sparkles className="h-4 w-4 shrink-0 text-[#b28750]" /> Free delivery on orders above PKR 5,000</p><p className="flex items-center gap-2"><Truck className="h-4 w-4 shrink-0 text-[#b28750]" /> Cash on delivery available across Pakistan</p></div>
 
           <div className="mt-7 grid grid-cols-3 divide-x divide-border border-y border-border py-5 text-center text-[10px] uppercase tracking-[0.1em] text-secondary"><div className="px-2"><Truck className="mx-auto mb-2 h-5 w-5 text-charcoal" />Fast Delivery</div><div className="px-2"><RotateCcw className="mx-auto mb-2 h-5 w-5 text-charcoal" />Easy Returns</div><div className="px-2"><ShieldCheck className="mx-auto mb-2 h-5 w-5 text-charcoal" />Secure Checkout</div></div>
 
