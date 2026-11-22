@@ -37,11 +37,11 @@ const worlds = [
 ]
 
 const categories = [
-  ["Unstitched", "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=1000&auto=format&fit=crop"],
-  ["Ready to Wear", "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=1000&auto=format&fit=crop"],
-  ["Luxury", "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=1000&auto=format&fit=crop"],
-  ["Men", "https://images.unsplash.com/photo-1617137968427-85924c800a22?w=1000&auto=format&fit=crop"],
-  ["Accessories", "https://images.unsplash.com/photo-1523779917675-b6ed3a42a561?w=1000&auto=format&fit=crop"],
+  { name: "Women", href: "/women", fallback: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=1200&auto=format&fit=crop", gender: "women", description: "The complete women’s wardrobe, from everyday to occasion." },
+  { name: "Men", href: "/men", fallback: "https://images.unsplash.com/photo-1617137968427-85924c800a22?w=1200&auto=format&fit=crop", gender: "men", description: "Modern Pakistani menswear and refined essentials." },
+  { name: "Kids", href: "/kids", fallback: "https://images.unsplash.com/photo-1503919545889-aef636e10ad4?w=1200&auto=format&fit=crop", gender: "kids", description: "Little wardrobes for everyday and special moments." },
+  { name: "Unstitched", href: "/products?category=Unstitched", fallback: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=1200&auto=format&fit=crop", category: "Unstitched", description: "Choose your fabric and create your own look." },
+  { name: "Luxury", href: "/products?category=Luxury", fallback: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1200&auto=format&fit=crop", category: "Luxury", description: "Elevated pieces for celebrations and statement dressing." },
 ]
 
 const stories = [
@@ -94,7 +94,7 @@ function personalize<
 export default async function HomePage() {
   const { segment: interest } = readInterest()
 
-  const [newRaw, saleRaw, limitedRaw, popularGroups] = await Promise.all([
+  const [newRaw, saleRaw, limitedRaw, popularGroups, categoryImageRows] = await Promise.all([
     prisma.product.findMany({
       where: { status: "ACTIVE" },
       take: 24,
@@ -116,6 +116,18 @@ export default async function HomePage() {
       orderBy: { _sum: { quantity: "desc" } },
       take: 8,
     }),
+    prisma.product.findMany({
+      where: {
+        status: "ACTIVE",
+        OR: [
+          { gender: { in: ["Women", "WOMEN", "women", "Men", "MEN", "men", "Kids", "KIDS", "kids", "Children"] } },
+          { category: { in: ["Unstitched", "Luxury"] } },
+        ],
+      },
+      orderBy: { createdAt: "desc" },
+      take: 250,
+      select: { category: true, gender: true, images: true },
+    }),
   ])
 
   const newProducts = personalize(newRaw, interest).slice(0, 8)
@@ -131,6 +143,15 @@ export default async function HomePage() {
     popularIds.map((id: string) => popularMap.get(id)).filter(Boolean) as typeof popularProducts,
     interest,
   )
+
+  const categoryImage = (item: (typeof categories)[number]) => {
+    const matchingProduct = categoryImageRows.find((product) =>
+      item.gender
+        ? product.gender?.toLowerCase() === item.gender
+        : product.category.toLowerCase() === item.category?.toLowerCase(),
+    )
+    return matchingProduct?.images?.[0] || item.fallback
+  }
 
   const interestLabel =
     interest === "women"
@@ -313,13 +334,15 @@ export default async function HomePage() {
             <Link href="/products" className="text-[9px] font-semibold uppercase tracking-[0.2em] underline underline-offset-4">View all</Link>
           </div>
           <div className="mt-7 grid grid-cols-2 gap-2 sm:mt-9 md:grid-cols-5 md:gap-3">
-            {categories.map(([name, image]) => (
-              <Link key={name} href={`/products?category=${encodeURIComponent(name)}`} className="group relative overflow-hidden">
-                <div className="aspect-[0.78] bg-cover bg-center transition duration-[900ms] group-hover:scale-[1.05]" style={{ backgroundImage: `url('${image}')` }} />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+            {categories.map((item) => (
+              <Link key={item.name} href={item.href} className="group relative isolate overflow-hidden border border-[#d6ae72]/15 bg-[#171513]">
+                <div className="aspect-[0.78] bg-cover bg-center transition duration-[900ms] group-hover:scale-[1.05]" style={{ backgroundImage: `url('${categoryImage(item)}')` }} />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
                 <div className="absolute inset-x-4 bottom-4 text-white md:inset-x-5 md:bottom-5">
-                  <h3 className="font-editorial text-2xl md:text-3xl">{name}</h3>
-                  <span className="mt-1 block text-[8px] uppercase tracking-[0.18em] text-white/60">Shop →</span>
+                  <p className="mb-1 text-[8px] font-semibold uppercase tracking-[0.2em] text-[#d6b77c]">NOORÉ EDIT</p>
+                  <h3 className="font-editorial text-2xl md:text-3xl">{item.name}</h3>
+                  <p className="mt-1 line-clamp-2 text-[10px] leading-4 text-white/70">{item.description}</p>
+                  <span className="mt-2 block text-[8px] font-semibold uppercase tracking-[0.18em] text-[#f0d8a8]">Shop →</span>
                 </div>
               </Link>
             ))}
