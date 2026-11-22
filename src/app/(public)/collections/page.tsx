@@ -10,7 +10,7 @@ const collections = [
   ["Everyday", "Effortless pieces designed for the rhythm of everyday life.", "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1800&auto=format&fit=crop", "/products?category=Casual"],
   ["New Season", "Fresh silhouettes and considered pieces from the latest NOORÉ edit.", "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1800&auto=format&fit=crop", "/products?sort=newest"],
   ["Best Sellers", "The pieces our customers keep coming back to.", "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=1800&auto=format&fit=crop", "/products?sort=popular"],
-  ["Sale Edit", "Exceptional pieces, thoughtfully reduced for a limited time.", "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=1800&auto=format&fit=crop", "/products?sale=true"],
+  ["Sale Edit", "Exceptional pieces, thoughtfully reduced for a limited time.", "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=1800&auto=format&fit=crop", "/products?sale=1"],
 ]
 
 const departments = [
