@@ -53,9 +53,9 @@ const stories = [
     href: "/products?category=Ready%20to%20Wear",
   },
   {
-    eyebrow: "Festive 2026",
-    title: "Moments worth dressing for.",
-    copy: "Statement pieces for celebrations, evenings and everything between.",
+    eyebrow: "The occasion edit",
+    title: "Made for moments that matter.",
+    copy: "Considered looks for celebrations, evenings and the moments in between.",
     image: "https://images.unsplash.com/photo-1591369822096-ffd140ec948f?w=1800&auto=format&fit=crop",
     href: "/products?category=Luxury",
   },
@@ -175,10 +175,21 @@ export default async function HomePage() {
         </div>
       )}
 
-      {/* HERO — editorial mosaic */}
-      <section className="mx-auto max-w-[1440px] px-3 pt-3 sm:px-5 md:px-8 md:pt-5">
-        <div className="grid gap-3 md:grid-cols-[1.55fr_0.9fr]">
-          <div className="group relative min-h-[500px] overflow-hidden bg-[#24191d] text-white sm:min-h-[620px] md:min-h-[790px]">
+      {/* NOORÉ service promise */}
+      <div className="border-y border-[#b8945e]/25 bg-[#211b1d] px-4 py-3 text-[#f5f0e7]">
+        <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-center gap-x-7 gap-y-2 text-center text-[8px] font-semibold uppercase tracking-[0.2em] sm:text-[9px] sm:tracking-[0.24em]">
+          <span><span className="mr-2 text-[#d6b77c]">✦</span>Complimentary delivery above PKR 5,000</span>
+          <span className="hidden text-[#b8945e] sm:inline">✦</span>
+          <span>Cash on delivery across Pakistan</span>
+          <span className="hidden text-[#b8945e] sm:inline">✦</span>
+          <Link href="/order-tracking" className="text-[#e3c58f] underline decoration-[#b8945e]/60 underline-offset-4 transition hover:text-white">Track your order</Link>
+        </div>
+      </div>
+
+      {/* HERO — NOORÉ campaign */}
+      <section className="mx-auto max-w-[1600px] px-3 pt-3 sm:px-5 md:px-8 md:pt-6">
+        <div className="grid gap-3 md:min-h-[760px] md:grid-cols-[1.6fr_0.9fr]">
+          <div className="group relative min-h-[560px] overflow-hidden bg-[#24191d] text-white sm:min-h-[680px] md:min-h-[760px]">
             <div
               className="absolute inset-0 bg-cover bg-center transition duration-[1200ms] ease-out group-hover:scale-[1.035]"
               style={{ backgroundImage: "url('https://images.unsplash.com/photo-1483985988355-763728e1935b?w=2200&auto=format&fit=crop')" }}
@@ -188,9 +199,9 @@ export default async function HomePage() {
               <span>NOORÉ</span><span className="h-px w-8 bg-[#d6ae72]" /><span>{interestLabel || "New season"}</span>
             </div>
             <div className="absolute inset-x-5 bottom-7 md:inset-x-8 md:bottom-10">
-              <p className="font-serif text-sm italic text-white/70">The art of dressing beautifully.</p>
+              <p className="font-serif text-sm italic text-white/70">A wardrobe with a point of view.</p>
               <h1 className="mt-3 max-w-3xl font-editorial text-5xl font-medium leading-[0.9] tracking-[-0.03em] sm:text-6xl md:text-8xl">
-                A quieter kind of luxury.
+                Elegance, in every detail.
               </h1>
               <div className="mt-7 flex flex-wrap gap-3">
                 <Link href="/products?sort=newest" className="border border-[#f7eee4] bg-[#f7eee4] px-5 py-3 text-[9px] font-semibold uppercase tracking-[0.2em] text-[#24191d] shadow-[0_8px_24px_rgba(0,0,0,.18)] transition-colors duration-200 hover:bg-[#d6ae72] hover:border-[#d6ae72] sm:px-6">Shop new arrivals</Link>
@@ -200,8 +211,8 @@ export default async function HomePage() {
             <span className="absolute bottom-5 right-5 hidden text-[8px] uppercase tracking-[0.2em] text-white/55 md:block">01 / 03</span>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-1">
-            <Link href="/women" className="group relative min-h-[320px] overflow-hidden bg-[#321526] text-white md:min-h-0 md:flex-1">
+          <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-1 md:grid-rows-2">
+            <Link href="/women" className="group relative min-h-[300px] overflow-hidden bg-[#321526] text-white md:min-h-0">
               <div
                 className="absolute inset-0 bg-cover bg-center transition duration-[1000ms] group-hover:scale-[1.045]"
                 style={{ backgroundImage: "url('https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=1400&auto=format&fit=crop')" }}
@@ -214,7 +225,7 @@ export default async function HomePage() {
               </div>
             </Link>
 
-            <Link href="/collections" className="group relative min-h-[320px] overflow-hidden bg-[#e4d7ca] text-[#24191d] md:min-h-0 md:flex-1">
+            <Link href="/collections" className="group relative min-h-[300px] overflow-hidden bg-[#e4d7ca] text-[#24191d] md:min-h-0">
               <div
                 className="absolute inset-0 bg-cover bg-center transition duration-[1000ms] group-hover:scale-[1.045]"
                 style={{ backgroundImage: "url('https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?w=1400&auto=format&fit=crop')" }}
@@ -222,7 +233,7 @@ export default async function HomePage() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent" />
               <div className="absolute inset-x-5 bottom-5 text-white md:inset-x-7 md:bottom-7">
                 <p className="text-[8px] uppercase tracking-[0.28em] text-white/65">02 · Collections</p>
-                <h2 className="mt-2 font-editorial text-4xl leading-none md:text-5xl">Stories in every collection.</h2>
+                <h2 className="mt-2 font-editorial text-4xl leading-none md:text-5xl">A world of considered style.</h2>
                 <span className="mt-4 inline-block text-[9px] font-semibold uppercase tracking-[0.2em] underline underline-offset-4">Explore →</span>
               </div>
             </Link>
