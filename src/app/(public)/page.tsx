@@ -94,7 +94,7 @@ function personalize<
 export default async function HomePage() {
   const { segment: interest } = readInterest()
 
-  const [newRaw, saleRaw, limitedRaw, popularGroups, categoryImageRows] = await Promise.all([
+  const [newRaw, saleRaw, limitedRaw, popularGroups, categoryImageRows, journalPosts] = await Promise.all([
     prisma.product.findMany({
       where: { status: "ACTIVE" },
       take: 24,
@@ -127,6 +127,12 @@ export default async function HomePage() {
       orderBy: { createdAt: "desc" },
       take: 250,
       select: { category: true, gender: true, images: true },
+    }),
+    prisma.blogPost.findMany({
+      where: { published: true },
+      orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
+      take: 3,
+      select: { id: true, title: true, slug: true, category: true, excerpt: true, image: true, author: true, publishedAt: true },
     }),
   ])
 
@@ -174,17 +180,6 @@ export default async function HomePage() {
           </div>
         </div>
       )}
-
-      {/* NOORÉ service promise */}
-      <div className="border-y border-[#b8945e]/25 bg-[#211b1d] px-4 py-3 text-[#f5f0e7]">
-        <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-center gap-x-7 gap-y-2 text-center text-[8px] font-semibold uppercase tracking-[0.2em] sm:text-[9px] sm:tracking-[0.24em]">
-          <span><span className="mr-2 text-[#d6b77c]">✦</span>Complimentary delivery above PKR 5,000</span>
-          <span className="hidden text-[#b8945e] sm:inline">✦</span>
-          <span>Cash on delivery across Pakistan</span>
-          <span className="hidden text-[#b8945e] sm:inline">✦</span>
-          <Link href="/order-tracking" className="text-[#e3c58f] underline decoration-[#b8945e]/60 underline-offset-4 transition hover:text-white">Track your order</Link>
-        </div>
-      </div>
 
       {/* HERO — NOORÉ campaign */}
       <section className="mx-auto max-w-[1600px] px-3 pt-3 sm:px-5 md:px-8 md:pt-6">
@@ -412,29 +407,38 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* Journal */}
-      <section className="bg-[#f0e9df] py-16 md:py-24">
-        <div className="mx-auto max-w-[1440px] px-5 md:px-8">
-          <div className="flex items-end justify-between gap-5">
-            <div><p className="text-[9px] uppercase tracking-[0.32em] text-black/40">From the journal</p><h2 className="mt-2 font-editorial text-5xl leading-none md:text-6xl">Notes on style.</h2></div>
-            <Link href="/journal" className="text-[9px] font-semibold uppercase tracking-[0.2em] underline underline-offset-4">Read all</Link>
+      {/* Journal — latest published stories */}
+      {journalPosts.length > 0 && (
+        <section className="bg-[#f0e9df] py-16 md:py-24">
+          <div className="mx-auto max-w-[1440px] px-5 md:px-8">
+            <div className="flex items-end justify-between gap-5">
+              <div>
+                <p className="text-[9px] uppercase tracking-[0.32em] text-black/40">From the journal</p>
+                <h2 className="mt-2 font-editorial text-5xl leading-none md:text-6xl">Notes on style.</h2>
+                <p className="mt-4 max-w-xl text-sm leading-6 text-black/55">Ideas, inspiration and thoughtful notes from the world of NOORÉ.</p>
+              </div>
+              <Link href="/blog" className="shrink-0 text-[9px] font-semibold uppercase tracking-[0.2em] underline underline-offset-4">Read all</Link>
+            </div>
+            <div className="mt-9 grid gap-8 md:grid-cols-3">
+              {journalPosts.map((post) => (
+                <Link key={post.id} href={`/blog/${post.slug}`} className="group block min-w-0">
+                  <div className="aspect-[1.15] overflow-hidden bg-[#ded5ca]">
+                    {post.image ? (
+                      <img src={post.image} alt={post.title} loading="lazy" className="h-full w-full object-cover transition duration-[900ms] group-hover:scale-[1.04]" />
+                    ) : (
+                      <div className="grid h-full w-full place-items-center font-editorial text-3xl text-[#8c7658]">NOORÉ</div>
+                    )}
+                  </div>
+                  <p className="mt-5 text-[8px] font-semibold uppercase tracking-[0.22em] text-black/45">{post.category || "NOORÉ Journal"}{post.publishedAt ? ` · ${new Intl.DateTimeFormat("en-PK", { day: "numeric", month: "short", year: "numeric" }).format(post.publishedAt)}` : ""}</p>
+                  <h3 className="mt-2 font-editorial text-3xl leading-tight md:text-4xl transition group-hover:text-[#8c6840]">{post.title}</h3>
+                  {post.excerpt && <p className="mt-3 line-clamp-3 text-sm leading-6 text-black/55">{post.excerpt}</p>}
+                  <span className="mt-4 inline-block text-[9px] font-semibold uppercase tracking-[0.18em] underline underline-offset-4">Read story →</span>
+                </Link>
+              ))}
+            </div>
           </div>
-          <div className="mt-9 grid gap-8 md:grid-cols-3">
-            {[
-              ["How to build a timeless Pakistani wardrobe", "Style notes", "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=1200&auto=format&fit=crop"],
-              ["The details behind modern festive dressing", "Inside NOORÉ", "https://images.unsplash.com/photo-1591369822096-ffd140ec948f?w=1200&auto=format&fit=crop"],
-              ["Three ways to style one statement piece", "Styling", "https://images.unsplash.com/photo-1485230895905-ec40ba36b9bc?w=1200&auto=format&fit=crop"],
-            ].map(([title, eyebrow, image]) => (
-              <Link key={title} href="/journal" className="group block">
-                <div className="aspect-[1.15] overflow-hidden bg-black"><div className="h-full w-full bg-cover bg-center transition duration-[900ms] group-hover:scale-[1.04]" style={{ backgroundImage: `url('${image}')` }} /></div>
-                <p className="mt-5 text-[8px] font-semibold uppercase tracking-[0.22em] text-black/45">{eyebrow}</p>
-                <h3 className="mt-2 font-editorial text-3xl leading-tight md:text-4xl">{title}</h3>
-                <span className="mt-4 inline-block text-[9px] font-semibold uppercase tracking-[0.18em] underline underline-offset-4">Read story →</span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Philosophy */}
       <section className="bg-[#321526] px-5 py-24 text-center text-white md:py-32">
