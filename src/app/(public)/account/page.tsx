@@ -53,23 +53,23 @@ export default async function AccountPage() {
   if (!user) redirect("/login")
 
   return (
-    <div className="min-h-screen bg-cream py-8 md:py-12">
+    <div className="min-h-screen bg-[#24211c] py-8 md:py-12">
       <div className="max-w-6xl mx-auto px-4">
-        <section className="relative overflow-hidden rounded-[2rem] bg-charcoal text-white p-7 md:p-10">
+        <section className="relative overflow-hidden rounded-[2rem] bg-[#c6a15b] text-[#171615] p-7 md:p-10">
           <div className="relative z-10 max-w-2xl">
-            <p className="text-xs uppercase tracking-[0.28em] text-white/55">NOORÉ member</p>
+            <p className="text-xs uppercase tracking-[0.28em] text-[#b9b0a2]">NOORÉ member</p>
             <h1 className="font-editorial text-4xl md:text-5xl mt-2 leading-tight">
               Welcome back, {user.name || "Customer"}.
             </h1>
-            <p className="text-white/65 mt-3 max-w-xl">
+            <p className="text-[#b9b0a2] mt-3 max-w-xl">
               Your orders, saved pieces and delivery details — beautifully kept in one place.
             </p>
             <div className="flex flex-wrap gap-3 mt-7">
-              <Link href="/products" className="bg-white text-charcoal rounded-xl px-5 py-3 text-sm font-semibold hover:bg-white/90">
+              <Link href="/products" className="bg-[#171615] text-[#f5f0e7] rounded-xl px-5 py-3 text-sm font-semibold hover:bg-[#171615]/90">
                 Continue shopping
               </Link>
               {activeOrders > 0 && (
-                <Link href="/account/orders" className="border border-white/25 rounded-xl px-5 py-3 text-sm hover:bg-white/10">
+                <Link href="/account/orders" className="border border-white/25 rounded-xl px-5 py-3 text-sm hover:bg-[#171615]/10">
                   Track active order
                 </Link>
               )}
@@ -87,8 +87,8 @@ export default async function AccountPage() {
             ["Lifetime spend", `PKR ${Math.round(spend._sum.total || 0).toLocaleString()}`],
             ["Member since", new Date(user.createdAt).toLocaleDateString()],
           ].map(([label, value]) => (
-            <div key={label} className="bg-white border border-cream rounded-2xl p-4 md:p-5">
-              <p className="text-[10px] md:text-xs uppercase tracking-[0.16em] text-secondary">{label}</p>
+            <div key={label} className="bg-[#171615] border border-[#3a3328] rounded-2xl p-4 md:p-5">
+              <p className="text-[10px] md:text-xs uppercase tracking-[0.16em] text-[#b9b0a2]">{label}</p>
               <p className="text-lg md:text-2xl font-semibold mt-2 truncate">{value}</p>
             </div>
           ))}
@@ -96,37 +96,37 @@ export default async function AccountPage() {
 
         <section className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
           {cards.map((card) => (
-            <Link key={card.href} href={card.href} className="group bg-white border border-cream rounded-2xl p-6 hover:-translate-y-0.5 hover:shadow-xl transition">
-              <div className="text-3xl text-charcoal/70">{card.icon}</div>
+            <Link key={card.href} href={card.href} className="group bg-[#171615] border border-[#3a3328] rounded-2xl p-6 hover:-translate-y-0.5 hover:shadow-xl transition">
+              <div className="text-3xl text-[#f5f0e7]/70">{card.icon}</div>
               <h2 className="font-semibold mt-5">{card.title}</h2>
-              <p className="text-sm text-secondary mt-1">{card.text}</p>
+              <p className="text-sm text-[#b9b0a2] mt-1">{card.text}</p>
               <span className="inline-block mt-5 text-sm font-medium group-hover:underline">Open →</span>
             </Link>
           ))}
         </section>
 
-        <section className="bg-white border border-cream rounded-2xl mt-8 p-6 md:p-8">
+        <section className="bg-[#171615] border border-[#3a3328] rounded-2xl mt-8 p-6 md:p-8">
           <div className="flex flex-wrap justify-between items-end gap-4">
             <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-secondary">Latest activity</p>
+              <p className="text-xs uppercase tracking-[0.2em] text-[#b9b0a2]">Latest activity</p>
               <h2 className="font-editorial text-2xl md:text-3xl mt-1">Recent orders</h2>
             </div>
             <Link href="/account/orders" className="text-sm font-medium hover:underline">View all orders →</Link>
           </div>
 
           {recent.length === 0 ? (
-            <div className="mt-7 rounded-2xl bg-cream/60 p-8 text-center">
+            <div className="mt-7 rounded-2xl bg-[#211f1b] p-8 text-center">
               <p className="font-editorial text-2xl">Your NOORÉ story starts here.</p>
-              <p className="text-sm text-secondary mt-2">No purchases yet. Explore the collection when you&apos;re ready.</p>
-              <Link href="/products" className="inline-flex mt-5 bg-charcoal text-white rounded-xl px-5 py-3 text-sm font-semibold">Explore the collection</Link>
+              <p className="text-sm text-[#b9b0a2] mt-2">No purchases yet. Explore the collection when you&apos;re ready.</p>
+              <Link href="/products" className="inline-flex mt-5 bg-[#c6a15b] text-[#171615] rounded-xl px-5 py-3 text-sm font-semibold">Explore the collection</Link>
             </div>
           ) : (
-            <div className="mt-6 divide-y divide-cream">
+            <div className="mt-6 divide-y divide-[#3a3328]">
               {recent.map((order) => (
-                <Link href={`/account/orders/${order.id}`} key={order.id} className="py-4 first:pt-0 last:pb-0 flex flex-wrap justify-between items-center gap-4 hover:bg-cream/30">
+                <Link href={`/account/orders/${order.id}`} key={order.id} className="py-4 first:pt-0 last:pb-0 flex flex-wrap justify-between items-center gap-4 hover:bg-[#24211c]/30">
                   <div>
                     <p className="font-medium">#{order.orderNumber}</p>
-                    <p className="text-xs text-secondary mt-1">{new Date(order.createdAt).toLocaleDateString()}</p>
+                    <p className="text-xs text-[#b9b0a2] mt-1">{new Date(order.createdAt).toLocaleDateString()}</p>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className={`rounded-full px-3 py-1 text-[10px] uppercase tracking-wide font-medium ${statusClass(order.status)}`}>
