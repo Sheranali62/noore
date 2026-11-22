@@ -32,6 +32,7 @@ export function ProductDetail({ product, relatedProducts }: Props) {
   const [selectedColor, setSelectedColor] = useState(initialVariant?.color || "")
   const [selectedSize, setSelectedSize] = useState(initialVariant?.size || "")
   const [zoomOpen, setZoomOpen] = useState(false)
+  const [sizeGuideOpen, setSizeGuideOpen] = useState(false)
   const [wishlist, setWishlist] = useState(false)
   const [wishlistBusy, setWishlistBusy] = useState(false)
   const [openInfo, setOpenInfo] = useState<string | null>("details")
@@ -214,7 +215,7 @@ export function ProductDetail({ product, relatedProducts }: Props) {
               <h1 className="font-editorial text-3xl leading-[1.05] sm:text-4xl lg:text-[2.8rem]">{product.name}</h1>
               <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[10px] uppercase tracking-[0.12em] text-secondary">
                 <span>SKU {selectedVariant?.sku || product.sku}</span>
-                {reviewCount > 0 && <span className="text-charcoal">★ {averageRating.toFixed(1)} <span className="text-secondary">({reviewCount})</span></span>}
+                <a href="#reviews" className="inline-flex items-center gap-1 text-charcoal underline decoration-[#b8945e] underline-offset-4 transition hover:text-[#8a673b]" aria-label="Read customer reviews">{reviewCount > 0 ? <>★ {averageRating.toFixed(1)} <span className="text-secondary">({reviewCount} reviews)</span></> : "Be the first to review"}</a>
               </div>
             </div>
             <div className="flex shrink-0 gap-2">
@@ -240,7 +241,7 @@ export function ProductDetail({ product, relatedProducts }: Props) {
               <div className="flex flex-wrap gap-2">{colors.map(color => { const unavailable = !availableColors.has(color); return <button key={color} type="button" disabled={unavailable} aria-pressed={selectedColor === color} onClick={() => chooseColor(color)} className={`min-w-20 border px-4 py-2.5 text-xs transition ${selectedColor === color ? "border-[#b8945e] bg-[#b8945e] text-[#17130e]" : "border-border hover:border-charcoal hover:bg-white"} ${unavailable ? "cursor-not-allowed opacity-35 line-through" : ""}`}>{color}</button> })}</div>
             </div>
             <div>
-              <div className="mb-3 flex items-center justify-between"><label className="text-xs font-semibold uppercase tracking-[0.16em]">Size <span className="font-normal normal-case tracking-normal text-secondary">— {selectedSize}</span></label><button type="button" onClick={() => flash("Size guide: XS 32–34, S 34–36, M 36–38, L 38–40, XL 40–42 inches chest")} className="flex items-center gap-1 text-[10px] uppercase tracking-[0.12em] underline underline-offset-4"><Ruler className="h-3.5 w-3.5" /> Size Guide</button></div>
+              <div className="mb-3 flex items-center justify-between"><label className="text-xs font-semibold uppercase tracking-[0.16em]">Size <span className="font-normal normal-case tracking-normal text-secondary">— {selectedSize}</span></label><button type="button" onClick={() => setSizeGuideOpen(true)} className="flex items-center gap-1 text-[10px] uppercase tracking-[0.12em] underline underline-offset-4"><Ruler className="h-3.5 w-3.5" /> Size Guide</button></div>
               <div className="flex flex-wrap gap-2">{sizes.map(size => { const disabled = !availableSizes.has(size); return <button key={size} type="button" disabled={disabled} aria-pressed={selectedSize === size} onClick={() => chooseSize(size)} className={`min-w-14 border px-4 py-2.5 text-xs transition ${selectedSize === size ? "border-charcoal bg-charcoal text-white" : "border-border hover:border-charcoal hover:bg-white"} ${disabled ? "cursor-not-allowed opacity-30 line-through" : ""}`}>{size}</button> })}</div>
             </div>
           </div>}
@@ -255,9 +256,17 @@ export function ProductDetail({ product, relatedProducts }: Props) {
             <button type="button" disabled={!inStock} onClick={handleAddToCart} className="flex h-12 items-center justify-center gap-2 bg-[#b8945e] px-6 text-xs font-semibold uppercase tracking-[0.18em] text-[#17130e] transition hover:bg-[#d6b77c] disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500"><ShoppingBag className="h-4 w-4" /> {inStock ? "Add to Bag" : "Out of Stock"}</button>
           </div>
 
-          <div className="mt-4 space-y-2 border border-[#d6ae72]/35 bg-[#f2e7d4] px-4 py-3 text-[10px] uppercase tracking-[0.12em] text-[#302416]"><p className="flex items-center gap-2"><Sparkles className="h-4 w-4 shrink-0 text-[#b28750]" /> Free delivery on orders above PKR 5,000</p><p className="flex items-center gap-2"><Truck className="h-4 w-4 shrink-0 text-[#b28750]" /> Cash on delivery available across Pakistan</p></div>
+          <div className="mt-4 space-y-3 border border-[#d6ae72]/35 bg-[#f2e7d4] px-4 py-4 text-[10px] uppercase tracking-[0.12em] text-[#302416]">
+            <p className="flex items-center gap-2"><Sparkles className="h-4 w-4 shrink-0 text-[#b28750]" /> Free standard delivery on orders above PKR 5,000</p>
+            <p className="flex items-center gap-2"><Truck className="h-4 w-4 shrink-0 text-[#b28750]" /> Cash on delivery available across Pakistan</p>
+            <a href="/shipping" className="ml-6 inline-block text-[9px] font-semibold tracking-[0.16em] text-[#806039] underline underline-offset-4 hover:text-[#21171d]">VIEW DELIVERY DETAILS</a>
+          </div>
 
-          <div className="mt-7 grid grid-cols-3 divide-x divide-border border-y border-border py-5 text-center text-[10px] uppercase tracking-[0.1em] text-secondary"><div className="px-2"><Truck className="mx-auto mb-2 h-5 w-5 text-charcoal" />Fast Delivery</div><div className="px-2"><RotateCcw className="mx-auto mb-2 h-5 w-5 text-charcoal" />Easy Returns</div><div className="px-2"><ShieldCheck className="mx-auto mb-2 h-5 w-5 text-charcoal" />Secure Checkout</div></div>
+          <div className="mt-7 grid grid-cols-3 divide-x divide-border border-y border-border py-5 text-center text-[10px] uppercase tracking-[0.1em] text-secondary">
+            <div className="px-2"><Truck className="mx-auto mb-2 h-5 w-5 text-charcoal" />Nationwide COD</div>
+            <a href="/returns" className="px-2 transition hover:text-[#8a673b]"><RotateCcw className="mx-auto mb-2 h-5 w-5 text-charcoal" />7-Day Exchange</a>
+            <div className="px-2"><ShieldCheck className="mx-auto mb-2 h-5 w-5 text-charcoal" />Secure Checkout</div>
+          </div>
 
           <div className="mt-7 divide-y divide-border border-y border-border">
             {[
@@ -276,6 +285,17 @@ export function ProductDetail({ product, relatedProducts }: Props) {
       {recentlyViewed.length > 0 && <section className="mt-20 border-t border-border pt-12"><p className="text-[10px] uppercase tracking-[0.2em] text-secondary">For your next visit</p><h2 className="mt-2 font-editorial text-3xl">Recently viewed</h2><div className="mt-7 grid grid-cols-2 gap-4 md:grid-cols-4">{recentlyViewed.map(p => <ProductCard key={p.id} {...p} />)}</div></section>}
 
       {inStock && <div className="fixed inset-x-0 bottom-0 z-40 border-t border-black/10 bg-white/95 p-3 shadow-2xl backdrop-blur md:hidden"><div className="flex items-center gap-3"><div className="min-w-0 flex-1"><p className="truncate text-xs font-medium">{product.name}</p><p className="text-[11px] text-secondary">{money(currentPrice)} · {selectedVariant ? `${selectedVariant.color} / ${selectedVariant.size}` : "Ready to ship"}</p></div><button type="button" onClick={handleAddToCart} className="flex h-11 shrink-0 items-center gap-2 bg-[#b8945e] px-5 text-[10px] font-semibold uppercase tracking-[.16em] text-[#17130e]"><ShoppingBag className="h-4 w-4" /> Add to Bag</button></div></div>}
+
+      {sizeGuideOpen && <div className="fixed inset-0 z-[90] flex items-center justify-center bg-[#171316]/65 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="size-guide-title" onClick={() => setSizeGuideOpen(false)}>
+        <div className="relative w-full max-w-md border border-[#d6ae72]/40 bg-[#fbf8f2] p-7 shadow-2xl" onClick={e => e.stopPropagation()}>
+          <button type="button" onClick={() => setSizeGuideOpen(false)} className="absolute right-4 top-4 grid h-9 w-9 place-items-center border border-border bg-white transition hover:border-charcoal" aria-label="Close size guide"><X className="h-4 w-4" /></button>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#9b7542]">NOORÉ fit assistance</p>
+          <h2 id="size-guide-title" className="mt-3 font-editorial text-3xl">Find your fit</h2>
+          <p className="mt-4 text-sm leading-7 text-secondary">Sizing can vary by style and fabric. For the most accurate fit, compare the size selected above with a similar garment you already own.</p>
+          <div className="mt-5 border-l-2 border-[#b8945e] bg-[#f2e7d4] px-4 py-3 text-sm leading-6 text-[#62513b]">Need exact measurements? Our team can help confirm the fit before you order.</div>
+          <a href="/contact" className="mt-6 inline-flex w-full items-center justify-center bg-[#21171d] px-5 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-white transition hover:bg-[#3a2932]">Ask NOORÉ for sizing help</a>
+        </div>
+      </div>}
 
       {zoomOpen && <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#171316]/95 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Product image viewer" onClick={() => setZoomOpen(false)}><button type="button" onClick={() => setZoomOpen(false)} className="absolute right-5 top-5 rounded-full bg-white p-2" aria-label="Close image viewer"><X className="h-5 w-5" /></button><img src={imageSource(displayImages[selectedImage])} alt={`${product.name} enlarged view`} onError={() => markImageFailed(displayImages[selectedImage])} className="max-h-[92vh] max-w-[92vw] object-contain" onClick={e => e.stopPropagation()} /></div>}
     </div>
