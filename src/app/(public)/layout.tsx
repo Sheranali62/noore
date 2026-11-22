@@ -164,6 +164,10 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
             <Link href="/order-tracking" className="block transition hover:text-[#f7f0e7]">Track an order</Link>
             <Link href="/account/orders" className="block transition hover:text-[#f7f0e7]">My orders</Link>
             <Link href="/account/addresses" className="block transition hover:text-[#f7f0e7]">My addresses</Link>
+            <Link href="/shipping" className="block transition hover:text-[#f7f0e7]">Shipping information</Link>
+            <Link href="/returns" className="block transition hover:text-[#f7f0e7]">Returns & exchanges</Link>
+            <Link href="/privacy" className="block transition hover:text-[#f7f0e7]">Privacy policy</Link>
+            <Link href="/terms" className="block transition hover:text-[#f7f0e7]">Terms & conditions</Link>
             <Link href="/account" className="block transition hover:text-[#f7f0e7]">My account</Link>
             <button onClick={() => session ? signOut() : toggleCart()} className="block text-left transition hover:text-[#f7f0e7]">{session ? "Sign out" : "Open shopping bag"}</button>
           </div>
