@@ -177,7 +177,7 @@ export default async function HomePage() {
               </div>
             </div>
             <span className="absolute bottom-5 right-5 hidden text-[8px] uppercase tracking-[0.2em] text-white/55 md:block">01 / 03</span>
-          </Link>
+          </div>
 
           <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-1">
             <Link href="/women" className="group relative min-h-[320px] overflow-hidden bg-[#321526] text-white md:min-h-0 md:flex-1">
@@ -206,7 +206,6 @@ export default async function HomePage() {
               </div>
             </Link>
           </div>
-        </div>
         </div>
       </section>
 
