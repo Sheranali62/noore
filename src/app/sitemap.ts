@@ -3,10 +3,9 @@ export const revalidate = 0
 
 import { prisma } from "@/lib/prisma"
 
-export default async function sitemap() {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://noore-nine.vercel.app").replace(/\/$/, "")
 
-  // Static pages
+export default async function sitemap() {
   const staticPages = [
     "",
     "/products",
@@ -16,48 +15,46 @@ export default async function sitemap() {
     "/size-guide",
     "/store-locator",
     "/faq",
-    "/shipping-policy",
-    "/return-policy",
-    "/privacy-policy",
+    "/shipping",
+    "/returns",
+    "/privacy",
     "/terms",
   ].map((path) => ({
-    url: `${baseUrl}${path}`,
+    url: `${SITE_URL}${path}`,
     lastModified: new Date(),
     changeFrequency: "daily" as const,
     priority: path === "" ? 1 : 0.8,
   }))
 
-  // Blog posts
   let posts: { slug: string; updatedAt: Date }[] = []
   try {
     posts = await prisma.blogPost.findMany({
-    where: { published: true },
-    select: { slug: true, updatedAt: true },
+      where: { published: true },
+      select: { slug: true, updatedAt: true },
     })
   } catch (error) {
     console.error("Sitemap blog query failed:", error)
   }
 
   const blogPages = posts.map((post) => ({
-    url: `${baseUrl}/blog/${post.slug}`,
+    url: `${SITE_URL}/blog/${post.slug}`,
     lastModified: post.updatedAt,
     changeFrequency: "weekly" as const,
     priority: 0.6,
   }))
 
-  // Product pages
   let products: { slug: string; updatedAt: Date }[] = []
   try {
     products = await prisma.product.findMany({
-    where: { status: "ACTIVE" },
-    select: { slug: true, updatedAt: true },
+      where: { status: "ACTIVE" },
+      select: { slug: true, updatedAt: true },
     })
   } catch (error) {
     console.error("Sitemap product query failed:", error)
   }
 
   const productPages = products.map((product) => ({
-    url: `${baseUrl}/product/${product.slug}`,
+    url: `${SITE_URL}/product/${product.slug}`,
     lastModified: product.updatedAt,
     changeFrequency: "weekly" as const,
     priority: 0.7,
