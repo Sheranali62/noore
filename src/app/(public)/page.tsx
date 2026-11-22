@@ -142,9 +142,9 @@ export default async function HomePage() {
           : null
 
   return (
-    <main className="overflow-hidden bg-[#f6f1e9] text-[#24191d]">
+    <main className="overflow-hidden bg-[#11100f] text-[#f5f0e7]">
       {interestLabel && (
-        <div className="border-b border-black/5 bg-white">
+        <div className="border-b border-[#b8945e]/20 bg-[#191816]">
           <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-4 px-5 py-3 md:px-8">
             <p className="text-[9px] font-semibold uppercase tracking-[0.24em]">{interestLabel}</p>
             <Link href={`/products?gender=${interest}`} className="text-[9px] font-semibold uppercase tracking-[0.18em] underline underline-offset-4">
@@ -226,10 +226,10 @@ export default async function HomePage() {
       <section className="mx-auto max-w-[1440px] px-5 py-16 md:px-8 md:py-24">
         <div className="grid gap-10 md:grid-cols-[0.55fr_1.45fr] md:items-end">
           <div>
-            <p className="text-[9px] uppercase tracking-[0.32em] text-black/40">Choose your world</p>
+            <p className="text-[9px] uppercase tracking-[0.32em] text-[#c5b99f]/65">Choose your world</p>
             <h2 className="mt-3 font-editorial text-5xl leading-[0.92] md:text-6xl">Find your point of view.</h2>
           </div>
-          <p className="max-w-xl text-sm leading-7 text-black/50 md:justify-self-end">A curated wardrobe spanning women, men and little ones — designed with a distinctly NOORÉ sense of proportion, texture and ease.</p>
+          <p className="max-w-xl text-sm leading-7 text-[#d1c7b9]/70 md:justify-self-end">A curated wardrobe spanning women, men and little ones — designed with a distinctly NOORÉ sense of proportion, texture and ease.</p>
         </div>
 
         <div className="mt-10 grid gap-3 md:grid-cols-3">
@@ -252,7 +252,7 @@ export default async function HomePage() {
       {newProducts.length > 0 && (
         <section className="bg-white py-16 md:py-24">
           <div className="mx-auto max-w-[1440px] px-5 md:px-8">
-            <div className="flex items-end justify-between gap-6 border-b border-black/[0.08] pb-5">
+            <div className="flex items-end justify-between gap-6 border-b border-[#b8945e]/30 pb-5">
               <div>
                 <p className="text-[9px] uppercase tracking-[0.32em] text-black/40">Just landed</p>
                 <h2 className="mt-2 font-editorial text-5xl leading-none md:text-6xl">The new edit.</h2>
@@ -284,7 +284,7 @@ export default async function HomePage() {
 
       {/* Trending */}
       {trendingProducts.length > 0 && (
-        <section className="bg-[#f0e9df] py-16 md:py-24">
+        <section className="bg-[#1b1916] py-16 text-[#f5f0e7] md:py-24">
           <div className="mx-auto max-w-[1440px] px-5 md:px-8">
             <div className="mb-8 flex items-end justify-between gap-5">
               <div>
