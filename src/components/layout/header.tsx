@@ -347,7 +347,7 @@ export function Header({ scrolled = false }: { scrolled?: boolean }) {
           {/* MOBILE MENU BUTTON */}
           <button
             type="button"
-            className="relative z-[60] mr-3 grid h-10 w-10 shrink-0 place-items-center rounded-full border border-black/10 bg-white/90 transition hover:bg-white md:hidden"
+            className="relative z-[60] mr-2 grid h-10 w-10 shrink-0 place-items-center rounded-full border border-[#c9a66b]/35 bg-[#1b1916] text-[#d6b77c] transition hover:bg-[#29241d] md:hidden"
             onClick={() => {
               setMobileOpen(true)
               setMegaOpen(false)
@@ -805,14 +805,14 @@ export function Header({ scrolled = false }: { scrolled?: boolean }) {
           {/* DRAWER */}
           <aside
             id="noore-mobile-menu"
-            className="absolute left-0 top-0 flex h-[100dvh] w-[88%] max-w-sm flex-col overflow-y-auto bg-cream text-charcoal shadow-2xl"
+            className="absolute left-0 top-0 flex h-[100dvh] w-[88%] max-w-sm flex-col overflow-y-auto border-r border-[#c9a66b]/25 bg-[#11100f] text-[#f5f0e7] shadow-2xl"
           >
             {/* DRAWER HEADER */}
-            <div className="flex items-center justify-between border-b border-black/10 bg-cream px-5 py-5">
+            <div className="flex items-center justify-between border-b border-[#c9a66b]/25 bg-[#171615] px-5 py-5">
               <Link
                 href="/"
                 onClick={() => setMobileOpen(false)}
-                className="font-editorial text-2xl font-semibold tracking-tight"
+                className="font-editorial text-2xl font-semibold tracking-tight text-[#d6b77c]"
               >
                 NOORÉ
               </Link>
@@ -820,7 +820,7 @@ export function Header({ scrolled = false }: { scrolled?: boolean }) {
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}
-                className="grid h-10 w-10 place-items-center rounded-full border border-black/10 bg-white"
+                className="grid h-10 w-10 place-items-center rounded-full border border-[#c9a66b]/30 bg-[#24211c] text-[#f5f0e7]"
                 aria-label="Close navigation menu"
               >
                 <X
@@ -843,7 +843,7 @@ export function Header({ scrolled = false }: { scrolled?: boolean }) {
                     inputRef.current?.focus()
                   }, 100)
                 }}
-                className="mt-5 flex w-full items-center gap-3 border border-black/10 bg-white px-4 py-3.5 text-left text-sm"
+                className="mt-5 flex w-full items-center gap-3 border border-[#c9a66b]/30 bg-[#1b1916] px-4 py-3.5 text-left text-sm text-[#f5f0e7]"
               >
                 <Search className="h-4 w-4 shrink-0 text-secondary" />
 
@@ -862,7 +862,7 @@ export function Header({ scrolled = false }: { scrolled?: boolean }) {
                 <Link
                   href="/products"
                   onClick={() => setMobileOpen(false)}
-                  className="flex items-center justify-between border-b border-black/10 py-4 text-sm font-medium"
+                  className="flex items-center justify-between border-b border-[#3a3328] py-4 text-sm font-medium text-[#f5f0e7]"
                 >
                   <span>Shop All</span>
 
@@ -874,7 +874,7 @@ export function Header({ scrolled = false }: { scrolled?: boolean }) {
                     key={item.label}
                     href={item.href}
                     onClick={() => setMobileOpen(false)}
-                    className="flex items-center justify-between border-b border-black/10 py-4 text-sm"
+                    className="flex items-center justify-between border-b border-[#3a3328] py-4 text-sm text-[#eee7dc]"
                   >
                     <span>{item.label}</span>
 
@@ -924,7 +924,7 @@ export function Header({ scrolled = false }: { scrolled?: boolean }) {
               </nav>
 
               {/* HELP */}
-              <div className="mt-8 bg-white p-5">
+              <div className="mt-8 border border-[#c9a66b]/25 bg-[#171615] p-5">
                 <p className="eyebrow">
                   Need help?
                 </p>
