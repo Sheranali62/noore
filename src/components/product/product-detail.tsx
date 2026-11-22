@@ -26,6 +26,7 @@ const money = (value: number) => `PKR ${value.toLocaleString()}`
 export function ProductDetail({ product, relatedProducts }: Props) {
   const { addItem } = useCart()
   const [selectedImage, setSelectedImage] = useState(0)
+  const [touchStartX, setTouchStartX] = useState<number | null>(null)
   const [failedImages, setFailedImages] = useState<Record<string, boolean>>({})
   const [quantity, setQuantity] = useState(1)
   const initialVariant = product.variants.find(v => v.stock > 0) || product.variants[0]
@@ -153,6 +154,13 @@ export function ProductDetail({ product, relatedProducts }: Props) {
     setSelectedImage(i => (i + direction + displayImages.length) % displayImages.length)
   }
 
+  const handleGalleryTouchEnd = (event: React.TouchEvent<HTMLDivElement>) => {
+    if (touchStartX === null) return
+    const distance = event.changedTouches[0].clientX - touchStartX
+    if (Math.abs(distance) > 45) changeImage(distance < 0 ? 1 : -1)
+    setTouchStartX(null)
+  }
+
   return (
     <div className="pb-24 md:pb-16">
       {notice && (
@@ -183,8 +191,8 @@ export function ProductDetail({ product, relatedProducts }: Props) {
               ))}
             </div>
 
-            <div className="relative overflow-hidden bg-[#f2eee7]">
-              <div className="relative aspect-[4/5] w-full sm:aspect-[3/4]">
+            <div className="group relative overflow-hidden bg-[#f2eee7]">
+              <div className="relative aspect-[4/5] w-full touch-pan-y sm:aspect-[3/4]" onTouchStart={event => setTouchStartX(event.touches[0].clientX)} onTouchEnd={handleGalleryTouchEnd} onTouchCancel={() => setTouchStartX(null)}>
                 <img
                   key={displayImages[selectedImage]}
                   src={imageSource(displayImages[selectedImage])}
@@ -200,8 +208,8 @@ export function ProductDetail({ product, relatedProducts }: Props) {
                   <button type="button" onClick={() => setZoomOpen(true)} className="flex items-center gap-2 bg-white/90 px-3 py-2 text-[9px] font-semibold uppercase tracking-[0.18em] shadow-sm backdrop-blur hover:bg-white" aria-label="Zoom image"><ZoomIn className="h-3.5 w-3.5" /> Zoom</button>
                 </div>
                 {displayImages.length > 1 && <>
-                  <button type="button" onClick={() => changeImage(-1)} className="absolute left-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/90 shadow-sm sm:opacity-0 sm:transition sm:group-hover:opacity-100" aria-label="Previous image"><ChevronLeft className="h-5 w-5" /></button>
-                  <button type="button" onClick={() => changeImage(1)} className="absolute right-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/90 shadow-sm" aria-label="Next image"><ChevronRight className="h-5 w-5" /></button>
+                  <button type="button" onClick={() => changeImage(-1)} className="absolute left-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/90 shadow-sm transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#b8945e] sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100" aria-label="Previous image"><ChevronLeft className="h-5 w-5" /></button>
+                  <button type="button" onClick={() => changeImage(1)} className="absolute right-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/90 shadow-sm transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#b8945e] sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100" aria-label="Next image"><ChevronRight className="h-5 w-5" /></button>
                 </>}
               </div>
             </div>
@@ -297,7 +305,20 @@ export function ProductDetail({ product, relatedProducts }: Props) {
         </div>
       </div>}
 
-      {zoomOpen && <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#171316]/95 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Product image viewer" onClick={() => setZoomOpen(false)}><button type="button" onClick={() => setZoomOpen(false)} className="absolute right-5 top-5 rounded-full bg-white p-2" aria-label="Close image viewer"><X className="h-5 w-5" /></button><img src={imageSource(displayImages[selectedImage])} alt={`${product.name} enlarged view`} onError={() => markImageFailed(displayImages[selectedImage])} className="max-h-[92vh] max-w-[92vw] object-contain" onClick={e => e.stopPropagation()} /></div>}
+      {zoomOpen && <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#171316]/[.97] p-4 pb-6 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label={product.name + " image gallery"} onClick={() => setZoomOpen(false)} onKeyDown={event => { if (event.key === "Escape") setZoomOpen(false); if (event.key === "ArrowLeft") changeImage(-1); if (event.key === "ArrowRight") changeImage(1) }}>
+        <button type="button" onClick={() => setZoomOpen(false)} className="absolute right-4 top-4 z-10 grid h-11 w-11 place-items-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white/20 sm:right-7 sm:top-7" aria-label="Close image viewer"><X className="h-5 w-5" /></button>
+        <div className="relative flex min-h-0 w-full flex-1 items-center justify-center" onClick={event => event.stopPropagation()}>
+          {displayImages.length > 1 && <button type="button" onClick={() => changeImage(-1)} className="absolute left-0 z-10 grid h-11 w-11 place-items-center rounded-full bg-white/10 text-white transition hover:bg-white/20 sm:left-5" aria-label="Previous image"><ChevronLeft className="h-6 w-6" /></button>}
+          <img src={imageSource(displayImages[selectedImage])} alt={product.name + " enlarged view " + (selectedImage + 1)} onError={() => markImageFailed(displayImages[selectedImage])} className="max-h-full max-w-[calc(100%-5.5rem)] object-contain sm:max-w-[calc(100%-10rem)]" />
+          {displayImages.length > 1 && <button type="button" onClick={() => changeImage(1)} className="absolute right-0 z-10 grid h-11 w-11 place-items-center rounded-full bg-white/10 text-white transition hover:bg-white/20 sm:right-5" aria-label="Next image"><ChevronRight className="h-6 w-6" /></button>}
+        </div>
+        <div className="mt-4 flex w-full max-w-2xl flex-col items-center gap-3" onClick={event => event.stopPropagation()}>
+          <p className="text-[10px] uppercase tracking-[0.22em] text-white/65">{selectedImage + 1} / {displayImages.length} <span className="mx-2 text-[#b8945e]">·</span> {product.name}</p>
+          {displayImages.length > 1 && <div className="flex max-w-full gap-2 overflow-x-auto px-1 pb-2">
+            {displayImages.map((img, index) => <button key={img + "-lightbox-" + index} type="button" onClick={() => setSelectedImage(index)} aria-label={"View image " + (index + 1)} aria-current={selectedImage === index} className={`h-16 w-12 shrink-0 overflow-hidden border transition sm:h-20 sm:w-16 ${selectedImage === index ? "border-[#d6ae72] opacity-100" : "border-white/15 opacity-50 hover:opacity-90"}`}><img src={imageSource(img)} alt="" loading="lazy" className="h-full w-full object-cover" /></button>)}
+          </div>}
+        </div>
+      </div>}
     </div>
   )
 }
