@@ -157,7 +157,7 @@ export default async function HomePage() {
       {/* HERO — editorial mosaic */}
       <section className="mx-auto max-w-[1440px] px-3 pt-3 sm:px-5 md:px-8 md:pt-5">
         <div className="grid gap-3 md:grid-cols-[1.55fr_0.9fr]">
-          <Link href="/products" className="group relative min-h-[650px] overflow-hidden bg-[#24191d] text-white md:min-h-[790px]">
+          <div className="group relative min-h-[500px] overflow-hidden bg-[#24191d] text-white sm:min-h-[620px] md:min-h-[790px]">
             <div
               className="absolute inset-0 bg-cover bg-center transition duration-[1200ms] ease-out group-hover:scale-[1.035]"
               style={{ backgroundImage: "url('https://images.unsplash.com/photo-1483985988355-763728e1935b?w=2200&auto=format&fit=crop')" }}
@@ -172,8 +172,8 @@ export default async function HomePage() {
                 A quieter kind of luxury.
               </h1>
               <div className="mt-7 flex flex-wrap gap-3">
-                <span className="border border-[#f7eee4] bg-[#f7eee4] px-6 py-3 text-[9px] font-semibold uppercase tracking-[0.2em] text-[#24191d] shadow-[0_8px_24px_rgba(0,0,0,.18)] transition-colors duration-200 hover:bg-[#d6ae72] hover:border-[#d6ae72]">Shop new arrivals</span>
-                <span className="border border-white/70 bg-black/10 px-6 py-3 text-[9px] font-semibold uppercase tracking-[0.2em] text-white transition-colors duration-200 hover:border-[#d6ae72] hover:bg-[#d6ae72] hover:text-[#24191d]">Explore luxury</span>
+                <Link href="/products?sort=newest" className="border border-[#f7eee4] bg-[#f7eee4] px-5 py-3 text-[9px] font-semibold uppercase tracking-[0.2em] text-[#24191d] shadow-[0_8px_24px_rgba(0,0,0,.18)] transition-colors duration-200 hover:bg-[#d6ae72] hover:border-[#d6ae72] sm:px-6">Shop new arrivals</Link>
+                <Link href="/products?category=Luxury" className="border border-white/70 bg-black/10 px-5 py-3 text-[9px] font-semibold uppercase tracking-[0.2em] text-white transition-colors duration-200 hover:border-[#d6ae72] hover:bg-[#d6ae72] hover:text-[#24191d] sm:px-6">Explore luxury</Link>
               </div>
             </div>
             <span className="absolute bottom-5 right-5 hidden text-[8px] uppercase tracking-[0.2em] text-white/55 md:block">01 / 03</span>
@@ -204,14 +204,14 @@ export default async function HomePage() {
                 <h2 className="mt-2 font-editorial text-4xl leading-none md:text-5xl">Stories in every collection.</h2>
                 <span className="mt-4 inline-block text-[9px] font-semibold uppercase tracking-[0.2em] underline underline-offset-4">Explore →</span>
               </div>
-            </Link>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Brand ticker */}
-      <section className="border-b border-black/5 bg-white py-5">
-        <div className="noore-announcement-track flex min-w-max items-center gap-8 px-5 text-[9px] font-semibold uppercase tracking-[0.28em] text-black/45">
+      <section className="border-y border-[#b8945e]/20 bg-[#191816] py-4 sm:py-5">
+        <div className="noore-announcement-track flex min-w-max items-center gap-8 px-5 text-[9px] font-semibold uppercase tracking-[0.28em] text-[#c5b99f]/65">
           {Array.from({ length: 2 }).flatMap((_, repeat) =>
             ["Designed in Pakistan", "Quiet luxury", "Free delivery above PKR 5,000", "Easy 7-day exchanges", "Made for the modern wardrobe"].map((item) => (
               <span key={`${repeat}-${item}`} className="flex items-center gap-8">
@@ -223,16 +223,16 @@ export default async function HomePage() {
       </section>
 
       {/* Shop by world — magazine layout */}
-      <section className="mx-auto max-w-[1440px] px-5 py-16 md:px-8 md:py-24">
+      <section className="mx-auto max-w-[1440px] px-3 py-12 sm:px-5 sm:py-16 md:px-8 md:py-24">
         <div className="grid gap-10 md:grid-cols-[0.55fr_1.45fr] md:items-end">
           <div>
             <p className="text-[9px] uppercase tracking-[0.32em] text-[#c5b99f]/65">Choose your world</p>
-            <h2 className="mt-3 font-editorial text-5xl leading-[0.92] md:text-6xl">Find your point of view.</h2>
+            <h2 className="mt-3 font-editorial text-4xl leading-[0.92] sm:text-5xl md:text-6xl">Find your point of view.</h2>
           </div>
           <p className="max-w-xl text-sm leading-7 text-[#d1c7b9]/70 md:justify-self-end">A curated wardrobe spanning women, men and little ones — designed with a distinctly NOORÉ sense of proportion, texture and ease.</p>
         </div>
 
-        <div className="mt-10 grid gap-3 md:grid-cols-3">
+        <div className="mt-7 grid gap-3 sm:mt-10 md:grid-cols-3">
           {worlds.map((item, index) => (
             <Link key={item.title} href={item.href} className={`group relative overflow-hidden bg-black text-white ${index === 1 ? "md:mt-12" : ""}`}>
               <div className="aspect-[0.78] bg-cover bg-center transition duration-[1000ms] group-hover:scale-[1.04]" style={{ backgroundImage: `url('${item.image}')` }} />
@@ -250,8 +250,8 @@ export default async function HomePage() {
 
       {/* New arrivals */}
       {newProducts.length > 0 && (
-        <section className="bg-white py-16 md:py-24">
-          <div className="mx-auto max-w-[1440px] px-5 md:px-8">
+        <section className="bg-[#f0e9df] py-12 sm:py-16 md:py-24">
+          <div className="mx-auto max-w-[1440px] px-3 sm:px-5 md:px-8">
             <div className="flex items-end justify-between gap-6 border-b border-[#b8945e]/30 pb-5">
               <div>
                 <p className="text-[9px] uppercase tracking-[0.32em] text-black/40">Just landed</p>
@@ -259,7 +259,7 @@ export default async function HomePage() {
               </div>
               <Link href="/products" className="text-[9px] font-semibold uppercase tracking-[0.2em] underline underline-offset-4">View all</Link>
             </div>
-            <div className="mt-8 grid grid-cols-2 gap-x-3 gap-y-9 md:grid-cols-4 md:gap-x-5 md:gap-y-12">
+            <div className="mt-6 grid grid-cols-2 gap-x-2.5 gap-y-7 sm:mt-8 sm:gap-x-3 sm:gap-y-9 md:grid-cols-4 md:gap-x-5 md:gap-y-12">
               {newProducts.map((product: any) => (
                 <ProductCard key={product.id} id={product.id} name={product.name} slug={product.slug} price={product.price} salePrice={product.salePrice} image={product.images[0] || "/placeholder.jpg"} hoverImage={product.images[1]} category={product.category} stock={product.stock} gender={product.gender} />
               ))}
@@ -288,7 +288,7 @@ export default async function HomePage() {
           <div className="mx-auto max-w-[1440px] px-5 md:px-8">
             <div className="mb-8 flex items-end justify-between gap-5">
               <div>
-                <p className="text-[9px] uppercase tracking-[0.32em] text-black/40">Loved by our customers</p>
+                <p className="text-[9px] uppercase tracking-[0.32em] text-[#c5b99f]/60">Loved by our customers</p>
                 <h2 className="mt-2 font-editorial text-5xl leading-none md:text-6xl">Trending now.</h2>
               </div>
               <Link href="/products?sort=popular" className="text-[9px] font-semibold uppercase tracking-[0.2em] underline underline-offset-4">Shop trending</Link>
@@ -303,7 +303,7 @@ export default async function HomePage() {
       )}
 
       {/* Category strip */}
-      <section className="bg-[#24191d] py-16 text-white md:py-24">
+      <section className="bg-[#24191d] py-12 text-white sm:py-16 md:py-24">
         <div className="mx-auto max-w-[1440px] px-5 md:px-8">
           <div className="flex items-end justify-between gap-5">
             <div>
@@ -312,7 +312,7 @@ export default async function HomePage() {
             </div>
             <Link href="/products" className="text-[9px] font-semibold uppercase tracking-[0.2em] underline underline-offset-4">View all</Link>
           </div>
-          <div className="mt-9 grid grid-cols-2 gap-2 md:grid-cols-5 md:gap-3">
+          <div className="mt-7 grid grid-cols-2 gap-2 sm:mt-9 md:grid-cols-5 md:gap-3">
             {categories.map(([name, image]) => (
               <Link key={name} href={`/products?category=${encodeURIComponent(name)}`} className="group relative overflow-hidden">
                 <div className="aspect-[0.78] bg-cover bg-center transition duration-[900ms] group-hover:scale-[1.05]" style={{ backgroundImage: `url('${image}')` }} />
@@ -328,7 +328,7 @@ export default async function HomePage() {
       </section>
 
       {/* Story pair */}
-      <section className="mx-auto max-w-[1440px] px-5 py-16 md:px-8 md:py-24">
+      <section className="mx-auto max-w-[1440px] px-3 py-12 sm:px-5 sm:py-16 md:px-8 md:py-24">
         <div className="grid gap-3 md:grid-cols-2">
           {stories.map((story, index) => (
             <Link key={story.title} href={story.href} className={`group relative min-h-[560px] overflow-hidden bg-black text-white ${index === 1 ? "md:mt-16" : ""}`}>
