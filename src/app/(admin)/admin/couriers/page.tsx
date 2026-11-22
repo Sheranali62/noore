@@ -238,19 +238,19 @@ export default function CouriersPage() {
   }
 
   return (
-    <div className="max-w-7xl pb-12">
+    <div className="mx-auto max-w-7xl pb-12 text-white">
 
       {/* HEADER */}
       <div className="mb-8">
-        <p className="text-xs uppercase tracking-[0.22em] text-secondary">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#d6ae72]">
           Operations
         </p>
 
-        <h1 className="mt-2 text-3xl font-semibold">
+        <h1 className="mt-3 font-editorial text-4xl tracking-tight text-white sm:text-5xl">
           Courier Companies
         </h1>
 
-        <p className="mt-2 text-sm text-secondary max-w-3xl">
+        <p className="mt-2 text-sm text-white/45 max-w-3xl">
           Save your contracted courier
           profiles once. Orders can then
           use a saved courier instead of
@@ -260,17 +260,17 @@ export default function CouriersPage() {
       </div>
 
       {/* FORM */}
-      <section className="mb-6 rounded-3xl border border-charcoal/10 bg-white p-6 shadow-[0_12px_40px_rgba(23,23,23,0.05)]">
+      <section className="mb-6 rounded-3xl border border-white/10 bg-white/[0.035] p-6 shadow-[0_12px_40px_rgba(0,0,0,.18)]">
 
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-lg font-semibold">
+            <h2 className="text-base font-semibold text-white">
               {editing
                 ? "Edit courier contract"
                 : "Add courier company"}
             </h2>
 
-            <p className="text-sm text-secondary mt-1">
+            <p className="text-sm text-white/40 mt-1">
               Store the courier contract and
               pickup information here.
             </p>
@@ -280,7 +280,7 @@ export default function CouriersPage() {
             <button
               type="button"
               onClick={cancelEdit}
-              className="text-sm text-secondary hover:text-charcoal"
+              className="text-sm text-white/45 hover:text-white"
             >
               Cancel edit
             </button>
@@ -290,7 +290,7 @@ export default function CouriersPage() {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mt-5">
 
           {/* COMPANY NAME */}
-          <label className="text-sm font-medium">
+          <label className="text-sm font-medium text-white/80">
             Company name *
             <input
               type="text"
@@ -302,12 +302,12 @@ export default function CouriersPage() {
                 )
               }
               placeholder="Courier company"
-              className="mt-2 w-full rounded-xl border border-charcoal/10 bg-background px-4 py-3 outline-none transition focus:border-charcoal"
+              className="mt-2 w-full rounded-xl border border-white/10 bg-[#090909] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-[#d6ae72]/60 focus:ring-2 focus:ring-[#d6ae72]/10"
             />
           </label>
 
           {/* ACCOUNT NUMBER */}
-          <label className="text-sm font-medium">
+          <label className="text-sm font-medium text-white/80">
             Account number
             <input
               type="text"
@@ -319,12 +319,12 @@ export default function CouriersPage() {
                 )
               }
               placeholder="Account number"
-              className="mt-2 w-full rounded-xl border border-charcoal/10 bg-background px-4 py-3 outline-none transition focus:border-charcoal"
+              className="mt-2 w-full rounded-xl border border-white/10 bg-[#090909] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-[#d6ae72]/60 focus:ring-2 focus:ring-[#d6ae72]/10"
             />
           </label>
 
           {/* CONTRACT NUMBER */}
-          <label className="text-sm font-medium">
+          <label className="text-sm font-medium text-white/80">
             Contract number
             <input
               type="text"
@@ -336,12 +336,12 @@ export default function CouriersPage() {
                 )
               }
               placeholder="Contract number"
-              className="mt-2 w-full rounded-xl border border-charcoal/10 bg-background px-4 py-3 outline-none transition focus:border-charcoal"
+              className="mt-2 w-full rounded-xl border border-white/10 bg-[#090909] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-[#d6ae72]/60 focus:ring-2 focus:ring-[#d6ae72]/10"
             />
           </label>
 
           {/* CONTACT NAME */}
-          <label className="text-sm font-medium">
+          <label className="text-sm font-medium text-white/80">
             Account/contact person
             <input
               type="text"
@@ -353,12 +353,12 @@ export default function CouriersPage() {
                 )
               }
               placeholder="Contact person"
-              className="mt-2 w-full rounded-xl border border-charcoal/10 bg-background px-4 py-3 outline-none transition focus:border-charcoal"
+              className="mt-2 w-full rounded-xl border border-white/10 bg-[#090909] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-[#d6ae72]/60 focus:ring-2 focus:ring-[#d6ae72]/10"
             />
           </label>
 
           {/* CONTACT PHONE */}
-          <label className="text-sm font-medium">
+          <label className="text-sm font-medium text-white/80">
             Contact phone
             <input
               type="text"
@@ -370,12 +370,12 @@ export default function CouriersPage() {
                 )
               }
               placeholder="+92..."
-              className="mt-2 w-full rounded-xl border border-charcoal/10 bg-background px-4 py-3 outline-none transition focus:border-charcoal"
+              className="mt-2 w-full rounded-xl border border-white/10 bg-[#090909] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-[#d6ae72]/60 focus:ring-2 focus:ring-[#d6ae72]/10"
             />
           </label>
 
           {/* CONTACT EMAIL */}
-          <label className="text-sm font-medium">
+          <label className="text-sm font-medium text-white/80">
             Contact email
             <input
               type="email"
@@ -387,12 +387,12 @@ export default function CouriersPage() {
                 )
               }
               placeholder="contact@courier.com"
-              className="mt-2 w-full rounded-xl border border-charcoal/10 bg-background px-4 py-3 outline-none transition focus:border-charcoal"
+              className="mt-2 w-full rounded-xl border border-white/10 bg-[#090909] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-[#d6ae72]/60 focus:ring-2 focus:ring-[#d6ae72]/10"
             />
           </label>
 
           {/* PICKUP CITY */}
-          <label className="text-sm font-medium">
+          <label className="text-sm font-medium text-white/80">
             Pickup city
             <input
               type="text"
@@ -404,12 +404,12 @@ export default function CouriersPage() {
                 )
               }
               placeholder="Lahore"
-              className="mt-2 w-full rounded-xl border border-charcoal/10 bg-background px-4 py-3 outline-none transition focus:border-charcoal"
+              className="mt-2 w-full rounded-xl border border-white/10 bg-[#090909] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-[#d6ae72]/60 focus:ring-2 focus:ring-[#d6ae72]/10"
             />
           </label>
 
           {/* API BASE URL */}
-          <label className="text-sm font-medium">
+          <label className="text-sm font-medium text-white/80">
             API base URL
             <input
               type="text"
@@ -421,12 +421,12 @@ export default function CouriersPage() {
                 )
               }
               placeholder="Optional"
-              className="mt-2 w-full rounded-xl border border-charcoal/10 bg-background px-4 py-3 outline-none transition focus:border-charcoal"
+              className="mt-2 w-full rounded-xl border border-white/10 bg-[#090909] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-[#d6ae72]/60 focus:ring-2 focus:ring-[#d6ae72]/10"
             />
           </label>
 
           {/* API KEY */}
-          <label className="text-sm font-medium">
+          <label className="text-sm font-medium text-white/80">
             API key
             <input
               type="password"
@@ -438,12 +438,12 @@ export default function CouriersPage() {
                 )
               }
               placeholder="Optional"
-              className="mt-2 w-full rounded-xl border border-charcoal/10 bg-background px-4 py-3 outline-none transition focus:border-charcoal"
+              className="mt-2 w-full rounded-xl border border-white/10 bg-[#090909] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-[#d6ae72]/60 focus:ring-2 focus:ring-[#d6ae72]/10"
             />
           </label>
 
           {/* API SECRET */}
-          <label className="text-sm font-medium">
+          <label className="text-sm font-medium text-white/80">
             API secret
             <input
               type="password"
@@ -455,13 +455,13 @@ export default function CouriersPage() {
                 )
               }
               placeholder="Optional"
-              className="mt-2 w-full rounded-xl border border-charcoal/10 bg-background px-4 py-3 outline-none transition focus:border-charcoal"
+              className="mt-2 w-full rounded-xl border border-white/10 bg-[#090909] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-[#d6ae72]/60 focus:ring-2 focus:ring-[#d6ae72]/10"
             />
           </label>
         </div>
 
         {/* PICKUP ADDRESS */}
-        <label className="block text-sm font-medium mt-4">
+        <label className="block text-sm font-medium text-white/80 mt-4">
           Pickup address
 
           <textarea
@@ -474,12 +474,12 @@ export default function CouriersPage() {
               )
             }
             placeholder="Courier pickup address"
-            className="mt-2 w-full rounded-xl border border-charcoal/10 bg-background px-4 py-3 outline-none transition focus:border-charcoal"
+            className="mt-2 w-full rounded-xl border border-white/10 bg-[#090909] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-[#d6ae72]/60 focus:ring-2 focus:ring-[#d6ae72]/10"
           />
         </label>
 
         {/* SERVICE NOTES */}
-        <label className="block text-sm font-medium mt-4">
+        <label className="block text-sm font-medium text-white/80 mt-4">
           Service notes
 
           <textarea
@@ -492,12 +492,12 @@ export default function CouriersPage() {
               )
             }
             placeholder="Contract terms, COD notes, pickup schedule..."
-            className="mt-2 w-full rounded-xl border border-charcoal/10 bg-background px-4 py-3 outline-none transition focus:border-charcoal"
+            className="mt-2 w-full rounded-xl border border-white/10 bg-[#090909] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-[#d6ae72]/60 focus:ring-2 focus:ring-[#d6ae72]/10"
           />
         </label>
 
         {/* ACTIVE */}
-        <label className="flex items-center gap-2 text-sm mt-4">
+        <label className="flex items-center gap-2 text-sm mt-4 text-white/80">
           <input
             type="checkbox"
             checked={form.active}
@@ -524,7 +524,7 @@ export default function CouriersPage() {
               saving ||
               !form.name.trim()
             }
-            className="rounded-xl bg-charcoal px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-white shadow-lg disabled:opacity-50"
+            className="rounded-xl bg-gradient-to-r from-[#e6c47f] to-[#c2944e] px-6 py-3 text-xs font-bold uppercase tracking-[0.16em] text-[#17110a] shadow-[0_6px_24px_rgba(214,174,114,.12)] disabled:opacity-50"
           >
             {saving
               ? "Saving..."
@@ -537,14 +537,14 @@ export default function CouriersPage() {
             <button
               type="button"
               onClick={cancelEdit}
-              className="rounded-xl border border-charcoal/10 bg-white px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em]"
+              className="rounded-xl border border border-white/10 bg-transparent px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-white/70 hover:border-[#d6ae72]/40 hover:text-[#e4c28e]"
             >
               Cancel
             </button>
           )}
         </div>
 
-        <p className="text-xs text-secondary mt-4">
+        <p className="text-xs text-white/35 mt-4">
           API credentials are optional
           profile fields for future courier
           API booking. The system does not
@@ -555,30 +555,30 @@ export default function CouriersPage() {
       </section>
 
       {/* SAVED COURIERS */}
-      <section className="overflow-hidden rounded-3xl border border-charcoal/10 bg-white shadow-[0_12px_40px_rgba(23,23,23,0.05)]">
+      <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.035] shadow-[0_12px_40px_rgba(0,0,0,.18)]">
 
-        <div className="border-b border-charcoal/10 p-5">
+        <div className="border-b border-white/10 p-5">
           <h2 className="font-semibold">
             Saved courier contracts
           </h2>
         </div>
 
         {loading ? (
-          <div className="p-8 text-secondary">
+          <div className="p-8 text-white/45">
             Loading couriers...
           </div>
         ) : couriers.length === 0 ? (
-          <div className="p-8 text-secondary">
+          <div className="p-8 text-white/45">
             No courier companies configured
             yet.
           </div>
         ) : (
-          <div className="divide-y divide-cream">
+          <div className="divide-y divide-white/[0.07]">
 
             {couriers.map((courier) => (
               <div
                 key={courier.id}
-                className="flex flex-col justify-between gap-4 border-t border-charcoal/10 p-5 transition hover:bg-charcoal/[0.02] md:flex-row md:items-center"
+                className="flex flex-col justify-between gap-4 border-b border-white/10 p-5 transition hover:bg-white/[0.025] md:flex-row md:items-center"
               >
 
                 <div>
@@ -591,8 +591,8 @@ export default function CouriersPage() {
                     <span
                       className={`text-xs px-2 py-1 rounded-full ${
                         courier.active
-                          ? "bg-green-50 text-green-700"
-                          : "bg-gray-100 text-gray-600"
+                          ? "border border-emerald-400/20 bg-emerald-400/[0.08] text-emerald-300"
+                          : "border border-white/10 bg-white/[0.04] text-white/45"
                       }`}
                     >
                       {courier.active
@@ -601,7 +601,7 @@ export default function CouriersPage() {
                     </span>
                   </div>
 
-                  <p className="text-sm text-secondary mt-1">
+                  <p className="text-sm text-white/40 mt-1">
                     Account:{" "}
                     {courier.accountNumber ||
                       "—"}{" "}
@@ -610,7 +610,7 @@ export default function CouriersPage() {
                       "—"}
                   </p>
 
-                  <p className="text-sm text-secondary">
+                  <p className="text-sm text-white/45">
                     Pickup:{" "}
                     {courier.pickupCity ||
                       "—"}{" "}
@@ -627,7 +627,7 @@ export default function CouriersPage() {
                     onClick={() =>
                       edit(courier)
                     }
-                    className="rounded-lg border border-charcoal/10 bg-white px-3 py-2 text-xs font-medium"
+                    className="rounded-lg border border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-medium text-white/75 hover:border-[#d6ae72]/40 hover:text-[#e4c28e]"
                   >
                     Edit
                   </button>
@@ -637,7 +637,7 @@ export default function CouriersPage() {
                     onClick={() =>
                       remove(courier.id)
                     }
-                    className="rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-medium text-red-700"
+                    className="rounded-lg border border border-red-400/25 bg-red-400/[0.06] px-3 py-2 text-xs font-medium text-red-300"
                   >
                     Delete
                   </button>
