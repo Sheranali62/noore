@@ -61,7 +61,7 @@ export default async function WomenPage() {
           href: name === "New Arrivals"
             ? "/products?gender=Women&sort=newest"
             : name === "Sale"
-              ? "/products?gender=Women&sale=true"
+              ? "/products?gender=Women&sale=1"
               : `/products?gender=Women&category=${encodeURIComponent(name)}`
         }))}
       />
