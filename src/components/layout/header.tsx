@@ -43,13 +43,18 @@ type SearchProduct = {
   salePrice: number | null
   images: string[]
   category: string
+  collection: string | null
+  gender: string | null
+  stock: number
+  variants: { color: string; size: string; stock: number }[]
 }
 
 const popularSearches = [
   "New arrivals",
-  "Ready to Wear",
-  "Luxury",
-  "Unstitched",
+  "Black",
+  "Large",
+  "Under PKR 5,000",
+  "In stock",
   "Sale",
 ]
 
@@ -628,9 +633,18 @@ export function Header({ scrolled = false }: { scrolled?: boolean }) {
                                 {product.name}
                               </p>
 
-                              <p className="mt-1 text-[10px] uppercase tracking-[.12em] text-secondary">
-                                {product.category}
+                              <p className="mt-1 truncate text-[10px] uppercase tracking-[.12em] text-secondary">
+                                {[product.category, product.collection, product.gender].filter(Boolean).join(" · ")}
                               </p>
+                              <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                                {Array.from(new Set(product.variants.map((variant) => variant.color))).slice(0, 3).map((color) => (
+                                  <span key={`${product.id}-${color}`} className="rounded-full border border-black/10 px-2 py-0.5 text-[9px] text-secondary">{color}</span>
+                                ))}
+                                {Array.from(new Set(product.variants.map((variant) => variant.size))).slice(0, 4).map((size) => (
+                                  <span key={`${product.id}-${size}`} className="rounded-sm bg-cream px-1.5 py-0.5 text-[9px] text-secondary">{size}</span>
+                                ))}
+                                {product.stock > 0 ? <span className="text-[9px] font-medium text-emerald-700">In stock</span> : <span className="text-[9px] text-red-600">Out of stock</span>}
+                              </div>
                             </div>
 
                             <div className="text-right text-sm">
