@@ -12,7 +12,7 @@ import { RecommendationShelf } from "./recommendation-shelf"
 import { ReviewsSection } from "./reviews-section"
 
 type Variant = { id: string; color: string; size: string; sku: string; price: number | null; stock: number; images: string[] }
-type Review = { id: string; rating: number; comment: string | null; verified: boolean; createdAt: string }
+type Review = { id: string; rating: number; comment: string | null; verified: boolean; createdAt: string; author?: string }
 type Product = {
   id: string; name: string; slug: string; description: string | null; price: number; salePrice: number | null
   images: string[]; category: string; subcategory: string | null; collection: string | null; gender: string | null
