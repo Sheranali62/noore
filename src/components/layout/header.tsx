@@ -341,7 +341,7 @@ export function Header({ scrolled = false }: { scrolled?: boolean }) {
       {/* =========================================================
           DESKTOP / MOBILE HEADER
       ========================================================= */}
-      <header className={`sticky top-0 z-50 border-b border-black/5 text-charcoal backdrop-blur-xl transition-all duration-300 ${scrolled ? "bg-cream/90 shadow-[0_8px_30px_rgba(40,25,30,.08)]" : "bg-cream/95"}`}>
+      <header className={`sticky top-0 z-50 border-b border-[#c9a66b]/25 text-[#f5f0e7] backdrop-blur-xl transition-all duration-300 ${scrolled ? "bg-[#11100f]/[.97] shadow-[0_8px_30px_rgba(0,0,0,.28)]" : "bg-[#11100f]/95"}`}>
         <div className="mx-auto flex h-[68px] max-w-7xl items-center justify-between px-4 sm:px-5">
 
           {/* MOBILE MENU BUTTON */}
@@ -365,7 +365,7 @@ export function Header({ scrolled = false }: { scrolled?: boolean }) {
           {/* LOGO */}
           <Link
             href="/"
-            className="font-editorial text-[28px] font-semibold tracking-tight"
+            className="font-editorial text-[28px] font-semibold tracking-[.08em] text-[#d6b77c] transition hover:text-[#f0d8a8]"
           >
             NOORÉ
           </Link>
@@ -378,7 +378,7 @@ export function Header({ scrolled = false }: { scrolled?: boolean }) {
           >
             <Link
               href="/products"
-              className="nav-link"
+              className="nav-link !text-[#eee7dc] hover:!text-[#d6b77c]"
               onMouseEnter={() => openMega("all")}
               onFocus={() => openMega("all")}
             >
@@ -394,7 +394,7 @@ export function Header({ scrolled = false }: { scrolled?: boolean }) {
               <div key={label} className="relative">
                 <Link
                   href={href}
-                  className="nav-link inline-flex items-center gap-1"
+                  className="nav-link inline-flex items-center gap-1 !text-[#eee7dc] hover:!text-[#d6b77c]"
                   onMouseEnter={() => openMega(tab)}
                   onFocus={() => openMega(tab)}
                 >
@@ -403,7 +403,7 @@ export function Header({ scrolled = false }: { scrolled?: boolean }) {
               </div>
             ))}
 
-            <Link href="/products?category=Luxury" className="nav-link">Luxury</Link>
+            <Link href="/products?category=Luxury" className="nav-link !text-[#eee7dc] hover:!text-[#d6b77c]">Luxury</Link>
             <Link href="/blog" className="nav-link">Journal</Link>
             <Link href="/sale" className="nav-link">Sale</Link>
           </nav>
@@ -419,7 +419,7 @@ export function Header({ scrolled = false }: { scrolled?: boolean }) {
                   inputRef.current?.focus()
                 }, 0)
               }}
-              className="icon-button"
+              className="icon-button text-[#e9dfcf] hover:text-[#d6b77c]"
               aria-label="Search"
             >
               <Search className="h-[18px] w-[18px]" />
@@ -431,7 +431,7 @@ export function Header({ scrolled = false }: { scrolled?: boolean }) {
 
             <Link
               href="/account"
-              className="icon-button hidden sm:grid"
+              className="icon-button hidden text-[#e9dfcf] hover:text-[#d6b77c] sm:grid"
               aria-label="Account"
             >
               <UserRound className="h-[18px] w-[18px]" />
@@ -448,7 +448,7 @@ export function Header({ scrolled = false }: { scrolled?: boolean }) {
             <button
               type="button"
               onClick={toggleCart}
-              className="icon-button relative"
+              className="icon-button relative text-[#e9dfcf] hover:text-[#d6b77c]"
               aria-label={`Shopping bag${
                 count ? `, ${count} items` : ""
               }`}
