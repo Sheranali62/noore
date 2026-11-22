@@ -55,7 +55,7 @@ export default async function KidsPage() {
           href: name === "New Arrivals"
             ? "/products?gender=Kids&sort=newest"
             : name === "Sale"
-              ? "/products?gender=Kids&sale=true"
+              ? "/products?gender=Kids&sale=1"
               : `/products?gender=Kids&category=${encodeURIComponent(name)}`
         }))}
       />
