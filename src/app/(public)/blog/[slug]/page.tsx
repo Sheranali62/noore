@@ -66,6 +66,10 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
     take: 3,
   })
 
+  const articleUrl = `${SITE_URL.replace(/\/$/, "")}/blog/${post.slug}`
+  const shareTitle = encodeURIComponent(post.title)
+  const shareUrl = encodeURIComponent(articleUrl)
+
   return (
     <div className="min-h-screen bg-cream py-12">
       <article className="max-w-4xl mx-auto px-4">
@@ -105,16 +109,34 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
           {/* Share Buttons */}
           <div className="border-t border-cream mt-8 pt-6">
             <p className="text-sm text-secondary mb-3">Share this article</p>
-            <div className="flex gap-3">
-              <button className="p-2 bg-[#1877F2] text-white rounded hover:opacity-80 transition">
+            <div className="flex flex-wrap gap-3">
+              <a
+                href={`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`Share ${post.title} on Facebook`}
+                className="rounded bg-[#1877F2] p-2 text-white transition hover:opacity-80"
+              >
                 Facebook
-              </button>
-              <button className="p-2 bg-[#1DA1F2] text-white rounded hover:opacity-80 transition">
-                Twitter
-              </button>
-              <button className="p-2 bg-[#0A66C2] text-white rounded hover:opacity-80 transition">
+              </a>
+              <a
+                href={`https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareTitle}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`Share ${post.title} on X`}
+                className="rounded bg-[#1DA1F2] p-2 text-white transition hover:opacity-80"
+              >
+                X
+              </a>
+              <a
+                href={`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`Share ${post.title} on LinkedIn`}
+                className="rounded bg-[#0A66C2] p-2 text-white transition hover:opacity-80"
+              >
                 LinkedIn
-              </button>
+              </a>
             </div>
           </div>
         </div>
