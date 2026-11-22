@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { ArrowUp, X, Truck, Sparkles } from "lucide-react"
+import { ArrowUp, X, Truck, Sparkles, Instagram, Facebook, Youtube, MessageCircle, ArrowUpRight, Heart } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
 import Link from "next/link"
@@ -10,6 +10,7 @@ import { useCart } from "@/components/cart/cart-context"
 import { CartDrawer } from "@/components/cart/cart-drawer"
 import { InterestTracker } from "@/components/personalization/interest-tracker"
 import { WhatsAppButton } from "@/components/shared/whatsapp-button"
+import { SOCIAL_LINKS } from "@/config/social-links"
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession()
@@ -132,13 +133,56 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
     </div>
     <InterestTracker />
     <main id="main-content">{children}</main>
-    <footer className="border-t border-white/10 bg-charcoal text-white/75">
-      <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 md:grid-cols-4">
-        <div className="md:col-span-2"><Link href="/" className="font-editorial text-3xl font-semibold text-white">{siteName}</Link><p className="mt-4 max-w-md text-sm leading-6 text-white/55">Premium Pakistani fashion for the modern wardrobe — considered pieces, contemporary silhouettes and timeless elegance.</p><div className="mt-6 flex flex-wrap gap-4 text-[10px] uppercase tracking-[.16em]"><a href="#" className="hover:text-white">Instagram</a><a href="#" className="hover:text-white">Facebook</a><a href="#" className="hover:text-white">YouTube</a></div></div>
-        <div><p className="eyebrow text-white/45">Shop</p><div className="mt-4 space-y-3 text-sm"><Link href="/products" className="block hover:text-white">All Collection</Link><Link href="/products?sale=1" className="block hover:text-white">Sale</Link><Link href="/wishlist" className="block hover:text-white">Wishlist</Link><Link href="/search" className="block hover:text-white">Search</Link></div></div>
-        <div><p className="eyebrow text-white/45">Help</p><div className="mt-4 space-y-3 text-sm"><Link href="/account/orders" className="block hover:text-white">Track Orders</Link><Link href="/account/addresses" className="block hover:text-white">Addresses</Link><Link href="/account" className="block hover:text-white">My Account</Link><Link href="/contact" className="block hover:text-white">Contact & Help</Link><button onClick={() => session ? signOut() : toggleCart()} className="block hover:text-white">{session ? "Sign out" : "Open bag"}</button></div></div>
+    <footer className="border-t border-[#c6a15b]/20 bg-[#171315] text-[#e9e1d8]">
+      <div className="mx-auto grid max-w-7xl gap-12 px-5 py-14 sm:py-16 lg:grid-cols-[1.5fr_1fr_1fr_1.15fr] lg:gap-10">
+        <div>
+          <Link href="/" aria-label={`${siteName} home`} className="inline-flex items-center gap-2 font-editorial text-3xl font-semibold tracking-[.08em] text-[#f7f0e7]">
+            {siteName}<span className="mt-1 h-1.5 w-1.5 rounded-full bg-[#c6a15b]" />
+          </Link>
+          <p className="mt-5 max-w-sm text-sm leading-7 text-[#aaa09a]">Thoughtful style, considered details and modern essentials. Discover the NOORÉ edit and find pieces made to feel like your own.</p>
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            {SOCIAL_LINKS.instagram && !SOCIAL_LINKS.instagram.includes("YOUR_") && <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="grid h-10 w-10 place-items-center rounded-full border border-white/10 text-[#d6c5a6] transition hover:border-[#c6a15b]/60 hover:bg-[#c6a15b]/10 hover:text-white"><Instagram className="h-4 w-4" /></a>}
+            {SOCIAL_LINKS.facebook && !SOCIAL_LINKS.facebook.includes("YOUR_") && <a href={SOCIAL_LINKS.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="grid h-10 w-10 place-items-center rounded-full border border-white/10 text-[#d6c5a6] transition hover:border-[#c6a15b]/60 hover:bg-[#c6a15b]/10 hover:text-white"><Facebook className="h-4 w-4" /></a>}
+            {SOCIAL_LINKS.youtube && !SOCIAL_LINKS.youtube.includes("YOUR_") && <a href={SOCIAL_LINKS.youtube} target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="grid h-10 w-10 place-items-center rounded-full border border-white/10 text-[#d6c5a6] transition hover:border-[#c6a15b]/60 hover:bg-[#c6a15b]/10 hover:text-white"><Youtube className="h-4 w-4" /></a>}
+            <a href={SOCIAL_LINKS.whatsapp} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp customer care" className="grid h-10 w-10 place-items-center rounded-full border border-white/10 text-[#d6c5a6] transition hover:border-[#c6a15b]/60 hover:bg-[#c6a15b]/10 hover:text-white"><MessageCircle className="h-4 w-4" /></a>
+          </div>
+        </div>
+        <nav aria-label="Shop links">
+          <p className="text-[10px] font-semibold uppercase tracking-[.24em] text-[#c6a15b]">Discover</p>
+          <div className="mt-5 space-y-3.5 text-sm text-[#aaa09a]">
+            <Link href="/products" className="block transition hover:text-[#f7f0e7]">Shop all</Link>
+            <Link href="/collections" className="block transition hover:text-[#f7f0e7]">Collections</Link>
+            <Link href="/new-in" className="block transition hover:text-[#f7f0e7]">New arrivals</Link>
+            <Link href="/sale" className="block transition hover:text-[#f7f0e7]">Sale</Link>
+            <Link href="/wishlist" className="block transition hover:text-[#f7f0e7]">Wishlist</Link>
+          </div>
+        </nav>
+        <nav aria-label="Customer care links">
+          <p className="text-[10px] font-semibold uppercase tracking-[.24em] text-[#c6a15b]">Customer care</p>
+          <div className="mt-5 space-y-3.5 text-sm text-[#aaa09a]">
+            <Link href="/contact" className="block transition hover:text-[#f7f0e7]">Contact & help</Link>
+            <Link href="/order-tracking" className="block transition hover:text-[#f7f0e7]">Track an order</Link>
+            <Link href="/account/orders" className="block transition hover:text-[#f7f0e7]">My orders</Link>
+            <Link href="/account/addresses" className="block transition hover:text-[#f7f0e7]">My addresses</Link>
+            <Link href="/account" className="block transition hover:text-[#f7f0e7]">My account</Link>
+            <button onClick={() => session ? signOut() : toggleCart()} className="block text-left transition hover:text-[#f7f0e7]">{session ? "Sign out" : "Open shopping bag"}</button>
+          </div>
+        </nav>
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-[.24em] text-[#c6a15b]">The NOORÉ promise</p>
+          <div className="mt-5 space-y-4">
+            <div className="flex gap-3"><Truck className="mt-0.5 h-4 w-4 shrink-0 text-[#c6a15b]" /><div><p className="text-sm text-[#f0e8de]">Complimentary delivery</p><p className="mt-1 text-xs leading-5 text-[#918781]">On orders above PKR 5,000</p></div></div>
+            <div className="flex gap-3"><Heart className="mt-0.5 h-4 w-4 shrink-0 text-[#c6a15b]" /><div><p className="text-sm text-[#f0e8de]">Cash on Delivery</p><p className="mt-1 text-xs leading-5 text-[#918781]">Available across Pakistan</p></div></div>
+            <a href={SOCIAL_LINKS.whatsapp} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 pt-1 text-xs font-semibold text-[#d6bd91] transition hover:text-white">Speak with our team <ArrowUpRight className="h-3.5 w-3.5" /></a>
+          </div>
+        </div>
       </div>
-      <div className="border-t border-white/10"><div className="mx-auto flex max-w-7xl flex-col gap-2 px-5 py-5 text-[10px] text-white/35 sm:flex-row sm:items-center sm:justify-between"><span>© 2026 {siteName}. All rights reserved.</span><span>Cash on Delivery · Pakistan</span></div></div>
+      <div className="border-t border-white/10">
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-5 py-5 text-[10px] text-[#827872] sm:flex-row sm:items-center sm:justify-between">
+          <span>© {new Date().getFullYear()} {siteName}. All rights reserved.</span>
+          <span className="flex flex-wrap items-center gap-x-3 gap-y-1"><span>Designed with intention</span><span className="text-[#c6a15b]">✦</span><span>Cash on Delivery · Pakistan</span></span>
+        </div>
+      </div>
     </footer>
     <CartDrawer />
     <WhatsAppButton />
