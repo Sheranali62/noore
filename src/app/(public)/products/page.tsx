@@ -53,7 +53,7 @@ export default async function ProductsPage({ searchParams }: { searchParams?: Re
   }
 
   return <main className="min-h-screen bg-cream">
-    <section className="relative overflow-hidden border-b border-[#b8945e]/30 bg-[#171513] px-4 py-14 text-[#f5f0e7] md:py-20">
+    <section className="relative overflow-hidden border-b border-[#b8945e]/30 bg-[#171513] px-4 py-10 text-[#f5f0e7] sm:py-12 md:py-20">
       <div className="mx-auto max-w-7xl">
         <p className="text-[9px] font-semibold uppercase tracking-[0.3em] text-[#c9aa76]">NOORÉ / COLLECTION</p>
         <div className="mt-3 flex flex-col justify-between gap-5 md:flex-row md:items-end">
@@ -63,14 +63,14 @@ export default async function ProductsPage({ searchParams }: { searchParams?: Re
       </div>
     </section>
 
-    <div className="mx-auto max-w-7xl px-4 py-7 md:py-10">
-      <div className="mb-7 flex items-center justify-between gap-4 border-b border-[#b8945e]/30 pb-5">
+    <div className="mx-auto max-w-7xl px-3 py-5 pb-24 sm:px-4 sm:py-7 md:py-10">
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-[#b8945e]/30 pb-4 sm:mb-7 sm:pb-5">
         <ProductFilters categories={categoryRows.map((x) => x.category)} genders={genderRows.flatMap((x) => x.gender ? [x.gender] : [])} collections={collectionRows.flatMap((x) => x.collection ? [x.collection] : [])} />
         <p className="hidden text-[10px] uppercase tracking-[0.14em] text-secondary md:block">Showing {products.length} of {totalCount}</p>
         <ProductSort currentSort={sort} />
       </div>
 
-      {products.length === 0 ? <div className="py-24 text-center"><h2 className="font-editorial text-3xl">Nothing here yet.</h2><p className="mt-2 text-sm text-secondary">Try another category or clear your filters.</p><Link href="/products" className="mt-7 inline-block bg-charcoal px-7 py-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-white">Shop all</Link></div> : <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 md:gap-x-6 md:gap-y-14">
+      {products.length === 0 ? <div className="py-24 text-center"><h2 className="font-editorial text-3xl">Nothing here yet.</h2><p className="mt-2 text-sm text-secondary">Try another category or clear your filters.</p><Link href="/products" className="mt-7 inline-block bg-charcoal px-7 py-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-white">Shop all</Link></div> : <div className="grid grid-cols-2 gap-x-2.5 gap-y-7 sm:gap-x-4 sm:gap-y-10 md:grid-cols-3 md:gap-x-6 md:gap-y-14 lg:grid-cols-4">
         {products.map((product) => <ProductCard key={product.id} id={product.id} name={product.name} slug={product.slug} price={product.price} salePrice={product.salePrice} image={product.images[0] || "/placeholder.jpg"} hoverImage={product.images[1]} category={product.category} stock={product.stock} gender={product.gender} colors={product.variants.map((variant) => variant.color)} />)}
       </div>}
 
