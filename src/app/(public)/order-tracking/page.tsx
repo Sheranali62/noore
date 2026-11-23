@@ -41,7 +41,9 @@ export default function OrderTrackingPage() {
 
   useEffect(() => {
     const queryOrder = params.get("orderNumber")
+    const queryEmail = params.get("email")
     if (queryOrder) setOrderNumber(queryOrder)
+    if (queryEmail) setEmail(queryEmail)
   }, [params])
 
   const currentIndex = useMemo(() => statuses.findIndex(([status]) => status === order?.status), [order?.status])
