@@ -11,6 +11,7 @@ type Order = {
   createdAt: string
   paymentMethod: string
   trackingNumber?: string | null
+  courier?: string | null
   items: Array<{
     id: string
     quantity: number
@@ -68,7 +69,7 @@ export default function OrderTrackingPage() {
     }
   }
 
-  const isException = order?.status === "CANCELLED" || order?.status === "REFUNDED"
+  const isException = order?.status === "CANCELLED" || order?.status === "REFUNDED" || order?.status === "RETURNED"
 
   return (
     <main className="min-h-screen bg-[#211b1d] py-10 text-[#f5f0e7] md:py-16">
@@ -113,20 +114,20 @@ export default function OrderTrackingPage() {
                 <div className="min-w-[130px] rounded-2xl border border-[#51423a] bg-[#211b1d] p-4 sm:text-right">
                   <p className="text-[10px] uppercase tracking-[0.16em] text-[#a99d92]">Order total</p>
                   <p className="mt-1 text-xl font-semibold tabular-nums">PKR {order.total.toLocaleString()}</p>
-                  <p className="mt-1 text-[10px] text-[#c6a879]">Cash on Delivery</p>
+                  <p className="mt-1 text-[10px] text-[#c6a879]">{order.paymentMethod.replaceAll("_", " ")}</p>
                 </div>
               </div>
 
               {order.trackingNumber && (
                 <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#b8945e]/30 bg-[#c6a15b]/10 p-4">
-                  <div><p className="text-[10px] uppercase tracking-[0.16em] text-[#b9aa98]">Courier tracking number</p><p className="mt-1 break-all font-semibold tracking-wide text-[#f5f0e7]">{order.trackingNumber}</p></div>
+                  <div><p className="text-[10px] uppercase tracking-[0.16em] text-[#b9aa98]">Courier tracking number</p><p className="mt-1 break-all font-semibold tracking-wide text-[#f5f0e7]">{order.trackingNumber}</p>{order.courier && <p className="mt-1 text-xs text-[#b9aa98]">{order.courier}</p>}</div>
                   <Truck className="h-5 w-5 text-[#c6a15b]" />
                 </div>
               )}
 
               {isException ? (
                 <div className="mt-7 rounded-2xl border border-red-900/50 bg-red-950/30 p-5">
-                  <p className="font-semibold text-red-200">{order.status === "CANCELLED" ? "Order cancelled" : "Order refunded"}</p>
+                  <p className="font-semibold text-red-200">{order.status === "CANCELLED" ? "Order cancelled" : order.status === "RETURNED" ? "Order returned" : "Order refunded"}</p>
                   <p className="mt-1 text-sm leading-6 text-[#c2b8b0]">This order is no longer moving through the delivery journey. Please contact our support team if you need assistance.</p>
                 </div>
               ) : (
