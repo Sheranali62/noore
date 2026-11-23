@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { calculateCouponDiscount } from "@/lib/coupons"
 import { randomBytes } from "crypto"
-import { sendOrderStatusEmail } from "@/lib/notifications"
+import { sendNewOrderAdminEmail, sendOrderStatusEmail } from "@/lib/notifications"
 
 export const dynamic = "force-dynamic"
 
@@ -693,6 +693,19 @@ export async function POST(request: NextRequest) {
         "Order confirmation email failed",
         err
       )
+    )
+
+    void sendNewOrderAdminEmail({
+      customerName: name,
+      customerEmail: email,
+      customerPhone: phone,
+      orderNumber: order.orderNumber,
+      total: order.total,
+      address: addressLine,
+      city,
+      province,
+    }).catch((err) =>
+      console.error("New order store notification failed", err)
     )
 
     return NextResponse.json(
