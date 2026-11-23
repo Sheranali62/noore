@@ -39,6 +39,7 @@ export default async function AdminPage() {
 
   const [
     orders30,
+    validOrders30,
     revenue30,
     orders7,
     revenue7,
@@ -59,6 +60,7 @@ export default async function AdminPage() {
     trendOrders,
   ] = await Promise.all([
     prisma.order.count({ where: { createdAt: { gte: start30 } } }),
+    prisma.order.count({ where: { createdAt: { gte: start30 }, ...validOrderWhere } }),
     prisma.order.aggregate({ where: { createdAt: { gte: start30 }, ...validOrderWhere }, _sum: { total: true } }),
     prisma.order.count({ where: { createdAt: { gte: start7 } } }),
     prisma.order.aggregate({ where: { createdAt: { gte: start7 }, ...validOrderWhere }, _sum: { total: true } }),
@@ -72,7 +74,7 @@ export default async function AdminPage() {
     prisma.cart.count({ where: { updatedAt: { lt: abandonedBefore }, items: { some: {} } } }),
     prisma.productReview.count({ where: { approved: false } }),
     prisma.order.groupBy({ by: ["status"], _count: { _all: true }, orderBy: { _count: { status: "desc" } } }),
-    prisma.orderItem.groupBy({ by: ["productId"], _sum: { quantity: true, total: true }, orderBy: { _sum: { quantity: "desc" } }, take: 5 }),
+    prisma.orderItem.groupBy({ by: ["productId"], where: { order: validOrderWhere }, _sum: { quantity: true, total: true }, orderBy: { _sum: { quantity: "desc" } }, take: 5 }),
     prisma.orderItem.groupBy({ by: ["productId"], _sum: { total: true, quantity: true }, where: { order: { createdAt: { gte: start30 }, ...validOrderWhere } }, orderBy: { _sum: { total: "desc" } }, take: 5 }),
     prisma.order.findMany({ orderBy: { createdAt: "desc" }, take: 6, select: { id: true, orderNumber: true, total: true, status: true, createdAt: true, user: { select: { name: true, email: true } }, _count: { select: { items: true } } } }),
     prisma.productReview.findMany({ orderBy: { createdAt: "desc" }, take: 4, select: { id: true, rating: true, comment: true, approved: true, createdAt: true, product: { select: { name: true } }, user: { select: { name: true } } } }),
@@ -113,7 +115,7 @@ export default async function AdminPage() {
   })
   const maxRevenue = Math.max(...trend.map((day) => day.revenue), 1)
   const delivered = statuses.find((item) => item.status === "DELIVERED")?._count._all || 0
-  const avgOrder = orders30 ? (revenue30._sum.total || 0) / orders30 : 0
+  const avgOrder = validOrders30 ? (revenue30._sum.total || 0) / validOrders30 : 0
 
   return (
     <div className="mx-auto max-w-[1600px] space-y-6 pb-10 text-white">
