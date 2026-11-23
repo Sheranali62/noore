@@ -87,3 +87,11 @@ export async function sendNewOrderAdminEmail(input: {
   const text = `New NOORÉ order #${input.orderNumber}. Customer: ${input.customerName}; Email: ${input.customerEmail}; Phone: ${input.customerPhone}; Address: ${input.address}, ${input.city}, ${input.province}; COD total: PKR ${input.total.toLocaleString("en-PK")}. Admin: ${site}/admin/orders`
   return sendEmail({ to: recipient, subject, html, text })
 }
+
+export async function sendNooreEmailConnectionTest(to: string) {
+  const { site } = emailConfig()
+  const subject = "NOORÉ · Email connection test"
+  const html = `<div style="background:#f5f1e9;padding:32px 12px;font-family:Arial,sans-serif;color:#24211c"><div style="max-width:580px;margin:auto;background:#fff;padding:36px;border:1px solid #e7dfd2"><p style="font-family:Georgia,serif;font-size:30px;letter-spacing:5px;margin:0 0 28px;color:#171615">NOORÉ</p><p style="font-size:14px;color:#6c6254">EMAIL CONNECTION TEST</p><h1 style="font-family:Georgia,serif;font-weight:400;font-size:28px">Your email service is connected.</h1><p>This is a test message from your NOORÉ store. No customer order was created.</p><p style="font-size:12px;color:#786f63">Store: ${escapeHtml(site)}</p></div></div>`
+  const text = "NOORÉ email connection test: Your email service is connected. No customer order was created."
+  return sendEmail({ to, subject, html, text })
+}
