@@ -937,6 +937,48 @@ export function Header({ scrolled = false }: { scrolled?: boolean }) {
                 </Link>
               </nav>
 
+              {/* DYNAMIC PRODUCT CATEGORIES */}
+              <section className="mt-8 border-t border-[#3a3328] pt-6" aria-label="Shop by category">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#c6a15b]">Shop by category</p>
+                {menuRoots.length > 0 ? (
+                  <div className="mt-4 space-y-5">
+                    {menuRoots.map((category) => {
+                      const children = getMenuChildren(category.name)
+                      return (
+                        <div key={category.id}>
+                          <Link
+                            href={categoryHref(category.name)}
+                            onClick={() => setMobileOpen(false)}
+                            className="flex items-center justify-between py-2 text-sm font-medium text-[#f5f0e7]"
+                          >
+                            <span>{category.name}</span>
+                            <ArrowUpRight className="h-4 w-4 text-[#c6a15b]" />
+                          </Link>
+                          {children.length > 0 && (
+                            <div className="mt-1 flex flex-wrap gap-2">
+                              {children.map((child) => (
+                                <Link
+                                  key={child.id}
+                                  href={categoryHref(category.name, child)}
+                                  onClick={() => setMobileOpen(false)}
+                                  className="border border-[#4a4030] px-3 py-2 text-[11px] text-[#c9c0b4] transition hover:border-[#c6a15b] hover:text-[#f5f0e7]"
+                                >
+                                  {child.name}
+                                </Link>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <Link href="/products" onClick={() => setMobileOpen(false)} className="mt-3 inline-flex text-sm text-[#c9c0b4] underline underline-offset-4">
+                    Browse all products
+                  </Link>
+                )}
+              </section>
+
               {/* HELP */}
               <div className="mt-8 border border-[#c9a66b]/25 bg-[#171615] p-5">
                 <p className="eyebrow">
