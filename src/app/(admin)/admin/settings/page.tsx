@@ -22,6 +22,9 @@ export default function AdminSettingsPage() {
   const [message, setMessage] = useState("")
   const [error, setError] = useState("")
   const [hasLoaded, setHasLoaded] = useState(false)
+  const [testingEmail, setTestingEmail] = useState(false)
+  const [emailTestMessage, setEmailTestMessage] = useState("")
+  const [emailTestError, setEmailTestError] = useState("")
 
   useEffect(() => {
     let active = true
@@ -96,6 +99,22 @@ export default function AdminSettingsPage() {
     setSettings(savedSettings)
     setError("")
     setMessage("Unsaved changes were discarded.")
+  }
+
+  const sendEmailTest = async () => {
+    setTestingEmail(true)
+    setEmailTestMessage("")
+    setEmailTestError("")
+    try {
+      const response = await fetch("/api/admin/notifications/test", { method: "POST" })
+      const data = await response.json()
+      if (!response.ok || !data.sent) throw new Error(data.error || "The email provider did not confirm the test email.")
+      setEmailTestMessage("Test email sent. Check garmentsloop@gmail.com, including the spam folder.")
+    } catch (reason) {
+      setEmailTestError(reason instanceof Error ? reason.message : "Unable to send the test email.")
+    } finally {
+      setTestingEmail(false)
+    }
   }
 
   if (loading) {
@@ -178,6 +197,16 @@ export default function AdminSettingsPage() {
             <p className="mt-5 text-[9px] font-semibold uppercase tracking-[0.22em] text-[#d6ae72]">Settings guide</p>
             <h2 className="mt-2 font-editorial text-2xl text-white">Keep your store in sync.</h2>
             <p className="mt-3 text-sm leading-6 text-white/55">Changes here update the saved store configuration. Some storefront elements may use cached values briefly before refreshing.</p>
+          </div>
+          <div className="rounded-2xl border border-[#d6ae72]/20 bg-white/[0.035] p-5">
+            <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-[#d6ae72]">Email service</p>
+            <h3 className="mt-2 text-sm font-semibold text-white">Test Resend connection</h3>
+            <p className="mt-2 text-xs leading-5 text-white/45">Send a test message to the store notification email to confirm that NOORÉ can reach your email provider. No customer order is created.</p>
+            <button type="button" onClick={sendEmailTest} disabled={testingEmail} className="mt-4 w-full rounded-xl bg-gradient-to-r from-[#e6c47f] to-[#c2944e] px-4 py-3 text-xs font-bold uppercase tracking-[0.12em] text-[#17110a] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50">
+              {testingEmail ? "Sending test email…" : "Send test email"}
+            </button>
+            {emailTestMessage && <p role="status" className="mt-3 text-xs leading-5 text-emerald-300">{emailTestMessage}</p>}
+            {emailTestError && <p role="alert" className="mt-3 text-xs leading-5 text-red-300">{emailTestError}</p>}
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-5">
             <h3 className="text-sm font-semibold text-white">Current delivery setup</h3>
