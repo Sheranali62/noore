@@ -1,18 +1,89 @@
-export type OrderNotificationStatus = "PENDING" | "CONFIRMED" | "PROCESSING" | "PACKED" | "SHIPPED" | "OUT_FOR_DELIVERY" | "DELIVERED" | "CANCELLED"
+export type OrderNotificationStatus = "PENDING" | "CONFIRMED" | "PROCESSING" | "PACKED" | "SHIPPED" | "OUT_FOR_DELIVERY" | "DELIVERED" | "CANCELLED" | "RETURNED" | "REFUNDED"
 
 const labels: Record<OrderNotificationStatus, string> = {
-  PENDING: "received", CONFIRMED: "confirmed", PROCESSING: "being prepared", PACKED: "packed", SHIPPED: "shipped", OUT_FOR_DELIVERY: "out for delivery", DELIVERED: "delivered", CANCELLED: "cancelled",
+  PENDING: "received",
+  CONFIRMED: "confirmed",
+  PROCESSING: "being prepared",
+  PACKED: "packed",
+  SHIPPED: "shipped",
+  OUT_FOR_DELIVERY: "out for delivery",
+  DELIVERED: "delivered",
+  CANCELLED: "cancelled",
+  RETURNED: "returned",
+  REFUNDED: "refunded",
 }
 
-export async function sendOrderStatusEmail(input: { to: string; customerName?: string | null; orderNumber: string; status: OrderNotificationStatus; trackingNumber?: string | null; courier?: string | null }) {
-  const key = process.env.RESEND_API_KEY
-  const from = process.env.EMAIL_FROM
+function escapeHtml(value: string) {
+  return value.replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  })[character] || character)
+}
+
+function emailConfig() {
+  return {
+    key: process.env.RESEND_API_KEY,
+    from: process.env.EMAIL_FROM,
+    site: (process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXTAUTH_URL || "https://noore-nine.vercel.app").replace(/\/$/, ""),
+  }
+}
+
+async function sendEmail(payload: { to: string; subject: string; html: string; text: string }) {
+  const { key, from } = emailConfig()
   if (!key || !from) return { sent: false, skipped: true, reason: "Email provider is not configured" }
-  const site = process.env.NEXTAUTH_URL || "http://localhost:3000"
-  const subject = `NOORÉ Order #${input.orderNumber} is ${labels[input.status]}`
-  const tracking = input.trackingNumber ? `<p><strong>Tracking:</strong> ${input.trackingNumber}${input.courier ? ` (${input.courier})` : ""}</p>` : ""
-  const html = `<div style="font-family:Arial,sans-serif;max-width:600px;margin:auto"><h1 style="font-family:Georgia,serif">NOORÉ</h1><p>Dear ${input.customerName || "Customer"},</p><p>Your order <strong>#${input.orderNumber}</strong> is now <strong>${labels[input.status]}</strong>.</p>${tracking}<p>You can view your order from your account: <a href="${site}/account/orders">My Orders</a></p><p>Thank you for shopping with NOORÉ.</p></div>`
-  const response = await fetch("https://api.resend.com/emails", { method: "POST", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" }, body: JSON.stringify({ from, to: [input.to], subject, html }) })
-  if (!response.ok) throw new Error(`Email provider returned ${response.status}`)
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ from, to: [payload.to], subject: payload.subject, html: payload.html, text: payload.text }),
+  })
+  if (!response.ok) {
+    const detail = await response.text().catch(() => "")
+    throw new Error(`Email provider returned ${response.status}: ${detail.slice(0, 300)}`)
+  }
   return { sent: true, skipped: false }
+}
+
+export async function sendOrderStatusEmail(input: {
+  to: string
+  customerName?: string | null
+  orderNumber: string
+  status: OrderNotificationStatus
+  trackingNumber?: string | null
+  courier?: string | null
+}) {
+  const { site } = emailConfig()
+  const name = escapeHtml(input.customerName?.trim() || "Customer")
+  const order = escapeHtml(input.orderNumber)
+  const status = labels[input.status]
+  const tracking = input.trackingNumber
+    ? `<p style="margin:16px 0;color:#4b463e"><strong>Tracking number:</strong> ${escapeHtml(input.trackingNumber)}${input.courier ? ` · ${escapeHtml(input.courier)}` : ""}</p>`
+    : ""
+  const trackingUrl = `${site}/order-tracking`
+  const subject = `NOORÉ · Order #${input.orderNumber} is ${status}`
+  const html = `<div style="background:#f5f1e9;padding:32px 12px;font-family:Arial,sans-serif;color:#24211c"><div style="max-width:580px;margin:auto;background:#fff;padding:36px;border:1px solid #e7dfd2"><p style="font-family:Georgia,serif;font-size:30px;letter-spacing:5px;margin:0 0 28px;color:#171615">NOORÉ</p><p style="font-size:14px;color:#6c6254">ORDER UPDATE</p><h1 style="font-family:Georgia,serif;font-weight:400;font-size:28px">Your order is ${status}</h1><p>Dear ${name},</p><p>Your order <strong>#${order}</strong> is now ${status}. We’ll keep you informed as it moves through our delivery process.</p>${tracking}<p style="margin:28px 0"><a href="${trackingUrl}" style="display:inline-block;background:#c6a15b;color:#171615;padding:14px 22px;text-decoration:none;font-size:12px;font-weight:bold;letter-spacing:1px">TRACK YOUR ORDER</a></p><p style="font-size:12px;color:#786f63;line-height:1.7">Thank you for shopping with NOORÉ. If you need help, reply to this email or contact our support team.</p></div></div>`
+  const text = `Dear ${input.customerName || "Customer"}, your NOORÉ order #${input.orderNumber} is ${status}.${input.trackingNumber ? ` Tracking number: ${input.trackingNumber}.` : ""} Track your order: ${trackingUrl}`
+  return sendEmail({ to: input.to, subject, html, text })
+}
+
+export async function sendNewOrderAdminEmail(input: {
+  customerName: string
+  customerEmail: string
+  customerPhone: string
+  orderNumber: string
+  total: number
+  address: string
+  city: string
+  province: string
+}) {
+  const { from, site } = emailConfig()
+  const recipient = process.env.ADMIN_ORDER_EMAIL || from
+  if (!recipient) return { sent: false, skipped: true, reason: "Store notification recipient is not configured" }
+  const order = escapeHtml(input.orderNumber)
+  const name = escapeHtml(input.customerName)
+  const email = escapeHtml(input.customerEmail)
+  const phone = escapeHtml(input.customerPhone)
+  const address = escapeHtml(`${input.address}, ${input.city}, ${input.province}`)
+  const subject = `New NOORÉ order · #${input.orderNumber}`
+  const html = `<div style="background:#f5f1e9;padding:32px 12px;font-family:Arial,sans-serif;color:#24211c"><div style="max-width:580px;margin:auto;background:#fff;padding:36px;border:1px solid #e7dfd2"><p style="font-family:Georgia,serif;font-size:28px;letter-spacing:5px;margin:0 0 24px">NOORÉ</p><p style="font-size:12px;letter-spacing:2px;color:#927345">NEW ORDER RECEIVED</p><h1 style="font-family:Georgia,serif;font-size:27px;font-weight:400">Order #${order}</h1><p><strong>Customer:</strong> ${name}</p><p><strong>Email:</strong> ${email}</p><p><strong>Phone:</strong> ${phone}</p><p><strong>Delivery address:</strong><br/>${address}</p><p style="font-size:20px;border-top:1px solid #e7dfd2;padding-top:18px"><strong>Total due (COD): PKR ${input.total.toLocaleString("en-PK")}</strong></p><p style="margin-top:26px"><a href="${site}/admin/orders" style="display:inline-block;background:#c6a15b;color:#171615;padding:14px 22px;text-decoration:none;font-size:12px;font-weight:bold">OPEN ADMIN ORDERS</a></p></div></div>`
+  const text = `New NOORÉ order #${input.orderNumber}. Customer: ${input.customerName}; Email: ${input.customerEmail}; Phone: ${input.customerPhone}; Address: ${input.address}, ${input.city}, ${input.province}; COD total: PKR ${input.total.toLocaleString("en-PK")}. Admin: ${site}/admin/orders`
+  return sendEmail({ to: recipient, subject, html, text })
 }
