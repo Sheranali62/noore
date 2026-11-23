@@ -25,18 +25,37 @@ export async function GET(request: NextRequest) {
       where: {
         orderNumber,
       },
-      include: {
+      select: {
+        orderNumber: true,
+        status: true,
+        total: true,
+        createdAt: true,
+        paymentMethod: true,
+        trackingNumber: true,
+        courier: true,
         user: {
           select: {
             email: true,
-            name: true,
           },
         },
-        address: true,
         items: {
-          include: {
-            product: true,
-            variant: true,
+          select: {
+            id: true,
+            quantity: true,
+            price: true,
+            total: true,
+            product: {
+              select: {
+                name: true,
+                images: true,
+              },
+            },
+            variant: {
+              select: {
+                color: true,
+                size: true,
+              },
+            },
           },
         },
       },
