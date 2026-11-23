@@ -10,6 +10,11 @@ import { useSession } from "next-auth/react"
 type Address = { id: string; name: string; phone: string; address: string; city: string; province: string; postal: string; default: boolean }
 
 type Coupon = { code: string; type: string; value: number; discount: number }
+type ConfirmedOrder = {
+  name: string; email: string; phone: string; address: string; city: string; province: string; postal: string;
+  deliveryMethod: string; subtotal: number; discount: number; shipping: number; total: number;
+  items: Array<{ id: string; name: string; image: string; quantity: number; price: number; variantLabel: string }>
+}
 
 const FALLBACK = { freeShippingThreshold: 5000, standardShipping: 250, expressShipping: 500 }
 
@@ -20,6 +25,7 @@ export default function CheckoutPage() {
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [orderNumber, setOrderNumber] = useState("")
+  const [confirmedOrder, setConfirmedOrder] = useState<ConfirmedOrder | null>(null)
   const [error, setError] = useState("")
   const [addresses, setAddresses] = useState<Address[]>([])
   const [settings, setSettings] = useState(FALLBACK)
@@ -114,6 +120,15 @@ export default function CheckoutPage() {
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || "Unable to place your order. Please try again.")
       setOrderNumber(data.orderNumber)
+      setConfirmedOrder({
+        name: formData.name.trim(), email: formData.email.trim(), phone: formData.phone.trim(),
+        address: formData.address.trim(), city: formData.city, province: formData.province, postal: formData.postal.trim(),
+        deliveryMethod: formData.deliveryMethod, subtotal: total, discount, shipping, total: grandTotal,
+        items: items.map(item => ({
+          id: item.id || item.productId, name: item.name, image: item.image, quantity: item.quantity, price: item.price,
+          variantLabel: (item as any).variantLabel || "",
+        })),
+      })
       localStorage.setItem("last_order_number", data.orderNumber)
       clearCart()
       setStep(4)
@@ -124,14 +139,52 @@ export default function CheckoutPage() {
   if (!items.length && step !== 4) return null
 
   if (step === 4) {
-    return <main className="min-h-[75vh] bg-[#11100f] flex items-center justify-center px-4 py-16"><div className="max-w-xl w-full bg-[#171615] border border-[#3a3328] p-8 md:p-12 text-center">
-      <div className="mx-auto h-16 w-16 rounded-full bg-[#24211c] flex items-center justify-center"><Check size={28} /></div>
-      <p className="mt-6 text-[10px] uppercase tracking-[0.25em] text-[#b9b0a2]">Thank you for choosing NOORÉ</p>
-      <h1 className="font-editorial text-4xl font-semibold mt-2">Order confirmed</h1>
-      <p className="text-sm text-[#b9b0a2] mt-3">Your order has been received and will be prepared for delivery.</p>
-      <div className="mt-7 p-4 bg-[#11100f]"><p className="text-[10px] uppercase tracking-[0.18em] text-[#b9b0a2]">Order number</p><p className="font-mono text-xl font-semibold mt-1">#{orderNumber}</p><p className="text-xs text-[#b9b0a2] mt-2">Payment: Cash on Delivery</p></div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-7"><Link href="/account/orders" className="py-3 border border-charcoal text-sm font-medium hover:bg-charcoal hover:text-white transition">View my orders</Link><Link href="/products" className="py-3 bg-[#c6a15b] text-[#171615] text-sm font-medium hover:bg-[#d8b978] transition">Continue shopping</Link></div>
-    </div></main>
+    return <main className="min-h-screen bg-[#11100f] px-4 py-10 text-[#f5f0e7] sm:py-16">
+      <div className="mx-auto max-w-4xl">
+        <section className="overflow-hidden border border-[#4a4030] bg-[#171615]">
+          <div className="h-1.5 bg-gradient-to-r from-[#8d6c3e] via-[#e0c48e] to-[#8d6c3e]" />
+          <div className="px-5 py-9 text-center sm:px-10 sm:py-12">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-[#c6a15b]/50 bg-[#c6a15b]/10 text-[#e0c48e]"><Check size={30}/></div>
+            <p className="mt-6 text-[10px] uppercase tracking-[0.28em] text-[#c6a879]">Thank you for choosing NOORÉ</p>
+            <h1 className="mt-2 font-editorial text-4xl font-semibold sm:text-5xl">Order confirmed</h1>
+            <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-[#b9b0a2]">Your order has been received. Keep your order number handy to check delivery progress.</p>
+            <div className="mx-auto mt-7 max-w-sm border border-[#4a4030] bg-[#11100f] p-5">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[#b9b0a2]">Your order number</p>
+              <p className="mt-2 break-all font-mono text-2xl font-semibold text-[#e0c48e]">#{orderNumber}</p>
+              <p className="mt-2 text-xs text-[#b9b0a2]">Payment · Cash on Delivery</p>
+            </div>
+            <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
+              <Link href={"/order-tracking?orderNumber="+encodeURIComponent(orderNumber)+"&email="+encodeURIComponent(confirmedOrder?.email || "")} className="inline-flex items-center justify-center gap-2 bg-[#c6a15b] px-6 py-3.5 text-xs font-semibold uppercase tracking-wider text-[#171615] hover:bg-[#d8b978]"><Truck size={16}/> Track your order</Link>
+              <Link href="/account/orders" className="inline-flex items-center justify-center border border-[#4a4030] px-6 py-3.5 text-xs font-medium hover:border-[#c6a15b]">My orders</Link>
+            </div>
+          </div>
+        </section>
+        {confirmedOrder && <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_320px]">
+          <section className="border border-[#3a3328] bg-[#171615] p-5 sm:p-7">
+            <div className="flex items-center justify-between gap-3"><div><p className="text-[10px] uppercase tracking-[0.2em] text-[#c6a879]">Purchase details</p><h2 className="mt-1 font-editorial text-2xl">Items ordered</h2></div><span className="text-xs text-[#b9b0a2]">{confirmedOrder.items.length} item{confirmedOrder.items.length===1?"":"s"}</span></div>
+            <div className="mt-5 divide-y divide-[#3a3328]">
+              {confirmedOrder.items.map(item=><div key={item.id} className="flex gap-3 py-4 first:pt-0 last:pb-0"><img src={item.image || "/placeholder.jpg"} alt={item.name} className="h-20 w-16 shrink-0 bg-[#24211c] object-cover"/><div className="min-w-0 flex-1"><p className="text-sm font-medium">{item.name}</p>{item.variantLabel&&<p className="mt-1 text-xs text-[#b9b0a2]">{item.variantLabel}</p>}<p className="mt-2 text-xs text-[#b9b0a2]">Qty {item.quantity} × PKR {item.price.toLocaleString()}</p></div><p className="shrink-0 text-sm font-medium">PKR {(item.quantity*item.price).toLocaleString()}</p></div>)}
+            </div>
+          </section>
+          <aside className="space-y-5">
+            <section className="border border-[#3a3328] bg-[#171615] p-5">
+              <h2 className="font-semibold">Order summary</h2>
+              <div className="mt-4 space-y-3 text-sm"><div className="flex justify-between"><span className="text-[#b9b0a2]">Subtotal</span><span>PKR {confirmedOrder.subtotal.toLocaleString()}</span></div>{confirmedOrder.discount>0&&<div className="flex justify-between"><span className="text-[#b9b0a2]">Discount</span><span>- PKR {confirmedOrder.discount.toLocaleString()}</span></div>}<div className="flex justify-between"><span className="text-[#b9b0a2]">Shipping</span><span>{confirmedOrder.shipping===0?"FREE":"PKR "+confirmedOrder.shipping.toLocaleString()}</span></div><div className="flex justify-between border-t border-[#3a3328] pt-3 font-semibold"><span>Total due</span><span>PKR {confirmedOrder.total.toLocaleString()}</span></div></div>
+              <p className="mt-4 border border-[#4a4030] bg-[#11100f] p-3 text-xs text-[#b9b0a2]">Cash on Delivery · Pay when your order arrives.</p>
+            </section>
+            <section className="border border-[#3a3328] bg-[#171615] p-5">
+              <div className="flex items-center gap-2"><MapPin size={16} className="text-[#c6a15b]"/><h2 className="font-semibold">Delivery address</h2></div>
+              <p className="mt-3 text-sm font-medium">{confirmedOrder.name}</p><p className="mt-1 text-sm leading-6 text-[#b9b0a2]">{confirmedOrder.address}<br/>{confirmedOrder.city}, {confirmedOrder.province} {confirmedOrder.postal}</p><p className="mt-2 text-xs text-[#b9b0a2]">{confirmedOrder.phone}<br/>{confirmedOrder.email}</p>
+            </section>
+          </aside>
+        </div>}
+        <div className="mt-6 flex flex-col items-center justify-between gap-4 border border-[#3a3328] bg-[#171615] p-5 sm:flex-row">
+          <div className="flex items-center gap-3"><ShieldCheck size={20} className="text-[#c6a15b]"/><div><p className="text-sm font-medium">Need help with your order?</p><p className="mt-1 text-xs text-[#b9b0a2]">Our support team is here to help.</p></div></div>
+          <a href={"https://wa.me/923150490498?text="+encodeURIComponent("Hello NOORÉ, I need help with order #"+orderNumber+".")} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center border border-[#c6a15b] px-5 py-3 text-xs font-semibold uppercase tracking-wider text-[#e0c48e] hover:bg-[#c6a15b]/10">WhatsApp support</a>
+        </div>
+        <div className="mt-6 text-center"><Link href="/products" className="text-xs uppercase tracking-[0.18em] text-[#b9b0a2] underline underline-offset-4 hover:text-[#e0c48e]">Continue shopping</Link></div>
+      </div>
+    </main>
   }
 
   return <main className="min-h-screen bg-[#11100f]">
