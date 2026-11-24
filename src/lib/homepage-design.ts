@@ -4,6 +4,18 @@ export type HomepageDesign = {
   accentColor: string
   buttonColor: string
   buttonTextColor: string
+  surfaceColor: string
+  mutedTextColor: string
+  borderColor: string
+  headerColor: string
+  headerTextColor: string
+  footerColor: string
+  footerTextColor: string
+  announcementColor: string
+  announcementTextColor: string
+  bodyFont: "sans" | "serif"
+  announcementMessage: string
+  footerDescription: string
   headingFont: "editorial" | "serif" | "sans"
   heroEyebrow: string
   heroKicker: string
@@ -53,6 +65,18 @@ export const DEFAULT_HOMEPAGE_DESIGN: HomepageDesign = {
   accentColor: "#535F4C",
   buttonColor: "#535F4C",
   buttonTextColor: "#FFFFFF",
+  surfaceColor: "#FFFFFF",
+  mutedTextColor: "#77786F",
+  borderColor: "#DEDCD3",
+  headerColor: "#F7F6F2",
+  headerTextColor: "#30352E",
+  footerColor: "#535F4C",
+  footerTextColor: "#F7F6F2",
+  announcementColor: "#535F4C",
+  announcementTextColor: "#FFFFFF",
+  bodyFont: "sans",
+  announcementMessage: "FREE SHIPPING ON ORDERS ABOVE PKR 5,000",
+  footerDescription: "Thoughtful style, considered details and modern essentials. Discover the NOORÉ edit and find pieces made to feel like your own.",
   headingFont: "editorial",
   heroEyebrow: "NOORÉ — New Season",
   heroKicker: "A world of considered style",
@@ -103,10 +127,11 @@ export function normalizeHomepageDesign(input: unknown): HomepageDesign {
   for (const key of Object.keys(result) as (keyof HomepageDesign)[]) {
     const candidate = value[key]
     if (typeof candidate === "string" && candidate.trim()) {
-      if (["backgroundColor", "textColor", "accentColor", "buttonColor", "buttonTextColor"].includes(key)) {
+      if (["backgroundColor", "textColor", "accentColor", "buttonColor", "buttonTextColor", "surfaceColor", "mutedTextColor", "borderColor", "headerColor", "headerTextColor", "footerColor", "footerTextColor", "announcementColor", "announcementTextColor"].includes(key)) {
         if (hex.test(candidate)) (result as any)[key] = candidate
       } else if (key === "headingFont") {
         if (["editorial", "serif", "sans"].includes(candidate)) result.headingFont = candidate as HomepageDesign["headingFont"]
+      } else if (key === "bodyFont") { if (["sans", "serif"].includes(candidate)) result.bodyFont = candidate as HomepageDesign["bodyFont"]
       } else if (key.endsWith("Url")) {
         const url = candidate.trim()
         if (url.length <= 180 && ((url.startsWith("/") && !url.startsWith("//")) || url.toLowerCase().startsWith("https://"))) (result as any)[key] = url
