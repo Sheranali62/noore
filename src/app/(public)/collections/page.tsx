@@ -2,15 +2,15 @@ import Link from "next/link"
 
 const collections = [
   ["Luxury", "Elevated silhouettes for evenings, occasions and timeless dressing.", "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1800&auto=format&fit=crop", "/products?category=Luxury"],
-  ["Festive", "Rich textures and expressive dressing for Eid, celebrations and gatherings.", "https://images.unsplash.com/photo-1591369822096-ffd140ec948f?w=1800&auto=format&fit=crop", "/products?collection=Festive%202026"],
+  ["Festive", "Rich textures and expressive dressing for Eid, celebrations and gatherings.", "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1800&auto=format&fit=crop", "/products?collection=Festive%202026"],
   ["Wedding Guest", "Polished looks made for mehndi, baraat, walima and every invitation.", "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=1800&auto=format&fit=crop", "/products?category=Formal"],
   ["Bridal & Occasion", "Statement dressing for the moments that deserve something unforgettable.", "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=1800&auto=format&fit=crop", "/products?category=Luxury"],
   ["Lawn & Summer", "Lightweight seasonal dressing for bright days and easy elegance.", "https://images.unsplash.com/photo-1485230895905-ec40ba36b9bc?w=1800&auto=format&fit=crop", "/products?collection=Lawn"],
-  ["Winter Edit", "Layered textures, deeper tones and refined cold-weather essentials.", "https://images.unsplash.com/photo-1485968579580-b6d095142e6e?w=1800&auto=format&fit=crop", "/products?collection=Winter"],
-  ["Everyday", "Effortless pieces designed for the rhythm of everyday life.", "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1800&auto=format&fit=crop", "/products?category=Casual"],
-  ["New Season", "Fresh silhouettes and considered pieces from the latest NOORÉ edit.", "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1800&auto=format&fit=crop", "/products?sort=newest"],
-  ["Best Sellers", "The pieces our customers keep coming back to.", "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=1800&auto=format&fit=crop", "/products?sort=popular"],
-  ["Sale Edit", "Exceptional pieces, thoughtfully reduced for a limited time.", "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=1800&auto=format&fit=crop", "/products?sale=1"],
+  ["Winter Edit", "Layered textures, deeper tones and refined cold-weather essentials.", "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=1800&auto=format&fit=crop", "/products?collection=Winter"],
+  ["Everyday", "Effortless pieces designed for the rhythm of everyday life.", "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=1800&auto=format&fit=crop", "/products?category=Casual"],
+  ["New Season", "Fresh silhouettes and considered pieces from the latest NOORÉ edit.", "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=1800&auto=format&fit=crop", "/products?sort=newest"],
+  ["Best Sellers", "The pieces our customers keep coming back to.", "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=1800&auto=format&fit=crop", "/products?sort=popular"],
+  ["Sale Edit", "Exceptional pieces, thoughtfully reduced for a limited time.", "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=1800&auto=format&fit=crop", "/products?sale=1"],
 ]
 
 const departments = [
