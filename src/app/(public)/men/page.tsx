@@ -71,6 +71,7 @@ export default async function MenPage() {
         description={pageContent.men.secondaryDescription}
         image={mediaImage(media, "page:men:hero", "https://images.unsplash.com/photo-1617137968427-85924c800a22?w=2200&auto=format&fit=crop")}
         href={pageContent.men.buttonUrl}
+        cta={pageContent.men.buttonText}
         products={rows.map(p => ({ ...p, colors: p.variants.map(v => v.color) }))}
       />
     </>
