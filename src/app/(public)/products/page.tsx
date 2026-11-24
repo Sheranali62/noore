@@ -53,18 +53,18 @@ export default async function ProductsPage({ searchParams }: { searchParams?: Re
   }
 
   return <main className="min-h-screen bg-cream">
-    <section className="relative overflow-hidden border-b border-[#b8945e]/30 bg-[#171513] px-4 py-10 text-[#f5f0e7] sm:py-12 md:py-20">
+    <section className="relative overflow-hidden border-b border-[#D4A07D]/30 bg-[#465340] px-4 py-10 text-[#F7F6F2] sm:py-12 md:py-20">
       <div className="mx-auto max-w-7xl">
         <p className="text-[9px] font-semibold uppercase tracking-[0.3em] text-[#c9aa76]">NOORÉ / COLLECTION</p>
         <div className="mt-3 flex flex-col justify-between gap-5 md:flex-row md:items-end">
-          <div><h1 className="font-editorial text-4xl tracking-[-0.025em] text-[#f7f1e7] md:text-6xl">{title}</h1><p className="mt-3 max-w-lg text-sm text-[#c9c0b4]">{subtitle}</p></div>
+          <div><h1 className="font-editorial text-4xl tracking-[-0.025em] text-[#F7F6F2] md:text-6xl">{title}</h1><p className="mt-3 max-w-lg text-sm text-[#B8AA91]">{subtitle}</p></div>
           <p className="text-[10px] uppercase tracking-[0.16em] text-[#c9aa76]">{totalCount} {totalCount === 1 ? "piece" : "pieces"}</p>
         </div>
       </div>
     </section>
 
     <div className="mx-auto max-w-7xl px-3 py-5 pb-24 sm:px-4 sm:py-7 md:py-10">
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-[#b8945e]/30 pb-4 sm:mb-7 sm:pb-5">
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-[#D4A07D]/30 pb-4 sm:mb-7 sm:pb-5">
         <ProductFilters categories={categoryRows.map((x) => x.category)} genders={genderRows.flatMap((x) => x.gender ? [x.gender] : [])} collections={collectionRows.flatMap((x) => x.collection ? [x.collection] : [])} />
         <p className="hidden text-[10px] uppercase tracking-[0.14em] text-secondary md:block">Showing {products.length} of {totalCount}</p>
         <ProductSort currentSort={sort} />
