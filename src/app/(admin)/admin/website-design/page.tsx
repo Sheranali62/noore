@@ -26,6 +26,26 @@ const textFields: { key: keyof HomepageDesign; label: string; group: string; mul
   { key: "luxuryDescription", label: "Description", group: "Luxury spotlight", multiline: true },
   { key: "luxuryButtonText", label: "Link text", group: "Luxury spotlight" },
   { key: "luxuryButtonUrl", label: "Link destination", group: "Luxury spotlight" },
+  { key: "limitedEyebrow", label: "Small label", group: "Limited quantities" },
+  { key: "limitedHeading", label: "Section heading", group: "Limited quantities" },
+  { key: "limitedDescription", label: "Description", group: "Limited quantities" },
+  { key: "saleEyebrow", label: "Small label", group: "Sale section" },
+  { key: "saleHeading", label: "Section heading", group: "Sale section" },
+  { key: "saleDescription", label: "Description", group: "Sale section" },
+  { key: "storiesEyebrow", label: "Small label", group: "Collection stories" },
+  { key: "storiesHeading", label: "Section heading", group: "Collection stories" },
+  { key: "journalEyebrow", label: "Small label", group: "Journal section" },
+  { key: "journalHeading", label: "Section heading", group: "Journal section" },
+  { key: "brandEyebrow", label: "Small label", group: "Brand statement" },
+  { key: "brandHeading", label: "Main heading", group: "Brand statement" },
+  { key: "brandDescription", label: "Description", group: "Brand statement", multiline: true },
+  { key: "brandButtonText", label: "Button text", group: "Brand statement" },
+  { key: "brandButtonUrl", label: "Button destination", group: "Brand statement" },
+  { key: "newsletterEyebrow", label: "Small label", group: "Newsletter section" },
+  { key: "newsletterHeading", label: "Heading", group: "Newsletter section" },
+  { key: "newsletterDescription", label: "Description", group: "Newsletter section" },
+  { key: "newsletterButtonText", label: "Button text", group: "Newsletter section" },
+  { key: "newsletterButtonUrl", label: "Button destination", group: "Newsletter section" },
 ]
 const colorFields: {key:keyof HomepageDesign;label:string}[] = [
   {key:"backgroundColor",label:"Page background"},
@@ -34,7 +54,7 @@ const colorFields: {key:keyof HomepageDesign;label:string}[] = [
   {key:"buttonColor",label:"Primary button"},
   {key:"buttonTextColor",label:"Button text"},
 ]
-const groups = ["Hero content","Collections section","Customer favourites","Categories section","New arrivals","Luxury spotlight"]
+const groups = ["Hero content","Collections section","Customer favourites","Categories section","New arrivals","Luxury spotlight","Limited quantities","Sale section","Collection stories","Journal section","Brand statement","Newsletter section"]
 
 export default function WebsiteDesignPage() {
   const [design,setDesign]=useState<HomepageDesign>(DEFAULT_HOMEPAGE_DESIGN)
