@@ -1145,12 +1145,10 @@ html.dark .noore-sage-theme select {
 .noore-global-design .noore-global-announcement { background: var(--noore-site-announcement) !important; color: var(--noore-site-announcement-text) !important; border-color: var(--noore-site-border) !important; }
 .noore-global-design .noore-global-footer { background: var(--noore-site-footer) !important; color: var(--noore-site-footer-text) !important; border-color: var(--noore-site-border) !important; }
 .noore-global-design .noore-global-footer p, .noore-global-design .noore-global-footer a { color: var(--noore-site-footer-text); }
-.noore-global-design :where(.border-black\\/5,.border-black\\/10,.border-gray-100,.border-gray-200) { border-color: var(--noore-site-border) !important; }
-.noore-global-design :where(.text-black\\/45,.text-black\\/50,.text-black\\/55,.text-gray-500,.text-gray-600) { color: var(--noore-site-muted) !important; }
-.noore-global-design :where(.bg-white,.bg-white\\/95) { background-color: var(--noore-site-surface); }
 
 .noore-global-design header.sticky { background: var(--noore-site-header) !important; color: var(--noore-site-header-text) !important; border-color: var(--noore-site-border) !important; }
 .noore-global-design header.sticky a, .noore-global-design header.sticky button { color: var(--noore-site-header-text); }
 .noore-global-design main { background-color: var(--noore-site-bg); color: var(--noore-site-text); }
-.noore-global-design main :where(.bg-white,.bg-white\\/95,.bg-\\[\\#ffffff\\]) { background-color: var(--noore-site-surface); }
-.noore-global-design main :where(.text-black,.text-charcoal) { color: var(--noore-site-text); }
+
+.noore-global-design main .bg-white { background-color: var(--noore-site-surface); }
+.noore-global-design main .text-black { color: var(--noore-site-text); }
