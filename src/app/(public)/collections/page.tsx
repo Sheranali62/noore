@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { getPageContent } from "@/lib/site-page-content"
 
 const collections = [
   ["Luxury", "Elevated silhouettes for evenings, occasions and timeless dressing.", "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1800&auto=format&fit=crop", "/products?category=Luxury"],
@@ -19,14 +20,16 @@ const departments = [
   ["Kids", "Girls’ and boys’ festive, casual and occasion dressing.", "/kids"],
 ]
 
-export default function CollectionsPage() {
+export const dynamic = "force-dynamic"
+export default async function CollectionsPage() {
+  const p = (await getPageContent()).collections
   return (
     <main className="bg-cream text-charcoal">
       <section className="relative overflow-hidden border-b border-black/10">
         <div className="mx-auto max-w-7xl px-5 py-16 md:px-8 md:py-24">
-          <p className="text-[9px] font-semibold uppercase tracking-[0.3em] text-secondary">NOORÉ / Collections</p>
-          <h1 className="mt-4 max-w-4xl font-editorial text-5xl leading-[.95] md:text-8xl">Curated worlds.<br />Beautifully considered.</h1>
-          <p className="mt-7 max-w-2xl text-sm leading-7 text-secondary">Explore collections shaped around season, occasion, mood and the modern Pakistani wardrobe — across women, men and kids.</p>
+          <p className="text-[9px] font-semibold uppercase tracking-[0.3em] text-secondary">{p.eyebrow}</p>
+          <h1 className="mt-4 max-w-4xl font-editorial text-5xl leading-[.95] md:text-8xl">{p.title}</h1>
+          <p className="mt-7 max-w-2xl text-sm leading-7 text-secondary">{p.description}</p>
           <div className="mt-9 flex flex-wrap gap-3">
             {departments.map(([name, copy, href]) => <Link key={name} href={href} className="rounded-full border border-charcoal/20 px-5 py-3 text-[9px] font-semibold uppercase tracking-[0.18em] transition hover:bg-charcoal hover:text-white">{name}</Link>)}
           </div>
@@ -35,7 +38,7 @@ export default function CollectionsPage() {
 
       <section className="mx-auto max-w-7xl px-5 py-14 md:px-8 md:py-20">
         <div className="mb-9 flex items-end justify-between gap-5">
-          <div><p className="text-[9px] uppercase tracking-[0.28em] text-secondary">The NOORÉ edit</p><h2 className="mt-2 font-editorial text-4xl md:text-5xl">Collections for every moment.</h2></div>
+          <div><p className="text-[9px] uppercase tracking-[0.28em] text-secondary">The NOORÉ edit</p><h2 className="mt-2 font-editorial text-4xl md:text-5xl">{p.secondaryTitle}</h2></div>
           <Link href="/products" className="hidden text-[9px] font-semibold uppercase tracking-[0.18em] underline underline-offset-4 md:block">Shop all</Link>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
