@@ -3,6 +3,7 @@ export const revalidate = 0
 
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
+import { getStorefrontMedia, mediaImage } from "@/lib/storefront-media"
 import { ProductCard } from "@/components/product/product-card"
 import { cookies } from "next/headers"
 import {
@@ -93,6 +94,7 @@ function personalize<
 
 export default async function HomePage() {
   const { segment: interest } = readInterest()
+  const media = await getStorefrontMedia()
 
   const [newRaw, saleRaw, limitedRaw, popularGroups, categoryImageRows, journalPosts] = await Promise.all([
     prisma.product.findMany({
@@ -156,7 +158,7 @@ export default async function HomePage() {
         ? product.gender?.toLowerCase() === item.gender
         : product.category.toLowerCase() === item.category?.toLowerCase(),
     )
-    return matchingProduct?.images?.[0] || item.fallback
+    return mediaImage(media, "home:category:" + item.name.toLowerCase(), matchingProduct?.images?.[0] || item.fallback)
   }
 
   const interestLabel =
@@ -260,7 +262,7 @@ export default async function HomePage() {
         <div className="mt-7 grid gap-3 sm:mt-10 md:grid-cols-3">
           {worlds.map((item, index) => (
             <Link key={item.title} href={item.href} className={`group relative overflow-hidden bg-black text-white ${index === 1 ? "md:mt-12" : ""}`}>
-              <div className="aspect-[0.78] bg-cover bg-center transition duration-[1000ms] group-hover:scale-[1.04]" style={{ backgroundImage: `url('${item.image}')` }} />
+              <div className="aspect-[0.78] bg-cover bg-center transition duration-[1000ms] group-hover:scale-[1.04]" style={{ backgroundImage: `url('${mediaImage(media, 'home:world:' + item.title.toLowerCase(), item.image)}')` }} />
               <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
               <div className="absolute inset-x-5 bottom-5 md:inset-x-7 md:bottom-7">
                 <p className="text-[8px] uppercase tracking-[0.25em] text-white/60">{item.eyebrow}</p>
