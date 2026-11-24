@@ -40,8 +40,8 @@ const categories = [
   { name: "Women", href: "/women", fallback: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=1200&auto=format&fit=crop", gender: "women", description: "The complete women’s wardrobe, from everyday to occasion." },
   { name: "Men", href: "/men", fallback: "https://images.unsplash.com/photo-1617137968427-85924c800a22?w=1200&auto=format&fit=crop", gender: "men", description: "Modern Pakistani menswear and refined essentials." },
   { name: "Kids", href: "/kids", fallback: "https://images.unsplash.com/photo-1503919545889-aef636e10ad4?w=1200&auto=format&fit=crop", gender: "kids", description: "Little wardrobes for everyday and special moments." },
-  { name: "Unstitched", href: "/products?category=Unstitched", fallback: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=1200&auto=format&fit=crop", category: "Unstitched", description: "Choose your fabric and create your own look." },
-  { name: "Luxury", href: "/products?category=Luxury", fallback: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1200&auto=format&fit=crop", category: "Luxury", description: "Elevated pieces for celebrations and statement dressing." },
+  { name: "Unstitched", href: "/products?category=Unstitched", fallback: "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=1200&q=85&auto=format&fit=crop", category: "Unstitched", description: "Choose your fabric and create your own look." },
+  { name: "Luxury", href: "/products?category=Luxury", fallback: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=1200&q=85&auto=format&fit=crop", category: "Luxury", description: "Elevated pieces for celebrations and statement dressing." },
 ]
 
 const stories = [
@@ -49,14 +49,14 @@ const stories = [
     eyebrow: "The New Edit",
     title: "Quiet luxury, made for every day.",
     copy: "Refined silhouettes, considered details and effortless Pakistani elegance.",
-    image: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=1800&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1800&q=85&auto=format&fit=crop",
     href: "/products?category=Ready%20to%20Wear",
   },
   {
     eyebrow: "The occasion edit",
     title: "Made for moments that matter.",
     copy: "Considered looks for celebrations, evenings and the moments in between.",
-    image: "https://images.unsplash.com/photo-1591369822096-ffd140ec948f?w=1800&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1591369822096-ffd140ec948f?w=1800&q=85&auto=format&fit=crop",
     href: "/products?category=Luxury",
   },
 ]
@@ -211,7 +211,7 @@ export default async function HomePage() {
             </div>
           </div>
           <div className="group relative min-h-[430px] overflow-hidden bg-[#3b3029] sm:min-h-[560px] md:min-h-[680px]">
-            <div className="absolute inset-0 bg-cover bg-[center_35%] transition-transform duration-[1400ms] ease-out group-hover:scale-[1.035]" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=2200&auto=format&fit=crop')" }} />
+            <div className="absolute inset-0 bg-cover bg-[center_35%] transition-transform duration-[1400ms] ease-out group-hover:scale-[1.035]" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=2200&q=85&auto=format&fit=crop')" }} />
             <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-black/10" />
             <div className="absolute left-5 top-5 border border-white/30 bg-black/15 px-4 py-3 backdrop-blur-sm sm:left-7 sm:top-7">
               <p className="text-[8px] uppercase tracking-[0.25em] text-white/65">The season’s point of view</p>
