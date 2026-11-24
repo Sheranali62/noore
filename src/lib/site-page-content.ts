@@ -3,7 +3,7 @@ import { DEFAULT_PAGE_CONTENT, normalizePageContent, type PageContentMap, type E
 export { DEFAULT_PAGE_CONTENT, normalizePageContent } from "@/lib/site-page-content-defaults"
 export type { EditablePage, PageContent, PageContentMap } from "@/lib/site-page-content-defaults"
 
-const valid = (v: unknown, max=500) => typeof v === "string" && v.trim().length > 0 && v.trim().length <= max
+const valid = (v: unknown, max=500): v is string => typeof v === "string" && v.trim().length > 0 && v.trim().length <= max
 export function normalizePageContent(input: unknown): PageContentMap {
  const raw=input && typeof input==="object" ? input as Record<string,unknown> : {}
  const result={...DEFAULT_PAGE_CONTENT}
