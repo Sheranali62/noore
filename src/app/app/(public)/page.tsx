@@ -54,6 +54,7 @@ export default async function HomePage() {
   let savedDesign: unknown = {}
   try { savedDesign = designRow?.value ? JSON.parse(designRow.value) : {} } catch {}
   const design = normalizeHomepageDesign(savedDesign)
+  const headingFamily = design.headingFont === "sans" ? "Arial, sans-serif" : design.headingFont === "serif" ? "Georgia, serif" : "Georgia, serif"
   const featuredProducts = personalize(featuredRaw, interest).slice(0, 8)
   const saleProducts = personalize(saleRaw, interest).slice(0, 4)
   const limitedProducts = personalize(limitedRaw, interest).slice(0, 4)
@@ -65,7 +66,8 @@ export default async function HomePage() {
   const interestLabel = interest === "women" ? "Your edit · Women" : interest === "men" ? "Your edit · Men" : interest === "kids" ? "Your edit · Kids" : null
 
   return (
-    <div className="noore-sage-theme bg-cream text-charcoal" style={{ backgroundColor: design.backgroundColor, color: design.textColor, ["--noore-accent" as any]: design.accentColor, ["--noore-button" as any]: design.buttonColor, ["--noore-button-text" as any]: design.buttonTextColor }}>
+    <div className="noore-sage-theme bg-cream text-charcoal" style={{ backgroundColor: design.backgroundColor, color: design.textColor, ["--noore-text" as any]: design.textColor, ["--noore-accent" as any]: design.accentColor, ["--noore-button" as any]: design.buttonColor, ["--noore-button-text" as any]: design.buttonTextColor, ["--noore-heading-font" as any]: headingFamily }}>
+      <style>{`.noore-sage-theme .font-editorial{font-family:var(--noore-heading-font)!important}.noore-sage-theme .text-charcoal{color:var(--noore-text,${design.textColor})}.noore-sage-theme .bg-white{background-color:${design.backgroundColor}!important}.noore-sage-theme .bg-cream{background-color:${design.backgroundColor}!important}`}</style>
       {/* Adaptive personalization */}
       {interestLabel && (
         <section className="border-b border-black/5 bg-white">
@@ -144,7 +146,7 @@ export default async function HomePage() {
 
       {/* Trending / best sellers */}
       {trendingProducts.length > 0 && (
-        <section className="bg-[#f4f0e8] py-16 md:py-24">
+        <section className="py-16 md:py-24" style={{ backgroundColor: design.backgroundColor }}>
           <div className="mx-auto max-w-7xl px-5">
             <div className="mb-9 flex items-end justify-between gap-4"><div><p className="text-[10px] uppercase tracking-[0.3em] text-black/45">{design.favouritesEyebrow}</p><h2 className="mt-2 font-editorial text-4xl md:text-5xl">{design.favouritesHeading}</h2></div><Link href="/products?sort=popular" className="text-xs font-semibold uppercase tracking-[0.15em] underline underline-offset-4">Shop trending</Link></div>
             <div className="grid grid-cols-2 gap-x-3 gap-y-8 md:grid-cols-4 md:gap-x-5">
