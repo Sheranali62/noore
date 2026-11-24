@@ -1001,3 +1001,100 @@ button, a, input, textarea, select {
 @media (prefers-reduced-motion: reduce) {
   .noore-login-entrance, .noore-login-heading, .noore-login-intro, .noore-login-card-shell, .noore-lamp-glow, .noore-lamp-shade { transition: none !important; }
 }
+
+
+/* =========================================================
+   NOORÉ NATURAL LUXURY — Sage Green & Warm Ivory storefront
+   Scoped to the public storefront; admin workspace stays intact.
+   ========================================================= */
+.noore-sage-theme {
+  --noore-sage: #535F4C;
+  --noore-sage-deep: #465340;
+  --noore-sage-soft: #C2C5B0;
+  --noore-ivory: #F7F6F2;
+  --noore-taupe: #B8AA91;
+  --noore-terracotta: #D4A07D;
+  --noore-ink: #343A30;
+  color: var(--noore-ink);
+  background: var(--noore-ivory);
+}
+.noore-sage-theme .bg-background,
+.noore-sage-theme .bg-cream,
+.noore-sage-theme .bg-white,
+.noore-sage-theme .bg-white\/95,
+.noore-sage-theme .bg-white\/90 {
+  background-color: var(--noore-ivory) !important;
+}
+.noore-sage-theme .bg-charcoal,
+.noore-sage-theme .bg-primary,
+.noore-sage-theme .btn-primary {
+  background-color: var(--noore-sage) !important;
+  color: var(--noore-ivory) !important;
+}
+.noore-sage-theme .text-charcoal,
+.noore-sage-theme .text-foreground {
+  color: var(--noore-ink) !important;
+}
+.noore-sage-theme .text-secondary,
+.noore-sage-theme .text-muted-foreground {
+  color: #777967 !important;
+}
+.noore-sage-theme .border-border,
+.noore-sage-theme .border-black\/5,
+.noore-sage-theme .border-black\/10 {
+  border-color: rgba(83,95,76,.18) !important;
+}
+.noore-sage-theme .btn-primary:hover {
+  background-color: var(--noore-sage-deep) !important;
+}
+.noore-sage-theme .btn-secondary {
+  border-color: var(--noore-sage) !important;
+  color: var(--noore-sage) !important;
+}
+.noore-sage-theme .btn-secondary:hover {
+  background-color: var(--noore-sage) !important;
+  color: var(--noore-ivory) !important;
+}
+.noore-sage-theme input,
+.noore-sage-theme textarea,
+.noore-sage-theme select {
+  border-color: rgba(83,95,76,.28);
+}
+.noore-sage-theme ::selection {
+  background: var(--noore-sage);
+  color: var(--noore-ivory);
+}
+html.dark .noore-sage-theme {
+  --noore-page: #F7F6F2;
+  --noore-surface: #FFFFFF;
+  --noore-surface-muted: #EEEDE6;
+  --noore-text: #343A30;
+  --noore-text-muted: #777967;
+  --noore-border: #D8D8CB;
+  background: var(--noore-ivory);
+  color: var(--noore-ink);
+}
+html.dark .noore-sage-theme .bg-white,
+html.dark .noore-sage-theme .bg-white\/95,
+html.dark .noore-sage-theme .bg-white\/90,
+html.dark .noore-sage-theme .bg-background,
+html.dark .noore-sage-theme .bg-cream,
+html.dark .noore-sage-theme .bg-gray-50,
+html.dark .noore-sage-theme .bg-gray-100,
+html.dark .noore-sage-theme .bg-stone-50,
+html.dark .noore-sage-theme .bg-stone-100 {
+  background-color: var(--noore-ivory) !important;
+  color: var(--noore-ink) !important;
+}
+html.dark .noore-sage-theme .text-black,
+html.dark .noore-sage-theme .text-charcoal,
+html.dark .noore-sage-theme .text-foreground {
+  color: var(--noore-ink) !important;
+}
+html.dark .noore-sage-theme input,
+html.dark .noore-sage-theme textarea,
+html.dark .noore-sage-theme select {
+  background: #fff !important;
+  color: var(--noore-ink) !important;
+  border-color: rgba(83,95,76,.28) !important;
+}
