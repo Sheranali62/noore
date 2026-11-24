@@ -109,46 +109,46 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
     }
   }, [pathname, router])
 
-  return <>
+  return <div className="noore-sage-theme">
     <Header scrolled={scrolled} />
     {announcementVisible && (
-      <div className="relative z-40 border-b border-[#d6ae72]/20 bg-[#1b1916] text-[#f8eee5]">
+      <div className="relative z-40 border-b border-[#D4A07D]/20 bg-[#535F4C] text-[#f8eee5]">
         <div className="mx-auto flex min-h-9 max-w-7xl items-center justify-center gap-3 px-10 py-2 text-center">
-          <Truck className="h-3.5 w-3.5 shrink-0 text-[#d6ae72]" />
+          <Truck className="h-3.5 w-3.5 shrink-0 text-[#D4A07D]" />
           <p className="text-[8px] font-semibold uppercase tracking-[.18em] sm:text-[9px] sm:tracking-[.24em]">
             <span>{announcement}</span>
-            <span className="mx-3 text-[#d6ae72]">✦</span>
+            <span className="mx-3 text-[#D4A07D]">✦</span>
             <span>Cash on Delivery across Pakistan</span>
-            <span className="mx-3 text-[#d6ae72]">✦</span>
+            <span className="mx-3 text-[#D4A07D]">✦</span>
             <span>Easy order tracking</span>
           </p>
-          <button type="button" onClick={dismissAnnouncement} className="absolute right-4 grid h-6 w-6 place-items-center rounded-full border border-white/10 text-white/55 transition hover:border-[#d6ae72]/50 hover:text-[#d6ae72]" aria-label="Dismiss announcement">
+          <button type="button" onClick={dismissAnnouncement} className="absolute right-4 grid h-6 w-6 place-items-center rounded-full border border-white/10 text-white/55 transition hover:border-[#D4A07D]/50 hover:text-[#D4A07D]" aria-label="Dismiss announcement">
             <X className="h-3 w-3" />
           </button>
         </div>
       </div>
     )}
     <div className="fixed left-0 right-0 top-[68px] z-[55] h-px bg-black/5">
-      <div className="h-full origin-left bg-[#d6ae72] transition-[width] duration-100" style={{ width: `${scrollProgress}%` }} />
+      <div className="h-full origin-left bg-[#D4A07D] transition-[width] duration-100" style={{ width: `${scrollProgress}%` }} />
     </div>
     <InterestTracker />
     <main id="main-content">{children}</main>
-    <footer className="border-t border-[#c6a15b]/20 bg-[#171315] text-[#e9e1d8]">
+    <footer className="border-t border-[#D4A07D]/20 bg-[#171315] text-[#e9e1d8]">
       <div className="mx-auto grid max-w-7xl gap-12 px-5 py-14 sm:py-16 lg:grid-cols-[1.5fr_1fr_1fr_1.15fr] lg:gap-10">
         <div>
           <Link href="/" aria-label={`${siteName} home`} className="inline-flex items-center gap-2 font-editorial text-3xl font-semibold tracking-[.08em] text-[#f7f0e7]">
-            {siteName}<span className="mt-1 h-1.5 w-1.5 rounded-full bg-[#c6a15b]" />
+            {siteName}<span className="mt-1 h-1.5 w-1.5 rounded-full bg-[#D4A07D]" />
           </Link>
           <p className="mt-5 max-w-sm text-sm leading-7 text-[#aaa09a]">Thoughtful style, considered details and modern essentials. Discover the NOORÉ edit and find pieces made to feel like your own.</p>
           <div className="mt-6 flex flex-wrap items-center gap-3">
-            {SOCIAL_LINKS.instagram && !SOCIAL_LINKS.instagram.includes("YOUR_") && <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="grid h-10 w-10 place-items-center rounded-full border border-white/10 text-[#d6c5a6] transition hover:border-[#c6a15b]/60 hover:bg-[#c6a15b]/10 hover:text-white"><Instagram className="h-4 w-4" /></a>}
-            {SOCIAL_LINKS.facebook && !SOCIAL_LINKS.facebook.includes("YOUR_") && <a href={SOCIAL_LINKS.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="grid h-10 w-10 place-items-center rounded-full border border-white/10 text-[#d6c5a6] transition hover:border-[#c6a15b]/60 hover:bg-[#c6a15b]/10 hover:text-white"><Facebook className="h-4 w-4" /></a>}
-            {SOCIAL_LINKS.youtube && !SOCIAL_LINKS.youtube.includes("YOUR_") && <a href={SOCIAL_LINKS.youtube} target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="grid h-10 w-10 place-items-center rounded-full border border-white/10 text-[#d6c5a6] transition hover:border-[#c6a15b]/60 hover:bg-[#c6a15b]/10 hover:text-white"><Youtube className="h-4 w-4" /></a>}
-            <a href={SOCIAL_LINKS.whatsapp} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp customer care" className="grid h-10 w-10 place-items-center rounded-full border border-white/10 text-[#d6c5a6] transition hover:border-[#c6a15b]/60 hover:bg-[#c6a15b]/10 hover:text-white"><MessageCircle className="h-4 w-4" /></a>
+            {SOCIAL_LINKS.instagram && !SOCIAL_LINKS.instagram.includes("YOUR_") && <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="grid h-10 w-10 place-items-center rounded-full border border-white/10 text-[#d6c5a6] transition hover:border-[#D4A07D]/60 hover:bg-[#D4A07D]/10 hover:text-white"><Instagram className="h-4 w-4" /></a>}
+            {SOCIAL_LINKS.facebook && !SOCIAL_LINKS.facebook.includes("YOUR_") && <a href={SOCIAL_LINKS.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="grid h-10 w-10 place-items-center rounded-full border border-white/10 text-[#d6c5a6] transition hover:border-[#D4A07D]/60 hover:bg-[#D4A07D]/10 hover:text-white"><Facebook className="h-4 w-4" /></a>}
+            {SOCIAL_LINKS.youtube && !SOCIAL_LINKS.youtube.includes("YOUR_") && <a href={SOCIAL_LINKS.youtube} target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="grid h-10 w-10 place-items-center rounded-full border border-white/10 text-[#d6c5a6] transition hover:border-[#D4A07D]/60 hover:bg-[#D4A07D]/10 hover:text-white"><Youtube className="h-4 w-4" /></a>}
+            <a href={SOCIAL_LINKS.whatsapp} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp customer care" className="grid h-10 w-10 place-items-center rounded-full border border-white/10 text-[#d6c5a6] transition hover:border-[#D4A07D]/60 hover:bg-[#D4A07D]/10 hover:text-white"><MessageCircle className="h-4 w-4" /></a>
           </div>
         </div>
         <nav aria-label="Shop links">
-          <p className="text-[10px] font-semibold uppercase tracking-[.24em] text-[#c6a15b]">Discover</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[.24em] text-[#D4A07D]">Discover</p>
           <div className="mt-5 space-y-3.5 text-sm text-[#aaa09a]">
             <Link href="/products" className="block transition hover:text-[#f7f0e7]">Shop all</Link>
             <Link href="/collections" className="block transition hover:text-[#f7f0e7]">Collections</Link>
@@ -158,7 +158,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
           </div>
         </nav>
         <nav aria-label="Customer care links">
-          <p className="text-[10px] font-semibold uppercase tracking-[.24em] text-[#c6a15b]">Customer care</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[.24em] text-[#D4A07D]">Customer care</p>
           <div className="mt-5 space-y-3.5 text-sm text-[#aaa09a]">
             <Link href="/contact" className="block transition hover:text-[#f7f0e7]">Contact & help</Link>
             <Link href="/order-tracking" className="block transition hover:text-[#f7f0e7]">Track an order</Link>
@@ -173,10 +173,10 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
           </div>
         </nav>
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[.24em] text-[#c6a15b]">The NOORÉ promise</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[.24em] text-[#D4A07D]">The NOORÉ promise</p>
           <div className="mt-5 space-y-4">
-            <div className="flex gap-3"><Truck className="mt-0.5 h-4 w-4 shrink-0 text-[#c6a15b]" /><div><p className="text-sm text-[#f0e8de]">Complimentary delivery</p><p className="mt-1 text-xs leading-5 text-[#918781]">On orders above PKR 5,000</p></div></div>
-            <div className="flex gap-3"><Heart className="mt-0.5 h-4 w-4 shrink-0 text-[#c6a15b]" /><div><p className="text-sm text-[#f0e8de]">Cash on Delivery</p><p className="mt-1 text-xs leading-5 text-[#918781]">Available across Pakistan</p></div></div>
+            <div className="flex gap-3"><Truck className="mt-0.5 h-4 w-4 shrink-0 text-[#D4A07D]" /><div><p className="text-sm text-[#f0e8de]">Complimentary delivery</p><p className="mt-1 text-xs leading-5 text-[#918781]">On orders above PKR 5,000</p></div></div>
+            <div className="flex gap-3"><Heart className="mt-0.5 h-4 w-4 shrink-0 text-[#D4A07D]" /><div><p className="text-sm text-[#f0e8de]">Cash on Delivery</p><p className="mt-1 text-xs leading-5 text-[#918781]">Available across Pakistan</p></div></div>
             <a href={SOCIAL_LINKS.whatsapp} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 pt-1 text-xs font-semibold text-[#d6bd91] transition hover:text-white">Speak with our team <ArrowUpRight className="h-3.5 w-3.5" /></a>
           </div>
         </div>
@@ -184,7 +184,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
       <div className="border-t border-white/10">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-5 py-5 text-[10px] text-[#827872] sm:flex-row sm:items-center sm:justify-between">
           <span>© {new Date().getFullYear()} {siteName}. All rights reserved.</span>
-          <span className="flex flex-wrap items-center gap-x-3 gap-y-1"><span>Designed with intention</span><span className="text-[#c6a15b]">✦</span><span>Cash on Delivery · Pakistan</span></span>
+          <span className="flex flex-wrap items-center gap-x-3 gap-y-1"><span>Designed with intention</span><span className="text-[#D4A07D]">✦</span><span>Cash on Delivery · Pakistan</span></span>
         </div>
       </div>
     </footer>
@@ -195,7 +195,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
       <button
         type="button"
         onClick={scrollToTop}
-        className="fixed bottom-20 right-4 z-[80] grid h-11 w-11 place-items-center rounded-full border border-[#d6ae72]/30 bg-[#24151c]/95 text-[#f5dfba] shadow-[0_12px_30px_rgba(36,21,28,.24)] backdrop-blur-xl transition hover:-translate-y-1 hover:bg-[#321526] sm:bottom-6 sm:right-6"
+        className="fixed bottom-20 right-4 z-[80] grid h-11 w-11 place-items-center rounded-full border border-[#D4A07D]/30 bg-[#465340]/95 text-[#f5dfba] shadow-[0_12px_30px_rgba(36,21,28,.24)] backdrop-blur-xl transition hover:-translate-y-1 hover:bg-[#535F4C] sm:bottom-6 sm:right-6"
         aria-label="Back to top"
       >
         <ArrowUp className="h-4 w-4" />
@@ -207,5 +207,5 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
         <Sparkles className="h-3 w-3" /> Offers
       </button>
     )}
-  </>
+  </div>
 }
