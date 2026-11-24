@@ -7,8 +7,8 @@ import { prisma } from "@/lib/prisma"
 const statusClass = (status: string) => {
   if (status === "DELIVERED") return "bg-green-100 text-green-800"
   if (status === "CANCELLED" || status === "REFUNDED") return "bg-red-100 text-red-800"
-  if (status === "SHIPPED" || status === "OUT_FOR_DELIVERY") return "bg-blue-100 text-blue-800"
-  return "bg-amber-100 text-amber-800"
+  if (status === "SHIPPED" || status === "OUT_FOR_DELIVERY") return "bg-[#E8ECE6] text-[#465340]"
+  return "bg-[#EEEDE6] text-[#535F4C]"
 }
 
 export default async function OrdersPage() {
@@ -22,34 +22,34 @@ export default async function OrdersPage() {
   })
 
   return (
-    <div className="min-h-screen bg-[#24211c] py-8 md:py-12">
+    <div className="min-h-screen bg-[#F7F6F2] py-8 md:py-12">
       <div className="max-w-5xl mx-auto px-4">
-        <Link href="/account" className="text-sm text-[#b9b0a2] hover:text-[#f5f0e7]">← Back to account</Link>
+        <Link href="/account" className="text-sm text-[#777967] hover:text-[#343A30]">← Back to account</Link>
 
         <div className="mt-6 flex flex-wrap justify-between items-end gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.22em] text-[#b9b0a2]">Your purchases</p>
+            <p className="text-xs uppercase tracking-[0.22em] text-[#777967]">Your purchases</p>
             <h1 className="font-editorial text-4xl md:text-5xl mt-2">My orders</h1>
-            <p className="text-[#b9b0a2] mt-2">Every NOORÉ purchase, from confirmation to delivery.</p>
+            <p className="text-[#777967] mt-2">Every NOORÉ purchase, from confirmation to delivery.</p>
           </div>
-          <Link href="/order-tracking" className="border border-[#3a3328] bg-[#171615] rounded-xl px-4 py-2.5 text-sm font-medium">Track an order</Link>
+          <Link href="/order-tracking" className="border border-[#D8D8CB] bg-white rounded-xl px-4 py-2.5 text-sm font-medium">Track an order</Link>
         </div>
 
         {orders.length === 0 ? (
-          <div className="bg-[#171615] border border-[#3a3328] rounded-3xl p-10 md:p-16 text-center mt-8">
+          <div className="bg-white border border-[#D8D8CB] rounded-3xl p-10 md:p-16 text-center mt-8">
             <div className="text-5xl">□</div>
             <h2 className="font-editorial text-3xl mt-4">No orders yet</h2>
-            <p className="text-[#b9b0a2] mt-2 max-w-md mx-auto">Your purchases will appear here after you place your first Cash on Delivery order.</p>
-            <Link href="/products" className="inline-flex mt-6 bg-[#c6a15b] text-[#171615] rounded-xl px-6 py-3 font-semibold">Start shopping</Link>
+            <p className="text-[#777967] mt-2 max-w-md mx-auto">Your purchases will appear here after you place your first Cash on Delivery order.</p>
+            <Link href="/products" className="inline-flex mt-6 bg-[#535F4C] text-[#F7F6F2] rounded-xl px-6 py-3 font-semibold">Start shopping</Link>
           </div>
         ) : (
           <div className="space-y-5 mt-8">
             {orders.map((order) => (
-              <article key={order.id} className="bg-[#171615] border border-[#3a3328] rounded-3xl p-5 md:p-7">
+              <article key={order.id} className="bg-white border border-[#D8D8CB] rounded-3xl p-5 md:p-7">
                 <div className="flex flex-wrap justify-between gap-4">
                   <div>
                     <p className="font-semibold">#{order.orderNumber}</p>
-                    <p className="text-sm text-[#b9b0a2] mt-1">
+                    <p className="text-sm text-[#777967] mt-1">
                       {new Date(order.createdAt).toLocaleDateString()} · {order.items.length} item{order.items.length === 1 ? "" : "s"}
                     </p>
                   </div>
@@ -63,29 +63,29 @@ export default async function OrdersPage() {
 
                 <div className="mt-5 grid sm:grid-cols-2 gap-3">
                   {order.items.slice(0, 4).map((item) => (
-                    <div key={item.id} className="flex gap-3 bg-[#211f1b] rounded-2xl p-3">
-                      <div className="w-16 h-20 bg-[#24211c] rounded-xl overflow-hidden shrink-0">
+                    <div key={item.id} className="flex gap-3 bg-[#EEEDE6] rounded-2xl p-3">
+                      <div className="w-16 h-20 bg-[#F7F6F2] rounded-xl overflow-hidden shrink-0">
                         <img src={item.product.images[0] || "/placeholder.jpg"} alt={item.product.name} className="w-full h-full object-cover" />
                       </div>
                       <div className="min-w-0">
                         <p className="text-sm font-medium truncate">{item.product.name}</p>
-                        {item.variant && <p className="text-xs text-[#b9b0a2] mt-1">{item.variant.color} / {item.variant.size}</p>}
-                        <p className="text-xs text-[#b9b0a2] mt-1">Qty {item.quantity}</p>
+                        {item.variant && <p className="text-xs text-[#777967] mt-1">{item.variant.color} / {item.variant.size}</p>}
+                        <p className="text-xs text-[#777967] mt-1">Qty {item.quantity}</p>
                       </div>
                     </div>
                   ))}
                 </div>
 
-                {order.items.length > 4 && <p className="text-xs text-[#b9b0a2] mt-3">+ {order.items.length - 4} more item{order.items.length - 4 === 1 ? "" : "s"}</p>}
+                {order.items.length > 4 && <p className="text-xs text-[#777967] mt-3">+ {order.items.length - 4} more item{order.items.length - 4 === 1 ? "" : "s"}</p>}
 
-                <div className="mt-5 pt-4 border-t border-[#3a3328] flex flex-wrap justify-between items-center gap-3">
+                <div className="mt-5 pt-4 border-t border-[#D8D8CB] flex flex-wrap justify-between items-center gap-3">
                   <div>
-                    <p className="text-xs text-[#b9b0a2]">Cash on Delivery</p>
-                    <p className="text-xs text-[#b9b0a2] mt-0.5">Payment: {order.paymentStatus}</p>
+                    <p className="text-xs text-[#777967]">Cash on Delivery</p>
+                    <p className="text-xs text-[#777967] mt-0.5">Payment: {order.paymentStatus}</p>
                   </div>
                   <div className="flex gap-3">
-                    <Link href={`/order-tracking?orderNumber=${encodeURIComponent(order.orderNumber)}`} className="border border-[#3a3328] rounded-xl px-4 py-2 text-sm font-medium">Track</Link>
-                    <Link href={`/account/orders/${order.id}`} className="bg-[#c6a15b] text-[#171615] rounded-xl px-4 py-2 text-sm font-medium">View order →</Link>
+                    <Link href={`/order-tracking?orderNumber=${encodeURIComponent(order.orderNumber)}`} className="border border-[#D8D8CB] rounded-xl px-4 py-2 text-sm font-medium">Track</Link>
+                    <Link href={`/account/orders/${order.id}`} className="bg-[#535F4C] text-[#F7F6F2] rounded-xl px-4 py-2 text-sm font-medium">View order →</Link>
                   </div>
                 </div>
               </article>
