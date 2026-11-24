@@ -164,8 +164,8 @@ export function ProductDetail({ product, relatedProducts }: Props) {
   return (
     <div className="pb-24 md:pb-16">
       {notice && (
-        <div className="noore-product-toast fixed bottom-20 left-1/2 z-[70] -translate-x-1/2 rounded-full bg-[#21171d] px-5 py-3 text-xs font-medium tracking-wide text-white shadow-2xl md:bottom-6">
-          <Check className="mr-2 inline-block h-4 w-4 text-[#d6ae72]" />{notice}
+        <div className="noore-product-toast fixed bottom-20 left-1/2 z-[70] -translate-x-1/2 rounded-full bg-[#535F4C] px-5 py-3 text-xs font-medium tracking-wide text-white shadow-2xl md:bottom-6">
+          <Check className="mr-2 inline-block h-4 w-4 text-[#D4A07D]" />{notice}
         </div>
       )}
 
@@ -182,7 +182,7 @@ export function ProductDetail({ product, relatedProducts }: Props) {
                   key={`${img}-${i}`}
                   type="button"
                   onClick={() => setSelectedImage(i)}
-                  className={`relative h-20 w-16 shrink-0 overflow-hidden bg-[#f2eee7] transition sm:h-24 sm:w-full ${selectedImage === i ? "ring-1 ring-[#21171d] ring-offset-2" : "opacity-70 hover:opacity-100"}`}
+                  className={`relative h-20 w-16 shrink-0 overflow-hidden bg-[#F7F6F2] transition sm:h-24 sm:w-full ${selectedImage === i ? "ring-1 ring-[#535F4C] ring-offset-2" : "opacity-70 hover:opacity-100"}`}
                   aria-label={`View image ${i + 1}`}
                   aria-current={selectedImage === i}
                 >
@@ -191,7 +191,7 @@ export function ProductDetail({ product, relatedProducts }: Props) {
               ))}
             </div>
 
-            <div className="group relative overflow-hidden bg-[#f2eee7]">
+            <div className="group relative overflow-hidden bg-[#F7F6F2]">
               <div className="relative aspect-[4/5] w-full touch-pan-y sm:aspect-[3/4]" onTouchStart={event => setTouchStartX(event.touches[0].clientX)} onTouchEnd={handleGalleryTouchEnd} onTouchCancel={() => setTouchStartX(null)}>
                 <img
                   key={displayImages[selectedImage]}
@@ -202,14 +202,14 @@ export function ProductDetail({ product, relatedProducts }: Props) {
                   onError={() => markImageFailed(displayImages[selectedImage])}
                   className="h-full w-full object-cover transition-opacity duration-300"
                 />
-                {isOnSale && <span className="absolute left-4 top-4 bg-[#21171d] px-3 py-1.5 text-[9px] font-semibold uppercase tracking-[0.18em] text-white">Sale · {discount}%</span>}
+                {isOnSale && <span className="absolute left-4 top-4 bg-[#535F4C] px-3 py-1.5 text-[9px] font-semibold uppercase tracking-[0.18em] text-white">Sale · {discount}%</span>}
                 <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
                   <span className="bg-white/85 px-3 py-2 text-[9px] uppercase tracking-[0.18em] backdrop-blur">{selectedImage + 1} / {displayImages.length}</span>
                   <button type="button" onClick={() => setZoomOpen(true)} className="flex items-center gap-2 bg-white/90 px-3 py-2 text-[9px] font-semibold uppercase tracking-[0.18em] shadow-sm backdrop-blur hover:bg-white" aria-label="Zoom image"><ZoomIn className="h-3.5 w-3.5" /> Zoom</button>
                 </div>
                 {displayImages.length > 1 && <>
-                  <button type="button" onClick={() => changeImage(-1)} className="absolute left-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/90 shadow-sm transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#b8945e] sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100" aria-label="Previous image"><ChevronLeft className="h-5 w-5" /></button>
-                  <button type="button" onClick={() => changeImage(1)} className="absolute right-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/90 shadow-sm transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#b8945e] sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100" aria-label="Next image"><ChevronRight className="h-5 w-5" /></button>
+                  <button type="button" onClick={() => changeImage(-1)} className="absolute left-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/90 shadow-sm transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#D4A07D] sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100" aria-label="Previous image"><ChevronLeft className="h-5 w-5" /></button>
+                  <button type="button" onClick={() => changeImage(1)} className="absolute right-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/90 shadow-sm transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#D4A07D] sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100" aria-label="Next image"><ChevronRight className="h-5 w-5" /></button>
                 </>}
               </div>
             </div>
@@ -223,12 +223,12 @@ export function ProductDetail({ product, relatedProducts }: Props) {
               <h1 className="font-editorial text-3xl leading-[1.05] sm:text-4xl lg:text-[2.8rem]">{product.name}</h1>
               <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[10px] uppercase tracking-[0.12em] text-secondary">
                 <span>SKU {selectedVariant?.sku || product.sku}</span>
-                <a href="#reviews" className="inline-flex items-center gap-1 text-charcoal underline decoration-[#b8945e] underline-offset-4 transition hover:text-[#8a673b]" aria-label="Read customer reviews">{reviewCount > 0 ? <>★ {averageRating.toFixed(1)} <span className="text-secondary">({reviewCount} reviews)</span></> : "Be the first to review"}</a>
+                <a href="#reviews" className="inline-flex items-center gap-1 text-charcoal underline decoration-[#D4A07D] underline-offset-4 transition hover:text-[#535F4C]" aria-label="Read customer reviews">{reviewCount > 0 ? <>★ {averageRating.toFixed(1)} <span className="text-secondary">({reviewCount} reviews)</span></> : "Be the first to review"}</a>
               </div>
             </div>
             <div className="flex shrink-0 gap-2">
               <button type="button" onClick={share} className="grid h-10 w-10 place-items-center rounded-full border border-border transition hover:border-charcoal hover:bg-white" aria-label="Share product"><Share2 className="h-4 w-4" /></button>
-              <button type="button" disabled={wishlistBusy} onClick={toggleWishlist} className={`grid h-10 w-10 place-items-center rounded-full border transition ${wishlist ? "border-[#b8945e] bg-[#b8945e] text-[#17130e]" : "border-border hover:border-charcoal hover:bg-white"}`} aria-label={wishlist ? "Remove from wishlist" : "Add to wishlist"}><Heart className={`h-4 w-4 ${wishlist ? "fill-current" : ""}`} /></button>
+              <button type="button" disabled={wishlistBusy} onClick={toggleWishlist} className={`grid h-10 w-10 place-items-center rounded-full border transition ${wishlist ? "border-[#D4A07D] bg-[#D4A07D] text-[#F7F6F2]" : "border-border hover:border-charcoal hover:bg-white"}`} aria-label={wishlist ? "Remove from wishlist" : "Add to wishlist"}><Heart className={`h-4 w-4 ${wishlist ? "fill-current" : ""}`} /></button>
             </div>
           </div>
 
@@ -236,17 +236,17 @@ export function ProductDetail({ product, relatedProducts }: Props) {
             <div className="flex flex-wrap items-baseline gap-3">
               <span className="text-2xl font-medium tracking-tight">{money(currentPrice)}</span>
               {isOnSale && <span className="text-sm text-secondary line-through">{money(originalPrice)}</span>}
-              {isOnSale && <span className="bg-[#321526] px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-[#f7eee4]">Save {discount}%</span>}
+              {isOnSale && <span className="bg-[#535F4C] px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-[#F7F6F2]">Save {discount}%</span>}
             </div>
             <p className="mt-2 text-[10px] uppercase tracking-[0.16em] text-secondary">Prices include applicable taxes</p>
           </div>
 
-          {product.description ? <div className="mt-6 border-l-2 border-[#b8945e] bg-[#f7f2e9] px-5 py-4"><p className="mb-2 text-[9px] font-semibold uppercase tracking-[0.22em] text-[#9b7542]">The NOORÉ edit</p><p className="max-w-xl whitespace-pre-line text-sm leading-7 text-[#62584e]">{product.description}</p></div> : <div className="mt-6 border-l-2 border-[#b8945e]/60 bg-[#f7f2e9] px-5 py-4"><p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[#9b7542]">Product details</p><p className="mt-2 text-sm leading-7 text-[#62584e]">Explore the product specifications below for available details about this piece.</p></div>}
+          {product.description ? <div className="mt-6 border-l-2 border-[#D4A07D] bg-[#F1EFE7] px-5 py-4"><p className="mb-2 text-[9px] font-semibold uppercase tracking-[0.22em] text-[#535F4C]">The NOORÉ edit</p><p className="max-w-xl whitespace-pre-line text-sm leading-7 text-[#535F4C]">{product.description}</p></div> : <div className="mt-6 border-l-2 border-[#D4A07D]/60 bg-[#F1EFE7] px-5 py-4"><p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-[#535F4C]">Product details</p><p className="mt-2 text-sm leading-7 text-[#535F4C]">Explore the product specifications below for available details about this piece.</p></div>}
 
           {product.variants.length > 0 && <div className="mt-7 space-y-7">
             <div>
               <div className="mb-3 flex items-center justify-between"><label className="text-xs font-semibold uppercase tracking-[0.16em]">Color <span className="font-normal normal-case tracking-normal text-secondary">— {selectedColor}</span></label></div>
-              <div className="flex flex-wrap gap-2">{colors.map(color => { const unavailable = !availableColors.has(color); return <button key={color} type="button" disabled={unavailable} aria-pressed={selectedColor === color} onClick={() => chooseColor(color)} className={`min-w-20 border px-4 py-2.5 text-xs transition ${selectedColor === color ? "border-[#b8945e] bg-[#b8945e] text-[#17130e]" : "border-border hover:border-charcoal hover:bg-white"} ${unavailable ? "cursor-not-allowed opacity-35 line-through" : ""}`}>{color}</button> })}</div>
+              <div className="flex flex-wrap gap-2">{colors.map(color => { const unavailable = !availableColors.has(color); return <button key={color} type="button" disabled={unavailable} aria-pressed={selectedColor === color} onClick={() => chooseColor(color)} className={`min-w-20 border px-4 py-2.5 text-xs transition ${selectedColor === color ? "border-[#D4A07D] bg-[#D4A07D] text-[#F7F6F2]" : "border-border hover:border-charcoal hover:bg-white"} ${unavailable ? "cursor-not-allowed opacity-35 line-through" : ""}`}>{color}</button> })}</div>
             </div>
             <div>
               <div className="mb-3 flex items-center justify-between"><label className="text-xs font-semibold uppercase tracking-[0.16em]">Size <span className="font-normal normal-case tracking-normal text-secondary">— {selectedSize}</span></label><button type="button" onClick={() => setSizeGuideOpen(true)} className="flex items-center gap-1 text-[10px] uppercase tracking-[0.12em] underline underline-offset-4"><Ruler className="h-3.5 w-3.5" /> Size Guide</button></div>
@@ -260,19 +260,19 @@ export function ProductDetail({ product, relatedProducts }: Props) {
           </div>
 
           <div className="mt-6 grid grid-cols-[auto_1fr] gap-3">
-            <div className="flex h-12 items-center border border-border bg-white"><button type="button" onClick={() => setQuantity(Math.max(1, quantity - 1))} className="grid h-full w-11 place-items-center hover:bg-[#f7f2eb]" aria-label="Decrease quantity"><Minus className="h-4 w-4" /></button><span className="min-w-10 text-center text-sm" aria-live="polite">{quantity}</span><button type="button" onClick={() => setQuantity(Math.min(Math.max(1, availableStock), quantity + 1))} className="grid h-full w-11 place-items-center hover:bg-[#f7f2eb]" aria-label="Increase quantity"><Plus className="h-4 w-4" /></button></div>
-            <button type="button" disabled={!inStock} onClick={handleAddToCart} className="flex h-12 items-center justify-center gap-2 bg-[#b8945e] px-6 text-xs font-semibold uppercase tracking-[0.18em] text-[#17130e] transition hover:bg-[#d6b77c] disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500"><ShoppingBag className="h-4 w-4" /> {inStock ? "Add to Bag" : "Out of Stock"}</button>
+            <div className="flex h-12 items-center border border-border bg-white"><button type="button" onClick={() => setQuantity(Math.max(1, quantity - 1))} className="grid h-full w-11 place-items-center hover:bg-[#F1EFE7]" aria-label="Decrease quantity"><Minus className="h-4 w-4" /></button><span className="min-w-10 text-center text-sm" aria-live="polite">{quantity}</span><button type="button" onClick={() => setQuantity(Math.min(Math.max(1, availableStock), quantity + 1))} className="grid h-full w-11 place-items-center hover:bg-[#F1EFE7]" aria-label="Increase quantity"><Plus className="h-4 w-4" /></button></div>
+            <button type="button" disabled={!inStock} onClick={handleAddToCart} className="flex h-12 items-center justify-center gap-2 bg-[#D4A07D] px-6 text-xs font-semibold uppercase tracking-[0.18em] text-[#F7F6F2] transition hover:bg-[#C2C5B0] disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500"><ShoppingBag className="h-4 w-4" /> {inStock ? "Add to Bag" : "Out of Stock"}</button>
           </div>
 
-          <div className="mt-4 space-y-3 border border-[#d6ae72]/35 bg-[#f2e7d4] px-4 py-4 text-[10px] uppercase tracking-[0.12em] text-[#302416]">
-            <p className="flex items-center gap-2"><Sparkles className="h-4 w-4 shrink-0 text-[#b28750]" /> Free standard delivery on orders above PKR 5,000</p>
-            <p className="flex items-center gap-2"><Truck className="h-4 w-4 shrink-0 text-[#b28750]" /> Cash on delivery available across Pakistan</p>
-            <a href="/shipping" className="ml-6 inline-block text-[9px] font-semibold tracking-[0.16em] text-[#806039] underline underline-offset-4 hover:text-[#21171d]">VIEW DELIVERY DETAILS</a>
+          <div className="mt-4 space-y-3 border border-[#D4A07D]/35 bg-[#C2C5B0] px-4 py-4 text-[10px] uppercase tracking-[0.12em] text-[#535F4C]">
+            <p className="flex items-center gap-2"><Sparkles className="h-4 w-4 shrink-0 text-[#D4A07D]" /> Free standard delivery on orders above PKR 5,000</p>
+            <p className="flex items-center gap-2"><Truck className="h-4 w-4 shrink-0 text-[#D4A07D]" /> Cash on delivery available across Pakistan</p>
+            <a href="/shipping" className="ml-6 inline-block text-[9px] font-semibold tracking-[0.16em] text-[#535F4C] underline underline-offset-4 hover:text-[#535F4C]">VIEW DELIVERY DETAILS</a>
           </div>
 
           <div className="mt-7 grid grid-cols-3 divide-x divide-border border-y border-border py-5 text-center text-[10px] uppercase tracking-[0.1em] text-secondary">
             <div className="px-2"><Truck className="mx-auto mb-2 h-5 w-5 text-charcoal" />Nationwide COD</div>
-            <a href="/returns" className="px-2 transition hover:text-[#8a673b]"><RotateCcw className="mx-auto mb-2 h-5 w-5 text-charcoal" />7-Day Exchange</a>
+            <a href="/returns" className="px-2 transition hover:text-[#535F4C]"><RotateCcw className="mx-auto mb-2 h-5 w-5 text-charcoal" />7-Day Exchange</a>
             <div className="px-2"><ShieldCheck className="mx-auto mb-2 h-5 w-5 text-charcoal" />Secure Checkout</div>
           </div>
 
@@ -292,16 +292,16 @@ export function ProductDetail({ product, relatedProducts }: Props) {
 
       {recentlyViewed.length > 0 && <section className="mt-20 border-t border-border pt-12"><p className="text-[10px] uppercase tracking-[0.2em] text-secondary">For your next visit</p><h2 className="mt-2 font-editorial text-3xl">Recently viewed</h2><div className="mt-7 grid grid-cols-2 gap-4 md:grid-cols-4">{recentlyViewed.map(p => <ProductCard key={p.id} {...p} />)}</div></section>}
 
-      {inStock && <div className="fixed inset-x-0 bottom-0 z-40 border-t border-black/10 bg-white/95 p-3 shadow-2xl backdrop-blur md:hidden"><div className="flex items-center gap-3"><div className="min-w-0 flex-1"><p className="truncate text-xs font-medium">{product.name}</p><p className="text-[11px] text-secondary">{money(currentPrice)} · {selectedVariant ? `${selectedVariant.color} / ${selectedVariant.size}` : "Ready to ship"}</p></div><button type="button" onClick={handleAddToCart} className="flex h-11 shrink-0 items-center gap-2 bg-[#b8945e] px-5 text-[10px] font-semibold uppercase tracking-[.16em] text-[#17130e]"><ShoppingBag className="h-4 w-4" /> Add to Bag</button></div></div>}
+      {inStock && <div className="fixed inset-x-0 bottom-0 z-40 border-t border-black/10 bg-white/95 p-3 shadow-2xl backdrop-blur md:hidden"><div className="flex items-center gap-3"><div className="min-w-0 flex-1"><p className="truncate text-xs font-medium">{product.name}</p><p className="text-[11px] text-secondary">{money(currentPrice)} · {selectedVariant ? `${selectedVariant.color} / ${selectedVariant.size}` : "Ready to ship"}</p></div><button type="button" onClick={handleAddToCart} className="flex h-11 shrink-0 items-center gap-2 bg-[#D4A07D] px-5 text-[10px] font-semibold uppercase tracking-[.16em] text-[#F7F6F2]"><ShoppingBag className="h-4 w-4" /> Add to Bag</button></div></div>}
 
       {sizeGuideOpen && <div className="fixed inset-0 z-[90] flex items-center justify-center bg-[#171316]/65 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="size-guide-title" onClick={() => setSizeGuideOpen(false)}>
-        <div className="relative w-full max-w-md border border-[#d6ae72]/40 bg-[#fbf8f2] p-7 shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="relative w-full max-w-md border border-[#D4A07D]/40 bg-[#F7F6F2] p-7 shadow-2xl" onClick={e => e.stopPropagation()}>
           <button type="button" onClick={() => setSizeGuideOpen(false)} className="absolute right-4 top-4 grid h-9 w-9 place-items-center border border-border bg-white transition hover:border-charcoal" aria-label="Close size guide"><X className="h-4 w-4" /></button>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#9b7542]">NOORÉ fit assistance</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#535F4C]">NOORÉ fit assistance</p>
           <h2 id="size-guide-title" className="mt-3 font-editorial text-3xl">Find your fit</h2>
           <p className="mt-4 text-sm leading-7 text-secondary">Sizing can vary by style and fabric. For the most accurate fit, compare the size selected above with a similar garment you already own.</p>
-          <div className="mt-5 border-l-2 border-[#b8945e] bg-[#f2e7d4] px-4 py-3 text-sm leading-6 text-[#62513b]">Need exact measurements? Our team can help confirm the fit before you order.</div>
-          <a href="/contact" className="mt-6 inline-flex w-full items-center justify-center bg-[#21171d] px-5 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-white transition hover:bg-[#3a2932]">Ask NOORÉ for sizing help</a>
+          <div className="mt-5 border-l-2 border-[#D4A07D] bg-[#C2C5B0] px-4 py-3 text-sm leading-6 text-[#535F4C]">Need exact measurements? Our team can help confirm the fit before you order.</div>
+          <a href="/contact" className="mt-6 inline-flex w-full items-center justify-center bg-[#535F4C] px-5 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-white transition hover:bg-[#465340]">Ask NOORÉ for sizing help</a>
         </div>
       </div>}
 
@@ -313,9 +313,9 @@ export function ProductDetail({ product, relatedProducts }: Props) {
           {displayImages.length > 1 && <button type="button" onClick={() => changeImage(1)} className="absolute right-0 z-10 grid h-11 w-11 place-items-center rounded-full bg-white/10 text-white transition hover:bg-white/20 sm:right-5" aria-label="Next image"><ChevronRight className="h-6 w-6" /></button>}
         </div>
         <div className="mt-4 flex w-full max-w-2xl flex-col items-center gap-3" onClick={event => event.stopPropagation()}>
-          <p className="text-[10px] uppercase tracking-[0.22em] text-white/65">{selectedImage + 1} / {displayImages.length} <span className="mx-2 text-[#b8945e]">·</span> {product.name}</p>
+          <p className="text-[10px] uppercase tracking-[0.22em] text-white/65">{selectedImage + 1} / {displayImages.length} <span className="mx-2 text-[#D4A07D]">·</span> {product.name}</p>
           {displayImages.length > 1 && <div className="flex max-w-full gap-2 overflow-x-auto px-1 pb-2">
-            {displayImages.map((img, index) => <button key={img + "-lightbox-" + index} type="button" onClick={() => setSelectedImage(index)} aria-label={"View image " + (index + 1)} aria-current={selectedImage === index} className={`h-16 w-12 shrink-0 overflow-hidden border transition sm:h-20 sm:w-16 ${selectedImage === index ? "border-[#d6ae72] opacity-100" : "border-white/15 opacity-50 hover:opacity-90"}`}><img src={imageSource(img)} alt="" loading="lazy" className="h-full w-full object-cover" /></button>)}
+            {displayImages.map((img, index) => <button key={img + "-lightbox-" + index} type="button" onClick={() => setSelectedImage(index)} aria-label={"View image " + (index + 1)} aria-current={selectedImage === index} className={`h-16 w-12 shrink-0 overflow-hidden border transition sm:h-20 sm:w-16 ${selectedImage === index ? "border-[#D4A07D] opacity-100" : "border-white/15 opacity-50 hover:opacity-90"}`}><img src={imageSource(img)} alt="" loading="lazy" className="h-full w-full object-cover" /></button>)}
           </div>}
         </div>
       </div>}
