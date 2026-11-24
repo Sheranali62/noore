@@ -361,7 +361,7 @@ export default async function HomePage() {
         <div className="grid gap-3 md:grid-cols-2">
           {stories.map((story, index) => (
             <Link key={story.title} href={story.href} className={`group relative min-h-[560px] overflow-hidden bg-black text-white ${index === 1 ? "md:mt-16" : ""}`}>
-              <div className="absolute inset-0 bg-cover bg-center transition duration-[1000ms] group-hover:scale-[1.04]" style={{ backgroundImage: `url('${story.image}')` }} />
+              <div className="absolute inset-0 bg-cover bg-center transition duration-[1000ms] group-hover:scale-[1.04]" style={{ backgroundImage: `url('${mediaImage(media, 'home:story:' + index, story.image)}')` }} />
               <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
               <div className="absolute inset-x-6 bottom-7 md:inset-x-8 md:bottom-9">
                 <p className="text-[9px] uppercase tracking-[0.3em] text-white/60">{story.eyebrow}</p>
