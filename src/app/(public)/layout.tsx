@@ -17,6 +17,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
   const pathname = usePathname()
   const router = useRouter()
   const [announcement, setAnnouncement] = useState("FREE SHIPPING ON ORDERS ABOVE PKR 5,000")
+  const [siteDesign, setSiteDesign] = useState<Record<string, string>>({})
   const [siteName, setSiteName] = useState("NOORÉ")
   const [announcementVisible, setAnnouncementVisible] = useState(true)
   const [scrolled, setScrolled] = useState(false)
@@ -55,6 +56,10 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
   }
 
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" })
+
+  useEffect(() => {
+    fetch("/api/storefront-design", { cache: "no-store" }).then(r => r.ok ? r.json() : null).then(data => { if (data?.design) { setSiteDesign(data.design); if (data.design.announcementMessage) setAnnouncement(data.design.announcementMessage) } }).catch(() => {})
+  }, [])
 
   useEffect(() => {
     fetch("/api/settings").then(r => r.ok ? r.json() : null).then(data => {
@@ -109,10 +114,10 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
     }
   }, [pathname, router])
 
-  return <div className="noore-sage-theme">
+  return <div className="noore-sage-theme noore-global-design" style={{ "--noore-site-bg": siteDesign.backgroundColor || "#F7F6F2", "--noore-site-text": siteDesign.textColor || "#30352E", "--noore-site-accent": siteDesign.accentColor || "#535F4C", "--noore-site-surface": siteDesign.surfaceColor || "#FFFFFF", "--noore-site-muted": siteDesign.mutedTextColor || "#77786F", "--noore-site-border": siteDesign.borderColor || "#DEDCD3", "--noore-site-header": siteDesign.headerColor || "#F7F6F2", "--noore-site-header-text": siteDesign.headerTextColor || "#30352E", "--noore-site-footer": siteDesign.footerColor || "#535F4C", "--noore-site-footer-text": siteDesign.footerTextColor || "#F7F6F2", "--noore-site-announcement": siteDesign.announcementColor || "#535F4C", "--noore-site-announcement-text": siteDesign.announcementTextColor || "#FFFFFF", "--noore-site-body-font": siteDesign.bodyFont === "serif" ? "Georgia, serif" : "Arial, sans-serif", "--noore-site-heading-font": siteDesign.headingFont === "sans" ? "Arial, sans-serif" : "Georgia, serif" } as React.CSSProperties}>
     <Header scrolled={scrolled} />
     {announcementVisible && (
-      <div className="relative z-40 border-b border-[#D4A07D]/20 bg-[#535F4C] text-[#f8eee5]">
+      <div className="noore-global-announcement relative z-40 border-b border-[#D4A07D]/20 bg-[#535F4C] text-[#f8eee5]">
         <div className="mx-auto flex min-h-9 max-w-7xl items-center justify-center gap-3 px-10 py-2 text-center">
           <Truck className="h-3.5 w-3.5 shrink-0 text-[#D4A07D]" />
           <p className="text-[8px] font-semibold uppercase tracking-[.18em] sm:text-[9px] sm:tracking-[.24em]">
@@ -133,13 +138,13 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
     </div>
     <InterestTracker />
     <main id="main-content">{children}</main>
-    <footer className="border-t border-[#D4A07D]/20 bg-[#535F4C] text-[#e9e1d8]">
+    <footer className="noore-global-footer border-t border-[#D4A07D]/20 bg-[#535F4C] text-[#e9e1d8]">
       <div className="mx-auto grid max-w-7xl gap-12 px-5 py-14 sm:py-16 lg:grid-cols-[1.5fr_1fr_1fr_1.15fr] lg:gap-10">
         <div>
           <Link href="/" aria-label={`${siteName} home`} className="inline-flex items-center gap-2 font-editorial text-3xl font-semibold tracking-[.08em] text-[#F7F6F2]">
             {siteName}<span className="mt-1 h-1.5 w-1.5 rounded-full bg-[#D4A07D]" />
           </Link>
-          <p className="mt-5 max-w-sm text-sm leading-7 text-[#E2E2D8]">Thoughtful style, considered details and modern essentials. Discover the NOORÉ edit and find pieces made to feel like your own.</p>
+          <p className="mt-5 max-w-sm text-sm leading-7 text-[#E2E2D8]">{siteDesign.footerDescription || "Thoughtful style, considered details and modern essentials. Discover the NOORÉ edit and find pieces made to feel like your own."}</p>
           <div className="mt-6 flex flex-wrap items-center gap-3">
             {SOCIAL_LINKS.instagram && !SOCIAL_LINKS.instagram.includes("YOUR_") && <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="grid h-10 w-10 place-items-center rounded-full border border-white/10 text-[#d6c5a6] transition hover:border-[#D4A07D]/60 hover:bg-[#D4A07D]/10 hover:text-white"><Instagram className="h-4 w-4" /></a>}
             {SOCIAL_LINKS.facebook && !SOCIAL_LINKS.facebook.includes("YOUR_") && <a href={SOCIAL_LINKS.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="grid h-10 w-10 place-items-center rounded-full border border-white/10 text-[#d6c5a6] transition hover:border-[#D4A07D]/60 hover:bg-[#D4A07D]/10 hover:text-white"><Facebook className="h-4 w-4" /></a>}
