@@ -75,6 +75,7 @@ export default async function WomenPage() {
         description={pageContent.women.secondaryDescription}
         image={mediaImage(media, "page:women:hero", "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=2200&auto=format&fit=crop")}
         href={pageContent.women.buttonUrl}
+        cta={pageContent.women.buttonText}
         products={rows.map(p => ({ ...p, colors: p.variants.map(v => v.color) }))}
       />
     </>
