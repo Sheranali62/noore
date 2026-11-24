@@ -16,6 +16,7 @@ export type CartItem = {
 
 type CartContextType = {
   items: CartItem[]
+  hydrated: boolean
   addItem: (item: Omit<CartItem, "quantity"> & { quantity?: number }) => void
   removeItem: (itemId: string) => void
   updateQuantity: (itemId: string, quantity: number) => void
@@ -32,24 +33,33 @@ const CartContext = createContext<CartContextType | undefined>(undefined)
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([])
+  const [hydrated, setHydrated] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
 
-  // Load cart from localStorage on mount
+  // Restore the saved cart before allowing any writes to localStorage.
   useEffect(() => {
-    const stored = localStorage.getItem("noore_cart")
-    if (stored) {
-      try {
-        setItems(JSON.parse(stored))
-      } catch {
-        setItems([])
+    try {
+      const stored = localStorage.getItem("noore_cart")
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        if (Array.isArray(parsed)) setItems(parsed)
       }
+    } catch {
+      // Keep an empty cart if stored data is malformed or unavailable.
+    } finally {
+      setHydrated(true)
     }
   }, [])
 
-  // Save cart to localStorage whenever it changes
+  // Do not overwrite the saved cart with the initial empty state before hydration.
   useEffect(() => {
-    localStorage.setItem("noore_cart", JSON.stringify(items))
-  }, [items])
+    if (!hydrated) return
+    try {
+      localStorage.setItem("noore_cart", JSON.stringify(items))
+    } catch {
+      // Cart remains usable for the current session if storage is unavailable.
+    }
+  }, [items, hydrated])
 
   const addItem = (item: Omit<CartItem, "quantity"> & { quantity?: number }) => {
     setItems(prev => {
@@ -89,6 +99,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   return (
     <CartContext.Provider value={{
       items,
+      hydrated,
       addItem,
       removeItem,
       updateQuantity,
