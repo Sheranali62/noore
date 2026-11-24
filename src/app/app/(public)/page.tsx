@@ -60,7 +60,7 @@ export default async function HomePage() {
   const interestLabel = interest === "women" ? "Your edit · Women" : interest === "men" ? "Your edit · Men" : interest === "kids" ? "Your edit · Kids" : null
 
   return (
-    <div className="bg-cream text-charcoal">
+    <div className="noore-sage-theme bg-cream text-charcoal">
       {/* Adaptive personalization */}
       {interestLabel && (
         <section className="border-b border-black/5 bg-white">
@@ -72,20 +72,20 @@ export default async function HomePage() {
       )}
 
       {/* Editorial hero */}
-      <section className="relative min-h-[72vh] md:min-h-[82vh] overflow-hidden bg-charcoal text-white">
+      <section className="relative min-h-[78vh] md:min-h-[88vh] overflow-hidden bg-charcoal text-white">
         <div
           className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: "url('https://images.unsplash.com/photo-1483985988355-763728e1935b?w=2200&auto=format&fit=crop')" }}
+          style={{ backgroundImage: "url('https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=2400&auto=format&fit=crop')" }}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/65 via-black/30 to-black/10" />
         <div className="relative z-10 mx-auto flex min-h-[72vh] md:min-h-[82vh] max-w-7xl items-end px-5 pb-16 md:items-center md:pb-0">
           <div className="max-w-2xl">
             <p className="text-[10px] uppercase tracking-[0.35em] text-white/75 md:text-xs">{interestLabel || "NOORÉ — New Season"}</p>
-            <h1 className="mt-5 font-editorial text-5xl font-medium leading-[0.98] md:text-7xl lg:text-8xl">The art of everyday elegance.</h1>
-            <p className="mt-6 max-w-lg text-sm leading-6 text-white/75 md:text-base">Contemporary Pakistani fashion, thoughtfully curated for the moments that become memories.</p>
+            <p className="mt-5 font-editorial text-2xl italic text-white/85 md:text-3xl">A world of considered style</p><h1 className="mt-3 font-editorial text-6xl font-medium leading-[0.92] tracking-tight md:text-8xl lg:text-[7.5rem]">Wear your own light.</h1>
+            <p className="mt-6 max-w-lg text-sm leading-6 text-white/75 md:text-base">Discover the NOORÉ collection: modern fashion, thoughtful details and timeless pieces for every version of you.</p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/products" className="hero-primary bg-white px-7 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-charcoal transition hover:bg-white/90">Shop New Arrivals</Link>
-              <Link href="/products?category=Luxury" className="hero-secondary border border-white/60 px-7 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-white transition hover:bg-white hover:text-charcoal">Explore Luxury</Link>
+              <Link href="/products" className="hero-primary bg-white px-7 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-charcoal transition hover:bg-white/90">Discover NOORÉ</Link>
+              <Link href="/products?category=Luxury" className="hero-secondary border border-white/60 px-7 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-white transition hover:bg-white hover:text-charcoal">The Luxury Edit</Link>
             </div>
           </div>
         </div>
@@ -111,10 +111,10 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Shop by world */}
+      {/* Find your expression */}
       <section className="mx-auto max-w-7xl px-5 py-16 md:py-24">
         <div className="mb-9 flex items-end justify-between gap-4">
-          <div><p className="text-[10px] uppercase tracking-[0.3em] text-black/45">Enter your world</p><h2 className="mt-2 font-editorial text-4xl md:text-5xl">Shop by world</h2></div>
+          <div><p className="text-[10px] uppercase tracking-[0.3em] text-black/45">The NOORÉ collections</p><h2 className="mt-2 font-editorial text-4xl md:text-5xl">Shop by world</h2></div>
           <Link href="/collections" className="text-xs font-semibold uppercase tracking-[0.15em] underline underline-offset-4">View collections</Link>
         </div>
         <div className="grid gap-3 md:grid-cols-3 md:gap-4">
@@ -141,7 +141,7 @@ export default async function HomePage() {
       {trendingProducts.length > 0 && (
         <section className="bg-[#f4f0e8] py-16 md:py-24">
           <div className="mx-auto max-w-7xl px-5">
-            <div className="mb-9 flex items-end justify-between gap-4"><div><p className="text-[10px] uppercase tracking-[0.3em] text-black/45">Loved by NOORÉ customers</p><h2 className="mt-2 font-editorial text-4xl md:text-5xl">Trending now</h2></div><Link href="/products?sort=popular" className="text-xs font-semibold uppercase tracking-[0.15em] underline underline-offset-4">Shop trending</Link></div>
+            <div className="mb-9 flex items-end justify-between gap-4"><div><p className="text-[10px] uppercase tracking-[0.3em] text-black/45">Customer favourites</p><h2 className="mt-2 font-editorial text-4xl md:text-5xl">The pieces they love</h2></div><Link href="/products?sort=popular" className="text-xs font-semibold uppercase tracking-[0.15em] underline underline-offset-4">Shop trending</Link></div>
             <div className="grid grid-cols-2 gap-x-3 gap-y-8 md:grid-cols-4 md:gap-x-5">
               {trendingProducts.map((p) => <ProductCard key={p.id} id={p.id} name={p.name} slug={p.slug} price={p.price} salePrice={p.salePrice} image={p.images[0] || "/placeholder.jpg"} hoverImage={p.images[1]} category={p.category} stock={p.stock} />)}
             </div>
@@ -166,12 +166,12 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* New arrivals */}
+      {/* New season arrivals */}
       {featuredProducts.length > 0 && (
         <section className="bg-white py-16 md:py-24">
           <div className="mx-auto max-w-7xl px-5">
             <div className="mb-9 flex items-end justify-between gap-4">
-              <div><p className="text-[10px] uppercase tracking-[0.3em] text-black/45">Just in</p><h2 className="mt-2 font-editorial text-4xl md:text-5xl">New arrivals</h2></div>
+              <div><p className="text-[10px] uppercase tracking-[0.3em] text-black/45">Fresh from NOORÉ</p><h2 className="mt-2 font-editorial text-4xl md:text-5xl">New arrivals</h2></div>
               <Link href="/products" className="text-xs font-semibold uppercase tracking-[0.15em] underline underline-offset-4">Shop all</Link>
             </div>
             <div className="grid grid-cols-2 gap-x-3 gap-y-8 md:grid-cols-4 md:gap-x-5 md:gap-y-10">
@@ -293,8 +293,8 @@ export default async function HomePage() {
 
       {/* Brand statement */}
       <section className="border-y border-black/5 bg-[#f4f0e8] px-5 py-20 text-center md:py-28">
-        <p className="text-[10px] uppercase tracking-[0.35em] text-black/45">The NOORÉ philosophy</p>
-        <h2 className="mx-auto mt-5 max-w-4xl font-editorial text-4xl leading-tight md:text-6xl">Designed in Pakistan. Made for everywhere.</h2>
+        <p className="text-[10px] uppercase tracking-[0.35em] text-black/45">Our point of view</p>
+        <h2 className="mx-auto mt-5 max-w-4xl font-editorial text-4xl leading-tight md:text-6xl">A little more you. A little more NOORÉ.</h2>
         <p className="mx-auto mt-6 max-w-2xl text-sm leading-7 text-black/55">We bring together heritage, modern silhouettes and thoughtful details to create pieces that feel relevant today and beautiful for years to come.</p>
         <Link href="/products" className="mt-8 inline-block border-b border-charcoal pb-1 text-[10px] font-semibold uppercase tracking-[0.2em]">Discover NOORÉ</Link>
       </section>
