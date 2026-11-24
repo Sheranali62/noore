@@ -300,18 +300,18 @@ export default async function HomePage() {
 
       {/* Brand statement */}
       <section className="border-y border-black/5 bg-[#f4f0e8] px-5 py-20 text-center md:py-28">
-        <p className="text-[10px] uppercase tracking-[0.35em] text-black/45">Our point of view</p>
-        <h2 className="mx-auto mt-5 max-w-4xl font-editorial text-4xl leading-tight md:text-6xl">A little more you. A little more NOORÉ.</h2>
-        <p className="mx-auto mt-6 max-w-2xl text-sm leading-7 text-black/55">We bring together heritage, modern silhouettes and thoughtful details to create pieces that feel relevant today and beautiful for years to come.</p>
-        <Link href="/products" className="mt-8 inline-block border-b border-charcoal pb-1 text-[10px] font-semibold uppercase tracking-[0.2em]">Discover NOORÉ</Link>
+        <p className="text-[10px] uppercase tracking-[0.35em] text-black/45">{design.brandEyebrow}</p>
+        <h2 className="mx-auto mt-5 max-w-4xl font-editorial text-4xl leading-tight md:text-6xl">{design.brandHeading}</h2>
+        <p className="mx-auto mt-6 max-w-2xl text-sm leading-7 text-black/55">{design.brandDescription}</p>
+        <Link href={design.brandButtonUrl} className="mt-8 inline-block border-b border-charcoal pb-1 text-[10px] font-semibold uppercase tracking-[0.2em]">{design.brandButtonText}</Link>
       </section>
 
       {/* Newsletter */}
       <section className="mx-auto max-w-2xl px-5 py-20 text-center md:py-24">
-        <p className="text-[10px] uppercase tracking-[0.35em] text-black/45">Stay in the know</p>
-        <h2 className="mt-3 font-editorial text-4xl md:text-5xl">A little more NOORÉ.</h2>
-        <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-black/50">Be first to discover new collections, exclusive edits and private offers.</p>
-        <Link href="/products" className="mt-7 inline-flex bg-charcoal px-7 py-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-white">Explore the collection</Link>
+        <p className="text-[10px] uppercase tracking-[0.35em] text-black/45">{design.newsletterEyebrow}</p>
+        <h2 className="mt-3 font-editorial text-4xl md:text-5xl">{design.newsletterHeading}</h2>
+        <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-black/50">{design.newsletterDescription}</p>
+        <Link href={design.newsletterButtonUrl} className="mt-7 inline-flex px-7 py-3 text-[10px] font-semibold uppercase tracking-[0.18em]" style={{backgroundColor:design.buttonColor,color:design.buttonTextColor}}>{design.newsletterButtonText}</Link>
       </section>
     </div>
   )
