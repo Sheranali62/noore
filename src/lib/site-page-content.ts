@@ -1,0 +1,37 @@
+import { prisma } from "@/lib/prisma"
+
+export type EditablePage = "women" | "men" | "kids" | "collections" | "about" | "journal"
+export type PageContent = { eyebrow: string; title: string; description: string; secondaryTitle: string; secondaryDescription: string; buttonText: string; buttonUrl: string }
+export type PageContentMap = Record<EditablePage, PageContent>
+
+export const DEFAULT_PAGE_CONTENT: PageContentMap = {
+ women:{eyebrow:"NOORÉ / Women",title:"Every expression of Pakistani womenswear.",description:"Explore the complete women’s wardrobe, from everyday lawn and pret to shalwar kameez, sarees, 2-piece and 3-piece sets, and occasion dressing.",secondaryTitle:"For her, beautifully considered.",secondaryDescription:"Modern Pakistani dressing across everyday silhouettes, occasionwear and elevated essentials.",buttonText:"Shop women",buttonUrl:"/products?gender=Women"},
+ men:{eyebrow:"NOORÉ / Men",title:"The complete modern Pakistani menswear edit.",description:"Shop shalwar kameez, kurtas, 2-piece and 3-piece looks, waistcoats, prince coats, tailoring and everyday essentials.",secondaryTitle:"Refined dressing, without the noise.",secondaryDescription:"Clean silhouettes, considered fabrics and timeless Pakistani menswear for every setting.",buttonText:"Shop men",buttonUrl:"/products?gender=Men"},
+ kids:{eyebrow:"NOORÉ / Kids",title:"Little wardrobes, complete from everyday to festive.",description:"Browse separate girls’ and boys’ edits across shalwar kameez, 2-piece and 3-piece looks, kurtas, waistcoats, casualwear and festive dressing.",secondaryTitle:"Little looks, beautifully made.",secondaryDescription:"Playful occasionwear and everyday pieces designed for comfort, movement and memorable moments.",buttonText:"Shop kids",buttonUrl:"/products?gender=Kids"},
+ collections:{eyebrow:"NOORÉ / Collections",title:"Curated worlds. Beautifully considered.",description:"Explore collections shaped around season, occasion, mood and the modern Pakistani wardrobe — across women, men and kids.",secondaryTitle:"Collections for every moment.",secondaryDescription:"The NOORÉ edit",buttonText:"Shop all",buttonUrl:"/products"},
+ about:{eyebrow:"NOORÉ / About",title:"Modern Pakistani dressing, thoughtfully made.",description:"NOORÉ is built around a simple idea: clothing should feel considered, useful and beautiful long after the first impression.",secondaryTitle:"Less noise. More meaning.",secondaryDescription:"We bring together familiar Pakistani craft with a clean contemporary point of view, creating pieces for everyday life, celebrations and everything between.",buttonText:"Shop NOORÉ",buttonUrl:"/products"},
+ journal:{eyebrow:"NOORÉ / Journal",title:"The NOORÉ Journal.",description:"Stories about style, craft, dressing and the details behind the collections.",secondaryTitle:"How to build a modern Pakistani wardrobe.",secondaryDescription:"A considered guide to silhouettes, texture and occasion dressing.",buttonText:"Read the journal",buttonUrl:"/blog"},
+}
+const valid = (v: unknown, max=500) => typeof v === "string" && v.trim().length > 0 && v.trim().length <= max
+export function normalizePageContent(input: unknown): PageContentMap {
+ const raw=input && typeof input==="object" ? input as Record<string,unknown> : {}
+ const result={...DEFAULT_PAGE_CONTENT}
+ for (const key of Object.keys(DEFAULT_PAGE_CONTENT) as EditablePage[]) {
+  const candidate=raw[key]
+  if (!candidate || typeof candidate!=="object" || Array.isArray(candidate)) continue
+  const row=candidate as Record<string,unknown>
+  const next={...DEFAULT_PAGE_CONTENT[key]}
+  for (const field of Object.keys(next) as (keyof PageContent)[]) {
+   const value=row[field]
+   if (!valid(value, field==="buttonUrl"?180:500)) continue
+   if(field==="buttonUrl") {const url=value.trim();if((url.startsWith("/")&&!url.startsWith("//"))||url.toLowerCase().startsWith("https://"))next[field]=url}
+   else next[field]=value.trim()
+  }
+  result[key]=next
+ }
+ return result
+}
+export async function getPageContent(): Promise<PageContentMap> {
+ const row=await prisma.setting.findUnique({where:{key:"site_page_content"},select:{value:true}})
+ try{return normalizePageContent(row?.value?JSON.parse(row.value):{})}catch{return DEFAULT_PAGE_CONTENT}
+}
