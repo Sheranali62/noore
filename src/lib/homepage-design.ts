@@ -26,6 +26,26 @@ export type HomepageDesign = {
   luxuryDescription: string
   luxuryButtonText: string
   luxuryButtonUrl: string
+  limitedEyebrow: string
+  limitedHeading: string
+  limitedDescription: string
+  saleEyebrow: string
+  saleHeading: string
+  saleDescription: string
+  storiesEyebrow: string
+  storiesHeading: string
+  journalEyebrow: string
+  journalHeading: string
+  brandEyebrow: string
+  brandHeading: string
+  brandDescription: string
+  brandButtonText: string
+  brandButtonUrl: string
+  newsletterEyebrow: string
+  newsletterHeading: string
+  newsletterDescription: string
+  newsletterButtonText: string
+  newsletterButtonUrl: string
 }
 export const DEFAULT_HOMEPAGE_DESIGN: HomepageDesign = {
   backgroundColor: "#F7F6F2",
@@ -55,6 +75,26 @@ export const DEFAULT_HOMEPAGE_DESIGN: HomepageDesign = {
   luxuryDescription: "A refined selection of elevated pieces, occasion silhouettes and considered details designed to make an entrance without asking for attention.",
   luxuryButtonText: "Explore the luxury edit",
   luxuryButtonUrl: "/collections",
+  limitedEyebrow: "Limited quantities",
+  limitedHeading: "Almost gone",
+  limitedDescription: "The pieces customers are reaching for now.",
+  saleEyebrow: "The price edit",
+  saleHeading: "Selected on sale",
+  saleDescription: "A considered selection, available while it lasts.",
+  storiesEyebrow: "Curated stories",
+  storiesHeading: "The collections",
+  journalEyebrow: "From the journal",
+  journalHeading: "The NOORÉ journal",
+  brandEyebrow: "Our point of view",
+  brandHeading: "A little more you. A little more NOORÉ.",
+  brandDescription: "We bring together heritage, modern silhouettes and thoughtful details to create pieces that feel relevant today and beautiful for years to come.",
+  brandButtonText: "Discover NOORÉ",
+  brandButtonUrl: "/products",
+  newsletterEyebrow: "Stay in the know",
+  newsletterHeading: "A little more NOORÉ.",
+  newsletterDescription: "Be first to discover new collections, exclusive edits and private offers.",
+  newsletterButtonText: "Explore the collection",
+  newsletterButtonUrl: "/products",
 }
 const hex = /^#[0-9a-fA-F]{6}$/
 export function normalizeHomepageDesign(input: unknown): HomepageDesign {
@@ -67,7 +107,10 @@ export function normalizeHomepageDesign(input: unknown): HomepageDesign {
         if (hex.test(candidate)) (result as any)[key] = candidate
       } else if (key === "headingFont") {
         if (["editorial", "serif", "sans"].includes(candidate)) result.headingFont = candidate as HomepageDesign["headingFont"]
-      } else if (candidate.length <= 180) (result as any)[key] = candidate.trim()
+      } else if (key.endsWith("Url")) {
+        const url = candidate.trim()
+        if (url.length <= 180 && ((url.startsWith("/") && !url.startsWith("//")) || url.toLowerCase().startsWith("https://"))) (result as any)[key] = url
+      } else if (candidate.length <= 500) (result as any)[key] = candidate.trim()
     }
   }
   return result
