@@ -49,8 +49,10 @@ export async function GET(request: NextRequest) {
   const color = params.get("color")?.trim() || ""
   const sale = params.get("sale") === "true"
   const inStock = params.get("inStock") === "true"
-  const min = Number(params.get("min"))
-  const max = Number(params.get("max"))
+  const minParam = params.get("min")
+  const maxParam = params.get("max")
+  const min = minParam === null || minParam === "" ? undefined : Number(minParam)
+  const max = maxParam === null || maxParam === "" ? undefined : Number(maxParam)
   const sort = params.get("sort") || "newest"
   const page = Math.max(1, Number(params.get("page") || 1))
   const take = Math.min(48, Math.max(12, Number(params.get("take") || 24)))
@@ -61,8 +63,8 @@ export async function GET(request: NextRequest) {
   const effectiveColor = color || smart.detected.color || ""
   const effectiveSale = sale || !!smart.detected.sale
   const effectiveStock = inStock || !!smart.detected.inStock
-  const effectiveMin = Number.isFinite(min) ? min : smart.detected.min
-  const effectiveMax = Number.isFinite(max) ? max : smart.detected.max
+  const effectiveMin = min !== undefined && Number.isFinite(min) ? min : smart.detected.min
+  const effectiveMax = max !== undefined && Number.isFinite(max) ? max : smart.detected.max
 
   const where: any = { status: "ACTIVE" }
   if (smart.textTokens.length) {
