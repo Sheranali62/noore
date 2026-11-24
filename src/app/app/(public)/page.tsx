@@ -67,7 +67,7 @@ export default async function HomePage() {
 
   return (
     <div className="noore-sage-theme bg-cream text-charcoal" style={{ backgroundColor: design.backgroundColor, color: design.textColor, ["--noore-text" as any]: design.textColor, ["--noore-accent" as any]: design.accentColor, ["--noore-button" as any]: design.buttonColor, ["--noore-button-text" as any]: design.buttonTextColor, ["--noore-heading-font" as any]: headingFamily }}>
-      <style>{`.noore-sage-theme .font-editorial{font-family:var(--noore-heading-font)!important}.noore-sage-theme .text-charcoal{color:var(--noore-text,${design.textColor})}.noore-sage-theme [class~="text-black/45"],.noore-sage-theme [class~="text-black/50"]{color:var(--noore-accent)!important}.noore-sage-theme [class~="text-black/55"]{color:var(--noore-text)!important;opacity:.72}.noore-sage-theme .bg-white{background-color:${design.backgroundColor}!important}.noore-sage-theme .bg-cream{background-color:${design.backgroundColor}!important}.noore-sage-theme .hero-secondary{border-color:${design.accentColor}!important;color:${design.accentColor}!important}.noore-sage-theme .hero-secondary:hover{background:${design.accentColor}!important;color:#fff!important}`}</style>
+      <style>{`.noore-sage-theme .font-editorial{font-family:var(--noore-heading-font)!important}.noore-sage-theme .text-charcoal{color:var(--noore-text,${design.textColor})}.noore-sage-theme [class~="text-black/45"]{color:var(--noore-accent)!important}.noore-sage-theme [class~="text-black/50"],.noore-sage-theme [class~="text-black/55"]{color:var(--noore-text)!important;opacity:.72}.noore-sage-theme .bg-white{background-color:${design.backgroundColor}!important}.noore-sage-theme .bg-cream{background-color:${design.backgroundColor}!important}.noore-sage-theme .hero-secondary{border-color:${design.accentColor}!important;color:${design.accentColor}!important}.noore-sage-theme .hero-secondary:hover{background:${design.accentColor}!important;color:#fff!important}`}</style>
       {/* Adaptive personalization */}
       {interestLabel && (
         <section className="border-b border-black/5 bg-white">
@@ -88,7 +88,7 @@ export default async function HomePage() {
         <div className="relative z-10 mx-auto flex min-h-[72vh] md:min-h-[82vh] max-w-7xl items-end px-5 pb-16 md:items-center md:pb-0">
           <div className="max-w-2xl">
             <p className="text-[10px] uppercase tracking-[0.35em] text-white/75 md:text-xs">{interestLabel || design.heroEyebrow}</p>
-            <p className="mt-5 text-2xl italic text-white/85 md:text-3xl">{design.heroKicker}</p><h1 className={`mt-3 ${design.headingFont === "sans" ? "font-sans" : design.headingFont === "serif" ? "font-serif" : "font-editorial"} text-6xl font-medium leading-[0.92] tracking-tight md:text-8xl lg:text-[7.5rem]`}>{design.heroHeading}</h1>
+            <p className="mt-5 text-2xl italic text-white/85 md:text-3xl">{design.heroKicker}</p><h1 className="mt-3 font-editorial text-6xl font-medium leading-[0.92] tracking-tight md:text-8xl lg:text-[7.5rem]`}>{design.heroHeading}</h1>
             <p className="mt-6 max-w-lg text-sm leading-6 text-white/75 md:text-base">{design.heroDescription}</p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href={design.primaryButtonUrl} className="hero-primary px-7 py-3 text-xs font-semibold uppercase tracking-[0.16em] transition hover:opacity-90" style={{ backgroundColor: design.buttonColor, color: design.buttonTextColor }}>{design.primaryButtonText}</Link>
@@ -275,7 +275,7 @@ export default async function HomePage() {
       </section>
 
       {/* Journal */}
-      <section className="border-y border-black/5 bg-[#f4f0e8] py-16 md:py-24">
+      <section className="border-y border-black/5 py-16 md:py-24" style={{backgroundColor:design.backgroundColor}}>
         <div className="mx-auto max-w-7xl px-5">
           <div className="mb-9 flex items-end justify-between gap-4">
             <div><p className="text-[10px] uppercase tracking-[0.3em] text-black/45">{design.journalEyebrow}</p><h2 className="mt-2 font-editorial text-4xl md:text-5xl">{design.journalHeading}</h2></div>
@@ -299,7 +299,7 @@ export default async function HomePage() {
       </section>
 
       {/* Brand statement */}
-      <section className="border-y border-black/5 bg-[#f4f0e8] px-5 py-20 text-center md:py-28">
+      <section className="border-y border-black/5 px-5 py-20 text-center md:py-28" style={{backgroundColor:design.backgroundColor}}>
         <p className="text-[10px] uppercase tracking-[0.35em] text-black/45">{design.brandEyebrow}</p>
         <h2 className="mx-auto mt-5 max-w-4xl font-editorial text-4xl leading-tight md:text-6xl">{design.brandHeading}</h2>
         <p className="mx-auto mt-6 max-w-2xl text-sm leading-7 text-black/55">{design.brandDescription}</p>
