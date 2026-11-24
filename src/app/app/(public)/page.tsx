@@ -88,7 +88,7 @@ export default async function HomePage() {
         <div className="relative z-10 mx-auto flex min-h-[72vh] md:min-h-[82vh] max-w-7xl items-end px-5 pb-16 md:items-center md:pb-0">
           <div className="max-w-2xl">
             <p className="text-[10px] uppercase tracking-[0.35em] text-white/75 md:text-xs">{interestLabel || design.heroEyebrow}</p>
-            <p className="mt-5 text-2xl italic text-white/85 md:text-3xl">{design.heroKicker}</p><h1 className="mt-3 font-editorial text-6xl font-medium leading-[0.92] tracking-tight md:text-8xl lg:text-[7.5rem]`}>{design.heroHeading}</h1>
+            <p className="mt-5 text-2xl italic text-white/85 md:text-3xl">{design.heroKicker}</p><h1 className="mt-3 font-editorial text-6xl font-medium leading-[0.92] tracking-tight md:text-8xl lg:text-[7.5rem]">{design.heroHeading}</h1>
             <p className="mt-6 max-w-lg text-sm leading-6 text-white/75 md:text-base">{design.heroDescription}</p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href={design.primaryButtonUrl} className="hero-primary px-7 py-3 text-xs font-semibold uppercase tracking-[0.16em] transition hover:opacity-90" style={{ backgroundColor: design.buttonColor, color: design.buttonTextColor }}>{design.primaryButtonText}</Link>
