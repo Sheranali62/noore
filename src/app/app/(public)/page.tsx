@@ -199,10 +199,10 @@ export default async function HomePage() {
           </div>
           <div className="flex items-center px-7 py-16 md:px-14 md:py-24">
             <div className="max-w-xl">
-              <p className="text-[10px] uppercase tracking-[0.35em] text-white/45">The luxury edit</p>
-              <h2 className="mt-4 font-editorial text-5xl leading-[0.98] md:text-7xl">For evenings that deserve more.</h2>
-              <p className="mt-6 max-w-md text-sm leading-7 text-white/60">A refined selection of elevated pieces, occasion silhouettes and considered details designed to make an entrance without asking for attention.</p>
-              <Link href="/collections" className="mt-8 inline-block border-b border-white/70 pb-1 text-[10px] font-semibold uppercase tracking-[0.2em]">Explore the luxury edit</Link>
+              <p className="text-[10px] uppercase tracking-[0.35em] text-white/45">{design.luxuryEyebrow}</p>
+              <h2 className="mt-4 font-editorial text-5xl leading-[0.98] md:text-7xl">{design.luxuryHeading}</h2>
+              <p className="mt-6 max-w-md text-sm leading-7 text-white/60">{design.luxuryDescription}</p>
+              <Link href={design.luxuryButtonUrl} className="mt-8 inline-block border-b border-white/70 pb-1 text-[10px] font-semibold uppercase tracking-[0.2em]">{design.luxuryButtonText}</Link>
             </div>
           </div>
         </div>
@@ -210,7 +210,7 @@ export default async function HomePage() {
 
       {/* Limited edit */}
       {limitedProducts.length > 0 && (
-        <section className="border-y border-black/5 bg-[#f4f0e8] py-16 md:py-20">
+        <section className="border-y border-black/5 py-16 md:py-20" style={{ backgroundColor: design.backgroundColor }}>
           <div className="mx-auto max-w-7xl px-5">
             <div className="mb-9 flex items-end justify-between gap-4">
               <div><p className="text-[10px] uppercase tracking-[0.3em] text-black/45">Limited quantities</p><h2 className="mt-2 font-editorial text-4xl md:text-5xl">Almost gone</h2><p className="mt-2 text-sm text-black/50">The pieces customers are reaching for now.</p></div>
