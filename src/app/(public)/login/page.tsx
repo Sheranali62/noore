@@ -96,15 +96,15 @@ export default function LoginPage() {
         <div className="noore-login-grid grid w-full items-center gap-10 lg:grid-cols-[1fr_480px] lg:gap-20">
           {/* Lamp / unlock scene */}
           <div className="noore-login-entrance">
-            <div className="mb-8 flex items-center gap-3 text-[#d6ae72]">
-              <span className="h-px w-12 bg-[#d6ae72]/50" />
+            <div className="mb-8 flex items-center gap-3 text-[#535F4C]">
+              <span className="h-px w-12 bg-[#535F4C]/30" />
               <span className="text-[10px] font-bold uppercase tracking-[0.42em]">NOORÉ PRIVATE ACCESS</span>
             </div>
 
-            <h1 className="noore-login-heading max-w-xl font-serif text-6xl leading-[0.9] tracking-[-0.045em] text-[#f8eee5] sm:text-7xl xl:text-8xl">
+            <h1 className="noore-login-heading max-w-xl font-serif text-6xl leading-[0.9] tracking-[-0.045em] text-[#343A30] sm:text-7xl xl:text-8xl">
               Welcome
               <br />
-              <span className="text-[#d6ae72]">back.</span>
+              <span className="text-[#535F4C]">back.</span>
             </h1>
 
             <p className="noore-login-intro mt-7 max-w-md text-sm leading-7 text-white/48">
@@ -150,8 +150,8 @@ export default function LoginPage() {
             <div className="noore-login-card">
               <div className="mb-8 flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-[9px] font-bold uppercase tracking-[0.35em] text-[#d6ae72]">NOORÉ</p>
-                  <h2 className="mt-2 font-serif text-4xl tracking-[-0.03em] text-[#f8eee5]">Sign in</h2>
+                  <p className="text-[9px] font-bold uppercase tracking-[0.35em] text-[#535F4C]">NOORÉ</p>
+                  <h2 className="mt-2 font-serif text-4xl tracking-[-0.03em] text-[#343A30]">Sign in</h2>
                   <p className="mt-2 text-xs text-white/42">Welcome back to your wardrobe.</p>
                 </div>
                 <div className="noore-login-mark" aria-hidden="true"><span>N</span></div>
@@ -201,7 +201,7 @@ export default function LoginPage() {
                 </div>
 
                 <div className="flex justify-end">
-                  <Link href="/forgot-password" tabIndex={unlocked ? 0 : -1} className="text-[10px] font-semibold text-[#d6ae72] transition hover:text-[#f1d39c]">Forgot password?</Link>
+                  <Link href="/forgot-password" tabIndex={unlocked ? 0 : -1} className="text-[10px] font-semibold text-[#535F4C] transition hover:text-[#f1d39c]">Forgot password?</Link>
                 </div>
 
                 <button type="submit" disabled={loading} tabIndex={unlocked ? 0 : -1} className="noore-login-button">
@@ -217,7 +217,7 @@ export default function LoginPage() {
               </div>
 
               <p className="text-center text-xs text-white/38">
-                New to NOORÉ? <Link href="/register" tabIndex={unlocked ? 0 : -1} className="font-semibold text-[#f5dfba] transition hover:text-white">Create an account</Link>
+                New to NOORÉ? <Link href="/register" tabIndex={unlocked ? 0 : -1} className="font-semibold text-[#535F4C] transition hover:text-white">Create an account</Link>
               </p>
 
               <div className="mt-8 flex items-center justify-between border-t border-white/[0.07] pt-5 text-[8px] uppercase tracking-[0.18em] text-white/22">
