@@ -67,7 +67,7 @@ export default async function HomePage() {
 
   return (
     <div className="noore-sage-theme bg-cream text-charcoal" style={{ backgroundColor: design.backgroundColor, color: design.textColor, ["--noore-text" as any]: design.textColor, ["--noore-accent" as any]: design.accentColor, ["--noore-button" as any]: design.buttonColor, ["--noore-button-text" as any]: design.buttonTextColor, ["--noore-heading-font" as any]: headingFamily }}>
-      <style>{`.noore-sage-theme .font-editorial{font-family:var(--noore-heading-font)!important}.noore-sage-theme .text-charcoal{color:var(--noore-text,${design.textColor})}.noore-sage-theme .bg-white{background-color:${design.backgroundColor}!important}.noore-sage-theme .bg-cream{background-color:${design.backgroundColor}!important}`}</style>
+      <style>{`.noore-sage-theme .font-editorial{font-family:var(--noore-heading-font)!important}.noore-sage-theme .text-charcoal{color:var(--noore-text,${design.textColor})}.noore-sage-theme [class~="text-black/45"]{color:var(--noore-accent)!important}.noore-sage-theme .bg-white{background-color:${design.backgroundColor}!important}.noore-sage-theme .bg-cream{background-color:${design.backgroundColor}!important}`}</style>
       {/* Adaptive personalization */}
       {interestLabel && (
         <section className="border-b border-black/5 bg-white">
