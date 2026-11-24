@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma"
-import { DEFAULT_PAGE_CONTENT, normalizePageContent, type PageContentMap, type EditablePage, type PageContent } from "@/lib/site-page-content-defaults"
-export { DEFAULT_PAGE_CONTENT, normalizePageContent } from "@/lib/site-page-content-defaults"
+import { DEFAULT_PAGE_CONTENT, type PageContentMap, type EditablePage, type PageContent } from "@/lib/site-page-content-defaults"
+export { DEFAULT_PAGE_CONTENT } from "@/lib/site-page-content-defaults"
 export type { EditablePage, PageContent, PageContentMap } from "@/lib/site-page-content-defaults"
 
 const valid = (v: unknown, max=500): v is string => typeof v === "string" && v.trim().length > 0 && v.trim().length <= max
