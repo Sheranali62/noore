@@ -169,9 +169,9 @@ export default async function HomePage() {
           : null
 
   return (
-    <main className="overflow-hidden bg-[#11100f] text-[#f5f0e7]">
+    <main className="overflow-hidden bg-[#535F4C] text-[#f5f0e7]">
       {interestLabel && (
-        <div className="border-b border-[#b8945e]/20 bg-[#191816]">
+        <div className="border-b border-[#D4A07D]/20 bg-[#535F4C]">
           <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-4 px-5 py-3 md:px-8">
             <p className="text-[9px] font-semibold uppercase tracking-[0.24em]">{interestLabel}</p>
             <Link href={`/products?gender=${interest}`} className="text-[9px] font-semibold uppercase tracking-[0.18em] underline underline-offset-4">
@@ -183,25 +183,25 @@ export default async function HomePage() {
 
       {/* Editorial campaign hero */}
       <section className="mx-auto max-w-[1600px] px-3 pt-3 sm:px-5 md:px-8 md:pt-6">
-        <div className="grid overflow-hidden border border-[#c5a16a]/20 bg-[#211d19] md:min-h-[680px] md:grid-cols-[0.82fr_1.18fr]">
+        <div className="grid overflow-hidden border border-[#D4A07D]/20 bg-[#535F4C] md:min-h-[680px] md:grid-cols-[0.82fr_1.18fr]">
           <div className="relative flex min-h-[430px] flex-col justify-between px-6 py-8 sm:px-10 sm:py-11 md:min-h-[680px] md:px-12 md:py-14 lg:px-16">
-            <div className="absolute left-0 top-10 h-20 w-px bg-[#c5a16a] md:top-14 md:h-28" />
+            <div className="absolute left-0 top-10 h-20 w-px bg-[#D4A07D] md:top-14 md:h-28" />
             <div>
-              <div className="flex items-center gap-3 text-[9px] font-semibold uppercase tracking-[0.3em] text-[#d6b77c]">
-                <span>NOORÉ</span><span className="h-px w-8 bg-[#b8945e]/70" /><span>{interestLabel || "The new season"}</span>
+              <div className="flex items-center gap-3 text-[9px] font-semibold uppercase tracking-[0.3em] text-[#D4A07D]">
+                <span>NOORÉ</span><span className="h-px w-8 bg-[#D4A07D]/70" /><span>{interestLabel || "The new season"}</span>
               </div>
-              <p className="mt-14 font-serif text-base italic text-[#d7c9b5]/75 md:mt-20 md:text-lg">A wardrobe with a point of view.</p>
+              <p className="mt-14 font-serif text-base italic text-[#EAE7DD]/75 md:mt-20 md:text-lg">A wardrobe with a point of view.</p>
               <h1 className="mt-5 max-w-xl font-editorial text-[3.45rem] font-medium leading-[0.88] tracking-[-0.045em] sm:text-7xl lg:text-[5.6rem]">
-                Elegance,<br />in every<br /><span className="text-[#d6b77c]">detail.</span>
+                Elegance,<br />in every<br /><span className="text-[#D4A07D]">detail.</span>
               </h1>
-              <p className="mt-6 max-w-sm text-sm leading-7 text-[#e5ded3]/65">
+              <p className="mt-6 max-w-sm text-sm leading-7 text-[#EAE7DD]/65">
                 Discover considered pieces for everyday moments and occasions worth remembering.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <Link href="/products?sort=newest" className="inline-flex min-h-12 items-center justify-center border border-[#d6b77c] bg-[#d6b77c] px-6 text-[9px] font-bold uppercase tracking-[0.2em] text-[#211d19] transition-colors hover:border-[#f0e9df] hover:bg-[#f0e9df]">
+                <Link href="/products?sort=newest" className="inline-flex min-h-12 items-center justify-center border border-[#D4A07D] bg-[#D4A07D] px-6 text-[9px] font-bold uppercase tracking-[0.2em] text-[#535F4C] transition-colors hover:border-[#F7F6F2] hover:bg-[#F7F6F2]">
                   Discover the new edit <span className="ml-3 text-sm">↗</span>
                 </Link>
-                <Link href="/products?category=Luxury" className="inline-flex min-h-12 items-center justify-center border border-white/25 px-6 text-[9px] font-semibold uppercase tracking-[0.2em] text-white/85 transition-colors hover:border-[#d6b77c] hover:text-[#d6b77c]">
+                <Link href="/products?category=Luxury" className="inline-flex min-h-12 items-center justify-center border border-white/25 px-6 text-[9px] font-semibold uppercase tracking-[0.2em] text-white/85 transition-colors hover:border-[#D4A07D] hover:text-[#D4A07D]">
                   Explore luxury
                 </Link>
               </div>
@@ -218,29 +218,29 @@ export default async function HomePage() {
               <p className="mt-1 font-editorial text-2xl text-white sm:text-3xl">Effortless. Elevated.</p>
             </div>
             <div className="absolute bottom-5 right-5 flex items-center gap-3 text-[8px] font-semibold uppercase tracking-[0.22em] text-white/75 sm:bottom-7 sm:right-7">
-              <span className="h-px w-8 bg-[#d6b77c]" /><span>Discover your style</span>
+              <span className="h-px w-8 bg-[#D4A07D]" /><span>Discover your style</span>
             </div>
           </div>
         </div>
-        <div className="grid grid-cols-2 border-x border-b border-[#c5a16a]/20 bg-[#191816]">
-          <Link href="/women" className="group flex items-center justify-between gap-3 border-r border-[#c5a16a]/20 px-5 py-4 transition-colors hover:bg-[#25211c] sm:px-8 sm:py-5">
-            <span><span className="block text-[8px] uppercase tracking-[0.22em] text-[#c5b99f]/55">01 / Discover</span><span className="mt-1 block font-editorial text-xl sm:text-2xl">The feminine edit</span></span>
-            <span className="text-lg text-[#d6b77c] transition-transform group-hover:translate-x-1">↗</span>
+        <div className="grid grid-cols-2 border-x border-b border-[#D4A07D]/20 bg-[#535F4C]">
+          <Link href="/women" className="group flex items-center justify-between gap-3 border-r border-[#D4A07D]/20 px-5 py-4 transition-colors hover:bg-[#465340] sm:px-8 sm:py-5">
+            <span><span className="block text-[8px] uppercase tracking-[0.22em] text-[#B8AA91]/55">01 / Discover</span><span className="mt-1 block font-editorial text-xl sm:text-2xl">The feminine edit</span></span>
+            <span className="text-lg text-[#D4A07D] transition-transform group-hover:translate-x-1">↗</span>
           </Link>
-          <Link href="/collections" className="group flex items-center justify-between gap-3 px-5 py-4 transition-colors hover:bg-[#25211c] sm:px-8 sm:py-5">
-            <span><span className="block text-[8px] uppercase tracking-[0.22em] text-[#c5b99f]/55">02 / Explore</span><span className="mt-1 block font-editorial text-xl sm:text-2xl">Curated collections</span></span>
-            <span className="text-lg text-[#d6b77c] transition-transform group-hover:translate-x-1">↗</span>
+          <Link href="/collections" className="group flex items-center justify-between gap-3 px-5 py-4 transition-colors hover:bg-[#465340] sm:px-8 sm:py-5">
+            <span><span className="block text-[8px] uppercase tracking-[0.22em] text-[#B8AA91]/55">02 / Explore</span><span className="mt-1 block font-editorial text-xl sm:text-2xl">Curated collections</span></span>
+            <span className="text-lg text-[#D4A07D] transition-transform group-hover:translate-x-1">↗</span>
           </Link>
         </div>
       </section>
 
       {/* Brand ticker */}
-      <section className="border-y border-[#b8945e]/20 bg-[#191816] py-4 sm:py-5">
-        <div className="noore-announcement-track flex min-w-max items-center gap-8 px-5 text-[9px] font-semibold uppercase tracking-[0.28em] text-[#c5b99f]/65">
+      <section className="border-y border-[#D4A07D]/20 bg-[#535F4C] py-4 sm:py-5">
+        <div className="noore-announcement-track flex min-w-max items-center gap-8 px-5 text-[9px] font-semibold uppercase tracking-[0.28em] text-[#B8AA91]/65">
           {Array.from({ length: 2 }).flatMap((_, repeat) =>
             ["Designed in Pakistan", "Quiet luxury", "Free delivery above PKR 5,000", "Easy 7-day exchanges", "Made for the modern wardrobe"].map((item) => (
               <span key={`${repeat}-${item}`} className="flex items-center gap-8">
-                <span>{item}</span><span className="text-[#b78c4d]">✦</span>
+                <span>{item}</span><span className="text-[#D4A07D]">✦</span>
               </span>
             )),
           )}
@@ -251,10 +251,10 @@ export default async function HomePage() {
       <section className="mx-auto max-w-[1440px] px-3 py-12 sm:px-5 sm:py-16 md:px-8 md:py-24">
         <div className="grid gap-10 md:grid-cols-[0.55fr_1.45fr] md:items-end">
           <div>
-            <p className="text-[9px] uppercase tracking-[0.32em] text-[#c5b99f]/65">Choose your world</p>
+            <p className="text-[9px] uppercase tracking-[0.32em] text-[#B8AA91]/65">Choose your world</p>
             <h2 className="mt-3 font-editorial text-4xl leading-[0.92] sm:text-5xl md:text-6xl">Find your point of view.</h2>
           </div>
-          <p className="max-w-xl text-sm leading-7 text-[#d1c7b9]/70 md:justify-self-end">A curated wardrobe spanning women, men and little ones — designed with a distinctly NOORÉ sense of proportion, texture and ease.</p>
+          <p className="max-w-xl text-sm leading-7 text-[#EAE7DD]/70 md:justify-self-end">A curated wardrobe spanning women, men and little ones — designed with a distinctly NOORÉ sense of proportion, texture and ease.</p>
         </div>
 
         <div className="mt-7 grid gap-3 sm:mt-10 md:grid-cols-3">
@@ -275,9 +275,9 @@ export default async function HomePage() {
 
       {/* New arrivals */}
       {newProducts.length > 0 && (
-        <section className="bg-[#f0e9df] py-12 sm:py-16 md:py-24">
+        <section className="bg-[#F7F6F2] py-12 sm:py-16 md:py-24">
           <div className="mx-auto max-w-[1440px] px-3 sm:px-5 md:px-8">
-            <div className="flex items-end justify-between gap-6 border-b border-[#b8945e]/30 pb-5">
+            <div className="flex items-end justify-between gap-6 border-b border-[#D4A07D]/30 pb-5">
               <div>
                 <p className="text-[9px] uppercase tracking-[0.32em] text-black/40">Just landed</p>
                 <h2 className="mt-2 font-editorial text-5xl leading-none md:text-6xl">The new edit.</h2>
@@ -294,7 +294,7 @@ export default async function HomePage() {
       )}
 
       {/* Full-width story */}
-      <section className="relative min-h-[620px] overflow-hidden bg-[#24191d] text-white md:min-h-[760px]">
+      <section className="relative min-h-[620px] overflow-hidden bg-[#535F4C] text-white md:min-h-[760px]">
         <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=2200&auto=format&fit=crop')" }} />
         <div className="absolute inset-0 bg-gradient-to-r from-black/65 via-black/20 to-transparent" />
         <div className="relative mx-auto flex min-h-[620px] max-w-[1440px] items-end px-5 pb-12 md:min-h-[760px] md:items-center md:px-8 md:pb-0">
@@ -309,11 +309,11 @@ export default async function HomePage() {
 
       {/* Trending */}
       {trendingProducts.length > 0 && (
-        <section className="bg-[#1b1916] py-16 text-[#f5f0e7] md:py-24">
+        <section className="bg-[#535F4C] py-16 text-[#f5f0e7] md:py-24">
           <div className="mx-auto max-w-[1440px] px-5 md:px-8">
             <div className="mb-8 flex items-end justify-between gap-5">
               <div>
-                <p className="text-[9px] uppercase tracking-[0.32em] text-[#c5b99f]/60">Loved by our customers</p>
+                <p className="text-[9px] uppercase tracking-[0.32em] text-[#B8AA91]/60">Loved by our customers</p>
                 <h2 className="mt-2 font-editorial text-5xl leading-none md:text-6xl">Trending now.</h2>
               </div>
               <Link href="/products?sort=popular" className="text-[9px] font-semibold uppercase tracking-[0.2em] underline underline-offset-4">Shop trending</Link>
@@ -328,7 +328,7 @@ export default async function HomePage() {
       )}
 
       {/* Category strip */}
-      <section className="bg-[#24191d] py-12 text-white sm:py-16 md:py-24">
+      <section className="bg-[#535F4C] py-12 text-white sm:py-16 md:py-24">
         <div className="mx-auto max-w-[1440px] px-5 md:px-8">
           <div className="flex items-end justify-between gap-5">
             <div>
@@ -339,11 +339,11 @@ export default async function HomePage() {
           </div>
           <div className="mt-7 grid grid-cols-2 gap-2 sm:mt-9 md:grid-cols-5 md:gap-3">
             {categories.map((item) => (
-              <Link key={item.name} href={item.href} className="group relative isolate overflow-hidden border border-[#d6ae72]/15 bg-[#171513]">
+              <Link key={item.name} href={item.href} className="group relative isolate overflow-hidden border border-[#D4A07D]/15 bg-[#465340]">
                 <div className="aspect-[0.78] bg-cover bg-center transition duration-[900ms] group-hover:scale-[1.05]" style={{ backgroundImage: `url('${categoryImage(item)}')` }} />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
                 <div className="absolute inset-x-4 bottom-4 text-white md:inset-x-5 md:bottom-5">
-                  <p className="mb-1 text-[8px] font-semibold uppercase tracking-[0.2em] text-[#d6b77c]">NOORÉ EDIT</p>
+                  <p className="mb-1 text-[8px] font-semibold uppercase tracking-[0.2em] text-[#D4A07D]">NOORÉ EDIT</p>
                   <h3 className="font-editorial text-2xl md:text-3xl">{item.name}</h3>
                   <p className="mt-1 line-clamp-2 text-[10px] leading-4 text-white/70">{item.description}</p>
                   <span className="mt-2 block text-[8px] font-semibold uppercase tracking-[0.18em] text-[#f0d8a8]">Shop →</span>
@@ -407,7 +407,7 @@ export default async function HomePage() {
 
       {/* Journal — latest published stories */}
       {journalPosts.length > 0 && (
-        <section className="bg-[#f0e9df] py-16 md:py-24">
+        <section className="bg-[#F7F6F2] py-16 md:py-24">
           <div className="mx-auto max-w-[1440px] px-5 md:px-8">
             <div className="flex items-end justify-between gap-5">
               <div>
@@ -424,11 +424,11 @@ export default async function HomePage() {
                     {post.image ? (
                       <img src={post.image} alt={post.title} loading="lazy" className="h-full w-full object-cover transition duration-[900ms] group-hover:scale-[1.04]" />
                     ) : (
-                      <div className="grid h-full w-full place-items-center font-editorial text-3xl text-[#8c7658]">NOORÉ</div>
+                      <div className="grid h-full w-full place-items-center font-editorial text-3xl text-[#7D806A]">NOORÉ</div>
                     )}
                   </div>
                   <p className="mt-5 text-[8px] font-semibold uppercase tracking-[0.22em] text-black/45">{post.category || "NOORÉ Journal"}{post.publishedAt ? ` · ${new Intl.DateTimeFormat("en-PK", { day: "numeric", month: "short", year: "numeric" }).format(post.publishedAt)}` : ""}</p>
-                  <h3 className="mt-2 font-editorial text-3xl leading-tight transition group-hover:text-[#8c6840] md:text-4xl">{post.title}</h3>
+                  <h3 className="mt-2 font-editorial text-3xl leading-tight transition group-hover:text-[#535F4C] md:text-4xl">{post.title}</h3>
                   {post.excerpt && <p className="mt-3 line-clamp-3 text-sm leading-6 text-black/55">{post.excerpt}</p>}
                   <span className="mt-4 inline-block text-[9px] font-semibold uppercase tracking-[0.18em] underline underline-offset-4">Read story →</span>
                 </Link>
@@ -439,7 +439,7 @@ export default async function HomePage() {
       )}
 
       {/* Philosophy */}
-      <section className="bg-[#321526] px-5 py-24 text-center text-white md:py-32">
+      <section className="bg-[#535F4C] px-5 py-24 text-center text-white md:py-32">
         <p className="text-[9px] uppercase tracking-[0.35em] text-white/45">The NOORÉ philosophy</p>
         <h2 className="mx-auto mt-6 max-w-5xl font-editorial text-5xl leading-[0.92] md:text-7xl">Designed in Pakistan. Made for everywhere.</h2>
         <p className="mx-auto mt-7 max-w-2xl text-sm leading-7 text-white/55">Heritage, modern silhouettes and thoughtful details — brought together for pieces that feel relevant today and beautiful for years to come.</p>
