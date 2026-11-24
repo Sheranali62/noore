@@ -6,6 +6,8 @@ import ImageUploadField from "@/components/admin/image-upload-field"
 type Asset = { key: string; label: string; group: string; fallback: string }
 const assets: Asset[] = [
   { key: "home:hero", label: "Homepage main hero", group: "Homepage", fallback: "Main homepage campaign image" },
+  { key: "home:story:0", label: "Homepage New Edit story image", group: "Homepage campaign stories", fallback: "New Edit editorial card" },
+  { key: "home:story:1", label: "Homepage Occasion Edit story image", group: "Homepage campaign stories", fallback: "Occasion Edit editorial card" },
   { key: "home:world:women", label: "Homepage Women image", group: "Homepage categories", fallback: "Women category card" },
   { key: "home:world:men", label: "Homepage Men image", group: "Homepage categories", fallback: "Men category card" },
   { key: "home:world:kids", label: "Homepage Kids image", group: "Homepage categories", fallback: "Kids category card" },
