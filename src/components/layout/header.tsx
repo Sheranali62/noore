@@ -346,13 +346,13 @@ export function Header({ scrolled = false }: { scrolled?: boolean }) {
       {/* =========================================================
           DESKTOP / MOBILE HEADER
       ========================================================= */}
-      <header className={`sticky top-0 z-50 border-b border-[#c9a66b]/25 text-[#f5f0e7] backdrop-blur-xl transition-all duration-300 ${scrolled ? "bg-[#11100f]/[.97] shadow-[0_8px_30px_rgba(0,0,0,.28)]" : "bg-[#11100f]/95"}`}>
+      <header className={`sticky top-0 z-50 border-b border-[#B8AA91]/25 text-[#f5f0e7] backdrop-blur-xl transition-all duration-300 ${scrolled ? "bg-[#535F4C]/[.97] shadow-[0_8px_30px_rgba(0,0,0,.28)]" : "bg-[#535F4C]/95"}`}>
         <div className="mx-auto flex h-[68px] max-w-7xl items-center justify-between px-4 sm:px-5">
 
           {/* MOBILE MENU BUTTON */}
           <button
             type="button"
-            className="relative z-[60] mr-2 grid h-10 w-10 shrink-0 place-items-center rounded-full border border-[#c9a66b]/35 bg-[#1b1916] text-[#d6b77c] transition hover:bg-[#29241d] md:hidden"
+            className="relative z-[60] mr-2 grid h-10 w-10 shrink-0 place-items-center rounded-full border border-[#B8AA91]/35 bg-[#535F4C] text-[#D4A07D] transition hover:bg-[#29241d] md:hidden"
             onClick={() => {
               setMobileOpen(true)
               setMegaOpen(false)
@@ -370,7 +370,7 @@ export function Header({ scrolled = false }: { scrolled?: boolean }) {
           {/* LOGO */}
           <Link
             href="/"
-            className="font-editorial text-[28px] font-semibold tracking-[.08em] text-[#d6b77c] transition hover:text-[#f0d8a8]"
+            className="font-editorial text-[28px] font-semibold tracking-[.08em] text-[#D4A07D] transition hover:text-[#f0d8a8]"
           >
             NOORÉ
           </Link>
@@ -383,7 +383,7 @@ export function Header({ scrolled = false }: { scrolled?: boolean }) {
           >
             <Link
               href="/products"
-              className="nav-link !text-[#eee7dc] hover:!text-[#d6b77c]"
+              className="nav-link !text-[#EAE7DD] hover:!text-[#D4A07D]"
               onMouseEnter={() => openMega("all")}
               onFocus={() => openMega("all")}
             >
@@ -399,7 +399,7 @@ export function Header({ scrolled = false }: { scrolled?: boolean }) {
               <div key={label} className="relative">
                 <Link
                   href={href}
-                  className="nav-link inline-flex items-center gap-1 !text-[#eee7dc] hover:!text-[#d6b77c]"
+                  className="nav-link inline-flex items-center gap-1 !text-[#EAE7DD] hover:!text-[#D4A07D]"
                   onMouseEnter={() => openMega(tab)}
                   onFocus={() => openMega(tab)}
                 >
@@ -408,7 +408,7 @@ export function Header({ scrolled = false }: { scrolled?: boolean }) {
               </div>
             ))}
 
-            <Link href="/products?category=Luxury" className="nav-link !text-[#eee7dc] hover:!text-[#d6b77c]">Luxury</Link>
+            <Link href="/products?category=Luxury" className="nav-link !text-[#EAE7DD] hover:!text-[#D4A07D]">Luxury</Link>
             <Link href="/blog" className="nav-link">Journal</Link>
             <Link href="/sale" className="nav-link">Sale</Link>
           </nav>
@@ -424,7 +424,7 @@ export function Header({ scrolled = false }: { scrolled?: boolean }) {
                   inputRef.current?.focus()
                 }, 0)
               }}
-              className="icon-button text-[#e9dfcf] hover:text-[#d6b77c]"
+              className="icon-button text-[#EAE7DD] hover:text-[#D4A07D]"
               aria-label="Search"
             >
               <Search className="h-[18px] w-[18px]" />
@@ -436,7 +436,7 @@ export function Header({ scrolled = false }: { scrolled?: boolean }) {
 
             <Link
               href="/account"
-              className="icon-button hidden text-[#e9dfcf] hover:text-[#d6b77c] sm:grid"
+              className="icon-button hidden text-[#EAE7DD] hover:text-[#D4A07D] sm:grid"
               aria-label="Account"
             >
               <UserRound className="h-[18px] w-[18px]" />
@@ -453,7 +453,7 @@ export function Header({ scrolled = false }: { scrolled?: boolean }) {
             <button
               type="button"
               onClick={toggleCart}
-              className="icon-button relative text-[#e9dfcf] hover:text-[#d6b77c]"
+              className="icon-button relative text-[#EAE7DD] hover:text-[#D4A07D]"
               aria-label={`Shopping bag${
                 count ? `, ${count} items` : ""
               }`}
@@ -461,7 +461,7 @@ export function Header({ scrolled = false }: { scrolled?: boolean }) {
               <ShoppingBag className="h-[18px] w-[18px]" />
 
               {count > 0 && (
-                <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-[#d6ae72] px-1 text-[9px] font-bold text-[#24151c] shadow-sm">
+                <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-[#D4A07D] px-1 text-[9px] font-bold text-[#465340] shadow-sm">
                   {count > 99 ? "99+" : count}
                 </span>
               )}
@@ -819,14 +819,14 @@ export function Header({ scrolled = false }: { scrolled?: boolean }) {
           {/* DRAWER */}
           <aside
             id="noore-mobile-menu"
-            className="absolute left-0 top-0 flex h-[100dvh] w-[88%] max-w-sm flex-col overflow-y-auto border-r border-[#c9a66b]/25 bg-[#11100f] text-[#f5f0e7] shadow-2xl"
+            className="absolute left-0 top-0 flex h-[100dvh] w-[88%] max-w-sm flex-col overflow-y-auto border-r border-[#B8AA91]/25 bg-[#535F4C] text-[#f5f0e7] shadow-2xl"
           >
             {/* DRAWER HEADER */}
-            <div className="flex items-center justify-between border-b border-[#c9a66b]/25 bg-[#171615] px-5 py-5">
+            <div className="flex items-center justify-between border-b border-[#B8AA91]/25 bg-[#465340] px-5 py-5">
               <Link
                 href="/"
                 onClick={() => setMobileOpen(false)}
-                className="font-editorial text-2xl font-semibold tracking-tight text-[#d6b77c]"
+                className="font-editorial text-2xl font-semibold tracking-tight text-[#D4A07D]"
               >
                 NOORÉ
               </Link>
@@ -834,7 +834,7 @@ export function Header({ scrolled = false }: { scrolled?: boolean }) {
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}
-                className="grid h-10 w-10 place-items-center rounded-full border border-[#c9a66b]/30 bg-[#24211c] text-[#f5f0e7]"
+                className="grid h-10 w-10 place-items-center rounded-full border border-[#B8AA91]/30 bg-[#24211c] text-[#f5f0e7]"
                 aria-label="Close navigation menu"
               >
                 <X
@@ -857,7 +857,7 @@ export function Header({ scrolled = false }: { scrolled?: boolean }) {
                     inputRef.current?.focus()
                   }, 100)
                 }}
-                className="mt-5 flex w-full items-center gap-3 border border-[#c9a66b]/30 bg-[#1b1916] px-4 py-3.5 text-left text-sm text-[#f5f0e7]"
+                className="mt-5 flex w-full items-center gap-3 border border-[#B8AA91]/30 bg-[#535F4C] px-4 py-3.5 text-left text-sm text-[#f5f0e7]"
               >
                 <Search className="h-4 w-4 shrink-0 text-secondary" />
 
@@ -876,7 +876,7 @@ export function Header({ scrolled = false }: { scrolled?: boolean }) {
                 <Link
                   href="/products"
                   onClick={() => setMobileOpen(false)}
-                  className="flex items-center justify-between border-b border-[#3a3328] py-4 text-sm font-medium text-[#f5f0e7]"
+                  className="flex items-center justify-between border-b border-[#B8AA91] py-4 text-sm font-medium text-[#f5f0e7]"
                 >
                   <span>Shop All</span>
 
@@ -888,7 +888,7 @@ export function Header({ scrolled = false }: { scrolled?: boolean }) {
                     key={item.label}
                     href={item.href}
                     onClick={() => setMobileOpen(false)}
-                    className="flex items-center justify-between border-b border-[#3a3328] py-4 text-sm text-[#eee7dc]"
+                    className="flex items-center justify-between border-b border-[#B8AA91] py-4 text-sm text-[#EAE7DD]"
                   >
                     <span>{item.label}</span>
 
@@ -938,8 +938,8 @@ export function Header({ scrolled = false }: { scrolled?: boolean }) {
               </nav>
 
               {/* DYNAMIC PRODUCT CATEGORIES */}
-              <section className="mt-8 border-t border-[#3a3328] pt-6" aria-label="Shop by category">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#c6a15b]">Shop by category</p>
+              <section className="mt-8 border-t border-[#B8AA91] pt-6" aria-label="Shop by category">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#D4A07D]">Shop by category</p>
                 {menuRoots.length > 0 ? (
                   <div className="mt-4 space-y-5">
                     {menuRoots.map((category) => {
@@ -952,7 +952,7 @@ export function Header({ scrolled = false }: { scrolled?: boolean }) {
                             className="flex items-center justify-between py-2 text-sm font-medium text-[#f5f0e7]"
                           >
                             <span>{category.name}</span>
-                            <ArrowUpRight className="h-4 w-4 text-[#c6a15b]" />
+                            <ArrowUpRight className="h-4 w-4 text-[#D4A07D]" />
                           </Link>
                           {children.length > 0 && (
                             <div className="mt-1 flex flex-wrap gap-2">
@@ -961,7 +961,7 @@ export function Header({ scrolled = false }: { scrolled?: boolean }) {
                                   key={child.id}
                                   href={categoryHref(category.name, child)}
                                   onClick={() => setMobileOpen(false)}
-                                  className="border border-[#4a4030] px-3 py-2 text-[11px] text-[#c9c0b4] transition hover:border-[#c6a15b] hover:text-[#f5f0e7]"
+                                  className="border border-[#B8AA91] px-3 py-2 text-[11px] text-[#B8AA91] transition hover:border-[#D4A07D] hover:text-[#f5f0e7]"
                                 >
                                   {child.name}
                                 </Link>
@@ -973,14 +973,14 @@ export function Header({ scrolled = false }: { scrolled?: boolean }) {
                     })}
                   </div>
                 ) : (
-                  <Link href="/products" onClick={() => setMobileOpen(false)} className="mt-3 inline-flex text-sm text-[#c9c0b4] underline underline-offset-4">
+                  <Link href="/products" onClick={() => setMobileOpen(false)} className="mt-3 inline-flex text-sm text-[#B8AA91] underline underline-offset-4">
                     Browse all products
                   </Link>
                 )}
               </section>
 
               {/* HELP */}
-              <div className="mt-8 border border-[#c9a66b]/25 bg-[#171615] p-5">
+              <div className="mt-8 border border-[#B8AA91]/25 bg-[#465340] p-5">
                 <p className="eyebrow">
                   Need help?
                 </p>
