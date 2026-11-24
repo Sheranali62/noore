@@ -1,7 +1,7 @@
 "use client"
 import { useEffect,useState } from "react"
 import Link from "next/link"
-import { DEFAULT_PAGE_CONTENT, type EditablePage, type PageContentMap } from "@/lib/site-page-content"
+import { DEFAULT_PAGE_CONTENT, type EditablePage, type PageContentMap } from "@/lib/site-page-content-defaults"
 
 const labels:Record<EditablePage,string>={women:"Women",men:"Men",kids:"Kids",collections:"Collections",about:"About NOORÉ",journal:"Journal"}
 const keys: (keyof PageContentMap["women"])[]=["eyebrow","title","description","secondaryTitle","secondaryDescription","buttonText","buttonUrl"]
