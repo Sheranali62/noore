@@ -26,6 +26,7 @@ const items = [
   { href: "/admin/coupons", label: "Coupons", icon: Gift },
   { href: "/admin/inventory", label: "Inventory", icon: Boxes },
   { href: "/admin/homepage", label: "Homepage", icon: Image },
+  { href: "/admin/storefront-media", label: "Storefront Images", icon: Image },
   { href: "/admin/analytics", label: "Reports", icon: BarChart3 },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ] as const
