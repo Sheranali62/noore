@@ -1,11 +1,13 @@
 "use client"
 
 import { useRef, useState } from "react"
+import ImageEditor from "@/components/admin/image-editor"
 
 export default function ImageUploadField({ value, onChange, label }: { value: string; onChange: (url: string) => void; label: string }) {
   const input = useRef<HTMLInputElement>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState("")
+  const [editorOpen, setEditorOpen] = useState(false)
   const upload = async (file?: File) => {
     if (!file) return
     setBusy(true); setError("")
@@ -30,7 +32,8 @@ export default function ImageUploadField({ value, onChange, label }: { value: st
       <button type="button" onClick={() => input.current?.click()} disabled={busy} className="rounded-lg border border-charcoal/15 bg-[#171715] px-4 py-2 text-xs font-semibold disabled:opacity-50">{busy ? "Uploading…" : "Upload from computer"}</button>
       <span className="text-[11px] text-white/55">JPG, PNG, WebP or AVIF · max 8 MB</span>
     </div>
-    {value && <img src={value} alt={label + " preview"} className="mt-2 aspect-[16/7] max-h-36 w-full rounded-lg border border-[#d6ae72]/20 object-cover" />}
+    {value && <><img src={value} alt={label + " preview"} className="mt-2 aspect-[16/7] max-h-36 w-full rounded-lg border border-[#d6ae72]/20 object-cover" /><button type="button" onClick={() => setEditorOpen(true)} className="rounded-lg border border-[#d6ae72]/30 px-3 py-2 text-xs font-semibold text-[#e8c98e]">Edit this image</button></>}
+    {editorOpen && value && <ImageEditor src={value} onSave={onChange} onClose={() => setEditorOpen(false)} /> }
     {error && <p role="alert" className="text-xs text-red-600">{error}</p>}
   </div>
 }
