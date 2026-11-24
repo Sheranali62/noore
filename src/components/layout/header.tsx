@@ -409,7 +409,7 @@ export function Header({ scrolled = false }: { scrolled?: boolean }) {
             ))}
 
             <Link href="/products?category=Luxury" className="nav-link !text-[#EAE7DD] hover:!text-[#D4A07D]">Luxury</Link>
-            <Link href="/blog" className="nav-link">Journal</Link>
+            <Link href="/journal" className="nav-link">Journal</Link>
             <Link href="/sale" className="nav-link">Sale</Link>
           </nav>
 
@@ -927,7 +927,7 @@ export function Header({ scrolled = false }: { scrolled?: boolean }) {
                 </Link>
 
                 <Link
-                  href="/blog"
+                  href="/journal"
                   onClick={() => setMobileOpen(false)}
                   className="flex items-center justify-between border-b border-black/10 py-4 text-sm"
                 >
