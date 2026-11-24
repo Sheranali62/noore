@@ -133,13 +133,13 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
     </div>
     <InterestTracker />
     <main id="main-content">{children}</main>
-    <footer className="border-t border-[#D4A07D]/20 bg-[#171315] text-[#e9e1d8]">
+    <footer className="border-t border-[#D4A07D]/20 bg-[#535F4C] text-[#e9e1d8]">
       <div className="mx-auto grid max-w-7xl gap-12 px-5 py-14 sm:py-16 lg:grid-cols-[1.5fr_1fr_1fr_1.15fr] lg:gap-10">
         <div>
-          <Link href="/" aria-label={`${siteName} home`} className="inline-flex items-center gap-2 font-editorial text-3xl font-semibold tracking-[.08em] text-[#f7f0e7]">
+          <Link href="/" aria-label={`${siteName} home`} className="inline-flex items-center gap-2 font-editorial text-3xl font-semibold tracking-[.08em] text-[#F7F6F2]">
             {siteName}<span className="mt-1 h-1.5 w-1.5 rounded-full bg-[#D4A07D]" />
           </Link>
-          <p className="mt-5 max-w-sm text-sm leading-7 text-[#aaa09a]">Thoughtful style, considered details and modern essentials. Discover the NOORÉ edit and find pieces made to feel like your own.</p>
+          <p className="mt-5 max-w-sm text-sm leading-7 text-[#E2E2D8]">Thoughtful style, considered details and modern essentials. Discover the NOORÉ edit and find pieces made to feel like your own.</p>
           <div className="mt-6 flex flex-wrap items-center gap-3">
             {SOCIAL_LINKS.instagram && !SOCIAL_LINKS.instagram.includes("YOUR_") && <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="grid h-10 w-10 place-items-center rounded-full border border-white/10 text-[#d6c5a6] transition hover:border-[#D4A07D]/60 hover:bg-[#D4A07D]/10 hover:text-white"><Instagram className="h-4 w-4" /></a>}
             {SOCIAL_LINKS.facebook && !SOCIAL_LINKS.facebook.includes("YOUR_") && <a href={SOCIAL_LINKS.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="grid h-10 w-10 place-items-center rounded-full border border-white/10 text-[#d6c5a6] transition hover:border-[#D4A07D]/60 hover:bg-[#D4A07D]/10 hover:text-white"><Facebook className="h-4 w-4" /></a>}
@@ -149,40 +149,40 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
         </div>
         <nav aria-label="Shop links">
           <p className="text-[10px] font-semibold uppercase tracking-[.24em] text-[#D4A07D]">Discover</p>
-          <div className="mt-5 space-y-3.5 text-sm text-[#aaa09a]">
-            <Link href="/products" className="block transition hover:text-[#f7f0e7]">Shop all</Link>
-            <Link href="/collections" className="block transition hover:text-[#f7f0e7]">Collections</Link>
-            <Link href="/new-in" className="block transition hover:text-[#f7f0e7]">New arrivals</Link>
-            <Link href="/sale" className="block transition hover:text-[#f7f0e7]">Sale</Link>
-            <Link href="/wishlist" className="block transition hover:text-[#f7f0e7]">Wishlist</Link>
+          <div className="mt-5 space-y-3.5 text-sm text-[#E2E2D8]">
+            <Link href="/products" className="block transition hover:text-[#F7F6F2]">Shop all</Link>
+            <Link href="/collections" className="block transition hover:text-[#F7F6F2]">Collections</Link>
+            <Link href="/new-in" className="block transition hover:text-[#F7F6F2]">New arrivals</Link>
+            <Link href="/sale" className="block transition hover:text-[#F7F6F2]">Sale</Link>
+            <Link href="/wishlist" className="block transition hover:text-[#F7F6F2]">Wishlist</Link>
           </div>
         </nav>
         <nav aria-label="Customer care links">
           <p className="text-[10px] font-semibold uppercase tracking-[.24em] text-[#D4A07D]">Customer care</p>
-          <div className="mt-5 space-y-3.5 text-sm text-[#aaa09a]">
-            <Link href="/contact" className="block transition hover:text-[#f7f0e7]">Contact & help</Link>
-            <Link href="/order-tracking" className="block transition hover:text-[#f7f0e7]">Track an order</Link>
-            <Link href="/account/orders" className="block transition hover:text-[#f7f0e7]">My orders</Link>
-            <Link href="/account/addresses" className="block transition hover:text-[#f7f0e7]">My addresses</Link>
-            <Link href="/shipping" className="block transition hover:text-[#f7f0e7]">Shipping information</Link>
-            <Link href="/returns" className="block transition hover:text-[#f7f0e7]">Returns & exchanges</Link>
-            <Link href="/privacy" className="block transition hover:text-[#f7f0e7]">Privacy policy</Link>
-            <Link href="/terms" className="block transition hover:text-[#f7f0e7]">Terms & conditions</Link>
-            <Link href="/account" className="block transition hover:text-[#f7f0e7]">My account</Link>
-            <button onClick={() => session ? signOut() : toggleCart()} className="block text-left transition hover:text-[#f7f0e7]">{session ? "Sign out" : "Open shopping bag"}</button>
+          <div className="mt-5 space-y-3.5 text-sm text-[#E2E2D8]">
+            <Link href="/contact" className="block transition hover:text-[#F7F6F2]">Contact & help</Link>
+            <Link href="/order-tracking" className="block transition hover:text-[#F7F6F2]">Track an order</Link>
+            <Link href="/account/orders" className="block transition hover:text-[#F7F6F2]">My orders</Link>
+            <Link href="/account/addresses" className="block transition hover:text-[#F7F6F2]">My addresses</Link>
+            <Link href="/shipping" className="block transition hover:text-[#F7F6F2]">Shipping information</Link>
+            <Link href="/returns" className="block transition hover:text-[#F7F6F2]">Returns & exchanges</Link>
+            <Link href="/privacy" className="block transition hover:text-[#F7F6F2]">Privacy policy</Link>
+            <Link href="/terms" className="block transition hover:text-[#F7F6F2]">Terms & conditions</Link>
+            <Link href="/account" className="block transition hover:text-[#F7F6F2]">My account</Link>
+            <button onClick={() => session ? signOut() : toggleCart()} className="block text-left transition hover:text-[#F7F6F2]">{session ? "Sign out" : "Open shopping bag"}</button>
           </div>
         </nav>
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-[.24em] text-[#D4A07D]">The NOORÉ promise</p>
           <div className="mt-5 space-y-4">
-            <div className="flex gap-3"><Truck className="mt-0.5 h-4 w-4 shrink-0 text-[#D4A07D]" /><div><p className="text-sm text-[#f0e8de]">Complimentary delivery</p><p className="mt-1 text-xs leading-5 text-[#918781]">On orders above PKR 5,000</p></div></div>
-            <div className="flex gap-3"><Heart className="mt-0.5 h-4 w-4 shrink-0 text-[#D4A07D]" /><div><p className="text-sm text-[#f0e8de]">Cash on Delivery</p><p className="mt-1 text-xs leading-5 text-[#918781]">Available across Pakistan</p></div></div>
+            <div className="flex gap-3"><Truck className="mt-0.5 h-4 w-4 shrink-0 text-[#D4A07D]" /><div><p className="text-sm text-[#f0e8de]">Complimentary delivery</p><p className="mt-1 text-xs leading-5 text-[#D8D5CA]">On orders above PKR 5,000</p></div></div>
+            <div className="flex gap-3"><Heart className="mt-0.5 h-4 w-4 shrink-0 text-[#D4A07D]" /><div><p className="text-sm text-[#f0e8de]">Cash on Delivery</p><p className="mt-1 text-xs leading-5 text-[#D8D5CA]">Available across Pakistan</p></div></div>
             <a href={SOCIAL_LINKS.whatsapp} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 pt-1 text-xs font-semibold text-[#d6bd91] transition hover:text-white">Speak with our team <ArrowUpRight className="h-3.5 w-3.5" /></a>
           </div>
         </div>
       </div>
       <div className="border-t border-white/10">
-        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-5 py-5 text-[10px] text-[#827872] sm:flex-row sm:items-center sm:justify-between">
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-5 py-5 text-[10px] text-[#D8D5CA] sm:flex-row sm:items-center sm:justify-between">
           <span>© {new Date().getFullYear()} {siteName}. All rights reserved.</span>
           <span className="flex flex-wrap items-center gap-x-3 gap-y-1"><span>Designed with intention</span><span className="text-[#D4A07D]">✦</span><span>Cash on Delivery · Pakistan</span></span>
         </div>
