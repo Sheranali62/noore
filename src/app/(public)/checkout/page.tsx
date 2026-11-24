@@ -21,7 +21,7 @@ const FALLBACK = { freeShippingThreshold: 5000, standardShipping: 250, expressSh
 export default function CheckoutPage() {
   const router = useRouter()
   const { data: session } = useSession()
-  const { items, total, count, clearCart } = useCart()
+  const { items, total, count, clearCart, hydrated } = useCart()
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [orderNumber, setOrderNumber] = useState("")
@@ -66,8 +66,8 @@ export default function CheckoutPage() {
   }, [session])
 
   useEffect(() => {
-    if (!items.length) router.replace("/cart")
-  }, [items.length, router])
+    if (hydrated && !items.length && step !== 4) router.replace("/cart")
+  }, [hydrated, items.length, router, step])
 
   const shipping = formData.deliveryMethod === "express" ? settings.expressShipping : (total >= settings.freeShippingThreshold ? 0 : settings.standardShipping)
   const discount = coupon?.discount || 0
@@ -136,7 +136,7 @@ export default function CheckoutPage() {
     finally { setLoading(false) }
   }
 
-  if (!items.length && step !== 4) return null
+  if (!hydrated || (!items.length && step !== 4)) return null
 
   if (step === 4) {
     return <main className="min-h-screen bg-[#535F4C] px-4 py-10 text-[#F7F6F2] sm:py-16">
