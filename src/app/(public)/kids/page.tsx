@@ -69,6 +69,7 @@ export default async function KidsPage() {
         description={pageContent.kids.secondaryDescription}
         image={mediaImage(media, "page:kids:hero", "https://images.unsplash.com/photo-1503919545889-aef636e10ad4?w=2200&auto=format&fit=crop")}
         href={pageContent.kids.buttonUrl}
+        cta={pageContent.kids.buttonText}
         products={rows.map(p => ({ ...p, colors: p.variants.map(v => v.color) }))}
       />
     </>
