@@ -1,10 +1,10 @@
 import { prisma } from "@/lib/prisma"
-import { DEFAULT_PAGE_CONTENT, normalizePageContent, type PageContentMap } from "@/lib/site-page-content-defaults"
+import { DEFAULT_PAGE_CONTENT, normalizePageContent, type PageContentMap, type EditablePage, type PageContent } from "@/lib/site-page-content-defaults"
 export { DEFAULT_PAGE_CONTENT, normalizePageContent } from "@/lib/site-page-content-defaults"
 export type { EditablePage, PageContent, PageContentMap } from "@/lib/site-page-content-defaults"
 
 const valid = (v: unknown, max=500) => typeof v === "string" && v.trim().length > 0 && v.trim().length <= max
-(input: unknown): PageContentMap {
+export function normalizePageContent(input: unknown): PageContentMap {
  const raw=input && typeof input==="object" ? input as Record<string,unknown> : {}
  const result={...DEFAULT_PAGE_CONTENT}
  for (const key of Object.keys(DEFAULT_PAGE_CONTENT) as EditablePage[]) {
