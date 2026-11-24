@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { getStorefrontMedia, mediaImage } from "@/lib/storefront-media"
 import { getCategoryImage } from "@/lib/category-images"
 import { DepartmentCategories } from "@/components/home/department-categories"
 import { EditorialLanding } from "@/components/home/editorial-landing"
@@ -29,7 +30,7 @@ const categories = [
 const categoryImages = ["https://images.unsplash.com/photo-1617137968427-85924c800a22?w=1200&auto=format&fit=crop", "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&auto=format&fit=crop", "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=1200&auto=format&fit=crop", "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1200&auto=format&fit=crop", "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=1200&auto=format&fit=crop", "https://images.unsplash.com/photo-1556761175-b413da4baf72?w=1200&auto=format&fit=crop", "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=1200&auto=format&fit=crop", "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=1200&auto=format&fit=crop", "https://images.unsplash.com/photo-1610652492500-ded49ceeb378?w=1200&auto=format&fit=crop", "https://images.unsplash.com/photo-1548883354-94bcfe321cbb?w=1200&auto=format&fit=crop", "https://images.unsplash.com/photo-1555069519-127aadedf1ee?w=1200&auto=format&fit=crop", "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=1200&auto=format&fit=crop", "https://images.unsplash.com/photo-1621072156002-e2fccdc0b176?w=1200&auto=format&fit=crop", "https://images.unsplash.com/photo-1598808503746-f34c53b9323e?w=1200&auto=format&fit=crop", "https://images.unsplash.com/photo-1516257984-b1b4d707412e?w=1200&auto=format&fit=crop", "https://images.unsplash.com/photo-1520975682031-ae6c0f4d2f7a?w=1200&auto=format&fit=crop", "https://images.unsplash.com/photo-1490578474895-699cd4e2cf59?w=1200&auto=format&fit=crop"]
 
 export default async function MenPage() {
-  const [rows, imageProducts] = await Promise.all([
+  const [rows, imageProducts, media] = await Promise.all([
     prisma.product.findMany({
       where: { status: "ACTIVE", gender: { in: ["Men", "MEN", "men"] } },
       orderBy: { createdAt: "desc" },
@@ -42,6 +43,7 @@ export default async function MenPage() {
       take: 250,
       select: { category: true, subcategory: true, images: true }
     }),
+    getStorefrontMedia(),
   ])
 
   return (
@@ -53,7 +55,7 @@ export default async function MenPage() {
         categories={categories.map(([name, description], index) => ({
           name,
           description,
-          image: getCategoryImage(name, imageProducts, categoryImages[index]),
+          image: mediaImage(media, "page:men:category:" + name, getCategoryImage(name, imageProducts, categoryImages[index])),
           href: name === "New Arrivals"
             ? "/products?gender=Men&sort=newest"
             : name === "Sale"
@@ -65,7 +67,7 @@ export default async function MenPage() {
         eyebrow="NOORÉ / Men"
         title="Refined dressing, without the noise."
         description="Clean silhouettes, considered fabrics and timeless Pakistani menswear for every setting."
-        image="https://images.unsplash.com/photo-1617137968427-85924c800a22?w=2200&auto=format&fit=crop"
+        image={mediaImage(media, "page:men:hero", "https://images.unsplash.com/photo-1617137968427-85924c800a22?w=2200&auto=format&fit=crop")}
         href="/products?gender=Men"
         products={rows.map(p => ({ ...p, colors: p.variants.map(v => v.color) }))}
       />
