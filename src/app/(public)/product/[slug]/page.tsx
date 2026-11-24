@@ -150,7 +150,7 @@ export default async function ProductPage({
         }}
       />
 
-      <div data-noore-page-gender={product.gender || ""} className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <div data-noore-page-gender={product.gender || ""} className="mx-auto max-w-7xl bg-[#F7F6F2] px-4 py-6 text-[#535F4C] sm:px-6 lg:px-8">
         <ProductDetail
           product={productForDetail}
           relatedProducts={relatedProducts}
