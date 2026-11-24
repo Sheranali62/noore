@@ -1098,3 +1098,42 @@ html.dark .noore-sage-theme select {
   color: var(--noore-ink) !important;
   border-color: rgba(83,95,76,.28) !important;
 }
+
+
+/* NOORE Sage & Ivory — account authentication and order tracking surfaces */
+.noore-login-screen {
+  background:
+    radial-gradient(circle at 20% 20%, rgba(83,95,76,.12), transparent 30%),
+    radial-gradient(circle at 80% 75%, rgba(194,197,176,.38), transparent 34%),
+    #F7F6F2 !important;
+  color: #343A30 !important;
+}
+.noore-login-card {
+  border-color: rgba(83,95,76,.22) !important;
+  background: linear-gradient(145deg, rgba(255,255,255,.98), rgba(247,246,242,.98)) !important;
+  box-shadow: 0 28px 80px rgba(52,58,48,.12), inset 0 1px 0 rgba(255,255,255,.9) !important;
+}
+.noore-login-card::before { border-color: rgba(83,95,76,.14) !important; }
+.noore-login-card-glow { background: rgba(194,197,176,.34) !important; }
+.noore-login-mark { border-color: rgba(83,95,76,.28) !important; color: #535F4C !important; }
+.noore-login-field { border-color: rgba(83,95,76,.2) !important; background: rgba(83,95,76,.035) !important; }
+.noore-login-field.is-focused { border-color: rgba(83,95,76,.65) !important; background: rgba(194,197,176,.18) !important; box-shadow: 0 0 0 4px rgba(83,95,76,.08) !important; }
+.noore-login-field input { color: #343A30 !important; }
+.noore-login-field input::placeholder { color: rgba(52,58,48,.42) !important; }
+.noore-field-icon { color: #535F4C !important; }
+.noore-login-button { border-color: #535F4C !important; background: #535F4C !important; color: #F7F6F2 !important; box-shadow: 0 12px 28px rgba(83,95,76,.2) !important; }
+.noore-login-button:hover { background: #465340 !important; }
+.noore-login-screen .text-white\/48,
+.noore-login-screen .text-white\/42,
+.noore-login-screen .text-white\/38,
+.noore-login-screen .text-white\/22 { color: #777967 !important; }
+.noore-login-screen .bg-white\/\[0\.08\] { background-color: rgba(83,95,76,.18) !important; }
+.noore-login-screen .border-white\/\[0\.07\] { border-color: rgba(83,95,76,.18) !important; }
+.noore-lamp-glow { background: rgba(83,95,76,.15) !important; }
+.noore-lamp-pull-line, .noore-pull-line { background: linear-gradient(#7D8A72,#535F4C) !important; }
+.noore-pull-knob { border-color: rgba(83,95,76,.65) !important; background: radial-gradient(circle at 35% 30%, #E5E8DC, #535F4C 72%) !important; box-shadow: 0 7px 22px rgba(83,95,76,.22) !important; }
+.noore-pull-knob span { background: #F7F6F2 !important; }
+.noore-pull-label { color: #777967 !important; }
+.noore-login-screen.is-unlocked .noore-pull-label { color: #535F4C !important; }
+.noore-lamp-base { background: #C2C5B0 !important; }
+.noore-lamp-stem { background: linear-gradient(90deg,#F7F6F2,#B8AA91) !important; }
