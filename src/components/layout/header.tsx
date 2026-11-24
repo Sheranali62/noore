@@ -783,7 +783,7 @@ export function Header({ scrolled = false }: { scrolled?: boolean }) {
               </div>
 
               <Link href={megaTab === "collections" ? "/collections" : megaTab === "all" ? "/products" : `/${megaTab}`} className="group relative min-h-[190px] overflow-hidden bg-charcoal text-white">
-                <img src={megaTab === "women" ? "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=900&auto=format&fit=crop" : megaTab === "men" ? "https://images.unsplash.com/photo-1617137968427-85924c800a22?w=900&auto=format&fit=crop" : megaTab === "kids" ? "https://images.unsplash.com/photo-1503919545889-aef636e10ad4?w=900&auto=format&fit=crop" : "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=900&auto=format&fit=crop"} alt="" className="absolute inset-0 h-full w-full object-cover opacity-75 transition duration-700 group-hover:scale-105" />
+                <img src={megaTab === "women" ? "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=900&auto=format&fit=crop" : megaTab === "men" ? "https://images.unsplash.com/photo-1617137968427-85924c800a22?w=900&auto=format&fit=crop" : megaTab === "kids" ? "https://images.unsplash.com/photo-1503919545889-aef636e10ad4?w=900&auto=format&fit=crop" : "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=900&auto=format&fit=crop"} alt="" className="absolute inset-0 h-full w-full object-cover opacity-75 transition duration-700 group-hover:scale-105" />
                 <div className="absolute inset-0 bg-black/35" />
                 <div className="relative flex h-full min-h-[190px] flex-col justify-end p-5">
                   <p className="text-[9px] uppercase tracking-[.2em] text-white/65">NOORÉ / {megaTab === "all" ? "SHOP ALL" : megaTab}</p>
