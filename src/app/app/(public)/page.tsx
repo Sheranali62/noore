@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma"
 import { ProductCard } from "@/components/product/product-card"
 import { cookies } from "next/headers"
 import { getDominantInterest, PERSONALIZATION_COOKIE, scoreProductInterest, type InterestSegment } from "@/lib/personalization"
+import { DEFAULT_HOMEPAGE_DESIGN, normalizeHomepageDesign } from "@/lib/homepage-design"
 
 const categories = [
   { name: "Unstitched", image: "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=900&auto=format&fit=crop", position: "center" },
@@ -43,12 +44,16 @@ function personalize<T extends { gender?: string | null; category?: string | nul
 
 export default async function HomePage() {
   const { segment: interest } = readInterest()
-  const [featuredRaw, saleRaw, limitedRaw, popularGroups] = await Promise.all([
+  const [featuredRaw, saleRaw, limitedRaw, popularGroups, designRow] = await Promise.all([
     prisma.product.findMany({ where: { status: "ACTIVE" }, take: 24, orderBy: { createdAt: "desc" } }),
     prisma.product.findMany({ where: { status: "ACTIVE", salePrice: { not: null } }, take: 12, orderBy: { createdAt: "desc" } }),
     prisma.product.findMany({ where: { status: "ACTIVE", stock: { gt: 0, lte: 5 } }, take: 12, orderBy: { stock: "asc" } }),
     prisma.orderItem.groupBy({ by: ["productId"], _sum: { quantity: true }, orderBy: { _sum: { quantity: "desc" } }, take: 8 }),
+    prisma.setting.findUnique({ where: { key: "homepage_design" } }),
   ])
+  let savedDesign: unknown = {}
+  try { savedDesign = designRow?.value ? JSON.parse(designRow.value) : {} } catch {}
+  const design = normalizeHomepageDesign(savedDesign)
   const featuredProducts = personalize(featuredRaw, interest).slice(0, 8)
   const saleProducts = personalize(saleRaw, interest).slice(0, 4)
   const limitedProducts = personalize(limitedRaw, interest).slice(0, 4)
@@ -60,7 +65,7 @@ export default async function HomePage() {
   const interestLabel = interest === "women" ? "Your edit · Women" : interest === "men" ? "Your edit · Men" : interest === "kids" ? "Your edit · Kids" : null
 
   return (
-    <div className="noore-sage-theme bg-cream text-charcoal">
+    <div className="noore-sage-theme bg-cream text-charcoal" style={{ backgroundColor: design.backgroundColor, color: design.textColor, ["--noore-accent" as any]: design.accentColor, ["--noore-button" as any]: design.buttonColor, ["--noore-button-text" as any]: design.buttonTextColor }}>
       {/* Adaptive personalization */}
       {interestLabel && (
         <section className="border-b border-black/5 bg-white">
@@ -80,12 +85,12 @@ export default async function HomePage() {
         <div className="absolute inset-0 bg-gradient-to-r from-black/65 via-black/30 to-black/10" />
         <div className="relative z-10 mx-auto flex min-h-[72vh] md:min-h-[82vh] max-w-7xl items-end px-5 pb-16 md:items-center md:pb-0">
           <div className="max-w-2xl">
-            <p className="text-[10px] uppercase tracking-[0.35em] text-white/75 md:text-xs">{interestLabel || "NOORÉ — New Season"}</p>
-            <p className="mt-5 font-editorial text-2xl italic text-white/85 md:text-3xl">A world of considered style</p><h1 className="mt-3 font-editorial text-6xl font-medium leading-[0.92] tracking-tight md:text-8xl lg:text-[7.5rem]">Wear your own light.</h1>
-            <p className="mt-6 max-w-lg text-sm leading-6 text-white/75 md:text-base">Discover the NOORÉ collection: modern fashion, thoughtful details and timeless pieces for every version of you.</p>
+            <p className="text-[10px] uppercase tracking-[0.35em] text-white/75 md:text-xs">{interestLabel || design.heroEyebrow}</p>
+            <p className="mt-5 text-2xl italic text-white/85 md:text-3xl">{design.heroKicker}</p><h1 className={`mt-3 ${design.headingFont === "sans" ? "font-sans" : design.headingFont === "serif" ? "font-serif" : "font-editorial"} text-6xl font-medium leading-[0.92] tracking-tight md:text-8xl lg:text-[7.5rem]`}>{design.heroHeading}</h1>
+            <p className="mt-6 max-w-lg text-sm leading-6 text-white/75 md:text-base">{design.heroDescription}</p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/products" className="hero-primary bg-white px-7 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-charcoal transition hover:bg-white/90">Discover NOORÉ</Link>
-              <Link href="/products?category=Luxury" className="hero-secondary border border-white/60 px-7 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-white transition hover:bg-white hover:text-charcoal">The Luxury Edit</Link>
+              <Link href={design.primaryButtonUrl} className="hero-primary px-7 py-3 text-xs font-semibold uppercase tracking-[0.16em] transition hover:opacity-90" style={{ backgroundColor: design.buttonColor, color: design.buttonTextColor }}>{design.primaryButtonText}</Link>
+              <Link href={design.secondaryButtonUrl} className="hero-secondary border border-white/60 px-7 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-white transition hover:bg-white hover:text-charcoal">{design.secondaryButtonText}</Link>
             </div>
           </div>
         </div>
@@ -114,7 +119,7 @@ export default async function HomePage() {
       {/* Find your expression */}
       <section className="mx-auto max-w-7xl px-5 py-16 md:py-24">
         <div className="mb-9 flex items-end justify-between gap-4">
-          <div><p className="text-[10px] uppercase tracking-[0.3em] text-black/45">The NOORÉ collections</p><h2 className="mt-2 font-editorial text-4xl md:text-5xl">Shop by world</h2></div>
+          <div><p className="text-[10px] uppercase tracking-[0.3em] text-black/45">{design.collectionsEyebrow}</p><h2 className="mt-2 font-editorial text-4xl md:text-5xl">{design.collectionsHeading}</h2></div>
           <Link href="/collections" className="text-xs font-semibold uppercase tracking-[0.15em] underline underline-offset-4">View collections</Link>
         </div>
         <div className="grid gap-3 md:grid-cols-3 md:gap-4">
@@ -141,7 +146,7 @@ export default async function HomePage() {
       {trendingProducts.length > 0 && (
         <section className="bg-[#f4f0e8] py-16 md:py-24">
           <div className="mx-auto max-w-7xl px-5">
-            <div className="mb-9 flex items-end justify-between gap-4"><div><p className="text-[10px] uppercase tracking-[0.3em] text-black/45">Customer favourites</p><h2 className="mt-2 font-editorial text-4xl md:text-5xl">The pieces they love</h2></div><Link href="/products?sort=popular" className="text-xs font-semibold uppercase tracking-[0.15em] underline underline-offset-4">Shop trending</Link></div>
+            <div className="mb-9 flex items-end justify-between gap-4"><div><p className="text-[10px] uppercase tracking-[0.3em] text-black/45">{design.favouritesEyebrow}</p><h2 className="mt-2 font-editorial text-4xl md:text-5xl">{design.favouritesHeading}</h2></div><Link href="/products?sort=popular" className="text-xs font-semibold uppercase tracking-[0.15em] underline underline-offset-4">Shop trending</Link></div>
             <div className="grid grid-cols-2 gap-x-3 gap-y-8 md:grid-cols-4 md:gap-x-5">
               {trendingProducts.map((p) => <ProductCard key={p.id} id={p.id} name={p.name} slug={p.slug} price={p.price} salePrice={p.salePrice} image={p.images[0] || "/placeholder.jpg"} hoverImage={p.images[1]} category={p.category} stock={p.stock} />)}
             </div>
@@ -152,7 +157,7 @@ export default async function HomePage() {
       {/* Categories */}
       <section className="mx-auto max-w-7xl px-5 py-16 md:py-24">
         <div className="mb-9 flex items-end justify-between gap-4">
-          <div><p className="text-[10px] uppercase tracking-[0.3em] text-black/45">Discover</p><h2 className="mt-2 font-editorial text-4xl md:text-5xl">Shop by category</h2></div>
+          <div><p className="text-[10px] uppercase tracking-[0.3em] text-black/45">{design.categoriesEyebrow}</p><h2 className="mt-2 font-editorial text-4xl md:text-5xl">{design.categoriesHeading}</h2></div>
           <Link href="/products" className="hidden text-xs font-semibold uppercase tracking-[0.15em] underline underline-offset-4 md:block">View all</Link>
         </div>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-5 md:gap-4">
@@ -171,7 +176,7 @@ export default async function HomePage() {
         <section className="bg-white py-16 md:py-24">
           <div className="mx-auto max-w-7xl px-5">
             <div className="mb-9 flex items-end justify-between gap-4">
-              <div><p className="text-[10px] uppercase tracking-[0.3em] text-black/45">Fresh from NOORÉ</p><h2 className="mt-2 font-editorial text-4xl md:text-5xl">New arrivals</h2></div>
+              <div><p className="text-[10px] uppercase tracking-[0.3em] text-black/45">{design.arrivalsEyebrow}</p><h2 className="mt-2 font-editorial text-4xl md:text-5xl">{design.arrivalsHeading}</h2></div>
               <Link href="/products" className="text-xs font-semibold uppercase tracking-[0.15em] underline underline-offset-4">Shop all</Link>
             </div>
             <div className="grid grid-cols-2 gap-x-3 gap-y-8 md:grid-cols-4 md:gap-x-5 md:gap-y-10">
