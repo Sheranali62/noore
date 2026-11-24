@@ -213,7 +213,7 @@ export default async function HomePage() {
             </div>
           </div>
           <div className="group relative min-h-[430px] overflow-hidden bg-[#3b3029] sm:min-h-[560px] md:min-h-[680px]">
-            <div className="absolute inset-0 bg-cover bg-[center_35%] transition-transform duration-[1400ms] ease-out group-hover:scale-[1.035]" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=2200&q=85&auto=format&fit=crop')" }} />
+            <div className="absolute inset-0 bg-cover bg-[center_35%] transition-transform duration-[1400ms] ease-out group-hover:scale-[1.035]" style={{ backgroundImage: `url('${mediaImage(media, "home:hero", "https://images.unsplash.com/photo-1539109136881-3be0616acf4f?w=2200&q=85&auto=format&fit=crop")}')` }} />
             <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-black/10" />
             <div className="absolute left-5 top-5 border border-white/30 bg-black/15 px-4 py-3 backdrop-blur-sm sm:left-7 sm:top-7">
               <p className="text-[8px] uppercase tracking-[0.25em] text-white/65">The season’s point of view</p>
