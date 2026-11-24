@@ -54,7 +54,7 @@ export default async function HomePage() {
   let savedDesign: unknown = {}
   try { savedDesign = designRow?.value ? JSON.parse(designRow.value) : {} } catch {}
   const design = normalizeHomepageDesign(savedDesign)
-  const headingFamily = design.headingFont === "sans" ? "Arial, sans-serif" : design.headingFont === "serif" ? "Georgia, serif" : "Georgia, serif"
+  const headingFamily = design.headingFont === "sans" ? "Arial, sans-serif" : design.headingFont === "serif" ? "Times New Roman, serif" : "Georgia, serif"
   const featuredProducts = personalize(featuredRaw, interest).slice(0, 8)
   const saleProducts = personalize(saleRaw, interest).slice(0, 4)
   const limitedProducts = personalize(limitedRaw, interest).slice(0, 4)
@@ -67,7 +67,7 @@ export default async function HomePage() {
 
   return (
     <div className="noore-sage-theme bg-cream text-charcoal" style={{ backgroundColor: design.backgroundColor, color: design.textColor, ["--noore-text" as any]: design.textColor, ["--noore-accent" as any]: design.accentColor, ["--noore-button" as any]: design.buttonColor, ["--noore-button-text" as any]: design.buttonTextColor, ["--noore-heading-font" as any]: headingFamily }}>
-      <style>{`.noore-sage-theme .font-editorial{font-family:var(--noore-heading-font)!important}.noore-sage-theme .text-charcoal{color:var(--noore-text,${design.textColor})}.noore-sage-theme [class~="text-black/45"]{color:var(--noore-accent)!important}.noore-sage-theme .bg-white{background-color:${design.backgroundColor}!important}.noore-sage-theme .bg-cream{background-color:${design.backgroundColor}!important}`}</style>
+      <style>{`.noore-sage-theme .font-editorial{font-family:var(--noore-heading-font)!important}.noore-sage-theme .text-charcoal{color:var(--noore-text,${design.textColor})}.noore-sage-theme [class~="text-black/45"],.noore-sage-theme [class~="text-black/50"]{color:var(--noore-accent)!important}.noore-sage-theme [class~="text-black/55"]{color:var(--noore-text)!important;opacity:.72}.noore-sage-theme .bg-white{background-color:${design.backgroundColor}!important}.noore-sage-theme .bg-cream{background-color:${design.backgroundColor}!important}.noore-sage-theme .hero-secondary{border-color:${design.accentColor}!important;color:${design.accentColor}!important}.noore-sage-theme .hero-secondary:hover{background:${design.accentColor}!important;color:#fff!important}`}</style>
       {/* Adaptive personalization */}
       {interestLabel && (
         <section className="border-b border-black/5 bg-white">
@@ -213,7 +213,7 @@ export default async function HomePage() {
         <section className="border-y border-black/5 py-16 md:py-20" style={{ backgroundColor: design.backgroundColor }}>
           <div className="mx-auto max-w-7xl px-5">
             <div className="mb-9 flex items-end justify-between gap-4">
-              <div><p className="text-[10px] uppercase tracking-[0.3em] text-black/45">Limited quantities</p><h2 className="mt-2 font-editorial text-4xl md:text-5xl">Almost gone</h2><p className="mt-2 text-sm text-black/50">The pieces customers are reaching for now.</p></div>
+              <div><p className="text-[10px] uppercase tracking-[0.3em] text-black/45">{design.limitedEyebrow}</p><h2 className="mt-2 font-editorial text-4xl md:text-5xl">{design.limitedHeading}</h2><p className="mt-2 text-sm text-black/50">{design.limitedDescription}</p></div>
               <Link href="/products" className="text-xs font-semibold uppercase tracking-[0.15em] underline underline-offset-4">View all</Link>
             </div>
             <div className="grid grid-cols-2 gap-x-3 gap-y-8 md:grid-cols-4 md:gap-x-5">
@@ -228,7 +228,7 @@ export default async function HomePage() {
         <section className="bg-charcoal py-16 text-white md:py-20">
           <div className="mx-auto max-w-7xl px-5">
             <div className="mb-9 flex items-end justify-between gap-4">
-              <div><p className="text-[10px] uppercase tracking-[0.3em] text-white/45">The price edit</p><h2 className="mt-2 font-editorial text-4xl md:text-5xl">Selected on sale</h2><p className="mt-2 text-sm text-white/55">A considered selection, available while it lasts.</p></div>
+              <div><p className="text-[10px] uppercase tracking-[0.3em] text-white/45">{design.saleEyebrow}</p><h2 className="mt-2 font-editorial text-4xl md:text-5xl">{design.saleHeading}</h2><p className="mt-2 text-sm text-white/55">{design.saleDescription}</p></div>
               <Link href="/products?sale=1" className="text-xs font-semibold uppercase tracking-[0.15em] underline underline-offset-4">Shop sale</Link>
             </div>
             <div className="grid grid-cols-2 gap-x-3 gap-y-8 md:grid-cols-4 md:gap-x-5">
@@ -242,7 +242,7 @@ export default async function HomePage() {
       <section className="bg-white py-16 md:py-24">
         <div className="mx-auto max-w-7xl px-5">
           <div className="mb-9 flex items-end justify-between gap-4">
-            <div><p className="text-[10px] uppercase tracking-[0.3em] text-black/45">Curated stories</p><h2 className="mt-2 font-editorial text-4xl md:text-5xl">The collections</h2></div>
+            <div><p className="text-[10px] uppercase tracking-[0.3em] text-black/45">{design.storiesEyebrow}</p><h2 className="mt-2 font-editorial text-4xl md:text-5xl">{design.storiesHeading}</h2></div>
             <Link href="/collections" className="text-xs font-semibold uppercase tracking-[0.15em] underline underline-offset-4">See all</Link>
           </div>
           <div className="grid gap-4 md:grid-cols-3">
@@ -278,7 +278,7 @@ export default async function HomePage() {
       <section className="border-y border-black/5 bg-[#f4f0e8] py-16 md:py-24">
         <div className="mx-auto max-w-7xl px-5">
           <div className="mb-9 flex items-end justify-between gap-4">
-            <div><p className="text-[10px] uppercase tracking-[0.3em] text-black/45">From the journal</p><h2 className="mt-2 font-editorial text-4xl md:text-5xl">The NOORÉ journal</h2></div>
+            <div><p className="text-[10px] uppercase tracking-[0.3em] text-black/45">{design.journalEyebrow}</p><h2 className="mt-2 font-editorial text-4xl md:text-5xl">{design.journalHeading}</h2></div>
             <Link href="/journal" className="text-xs font-semibold uppercase tracking-[0.15em] underline underline-offset-4">Read all</Link>
           </div>
           <div className="grid gap-5 md:grid-cols-3">
