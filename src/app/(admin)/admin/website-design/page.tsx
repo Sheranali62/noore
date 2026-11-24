@@ -5,6 +5,8 @@ import type { HomepageDesign } from "@/lib/homepage-design"
 import { DEFAULT_HOMEPAGE_DESIGN } from "@/lib/homepage-design"
 
 const textFields: { key: keyof HomepageDesign; label: string; group: string; multiline?: boolean }[] = [
+  { key: "announcementMessage", label: "Announcement bar message", group: "Header & announcement" },
+  { key: "footerDescription", label: "Footer brand description", group: "Footer", multiline: true },
   { key: "heroEyebrow", label: "Hero small label", group: "Hero content" },
   { key: "heroKicker", label: "Hero italic line", group: "Hero content" },
   { key: "heroHeading", label: "Main hero heading", group: "Hero content" },
@@ -53,8 +55,17 @@ const colorFields: {key:keyof HomepageDesign;label:string}[] = [
   {key:"accentColor",label:"Accent"},
   {key:"buttonColor",label:"Primary button"},
   {key:"buttonTextColor",label:"Button text"},
+  {key:"surfaceColor",label:"Card / surface background"},
+  {key:"mutedTextColor",label:"Secondary text"},
+  {key:"borderColor",label:"Borders"},
+  {key:"headerColor",label:"Header background"},
+  {key:"headerTextColor",label:"Header text"},
+  {key:"footerColor",label:"Footer background"},
+  {key:"footerTextColor",label:"Footer text"},
+  {key:"announcementColor",label:"Announcement bar background"},
+  {key:"announcementTextColor",label:"Announcement bar text"},
 ]
-const groups = ["Hero content","Collections section","Customer favourites","Categories section","New arrivals","Luxury spotlight","Limited quantities","Sale section","Collection stories","Journal section","Brand statement","Newsletter section"]
+const groups = ["Header & announcement","Footer","Hero content","Collections section","Customer favourites","Categories section","New arrivals","Luxury spotlight","Limited quantities","Sale section","Collection stories","Journal section","Brand statement","Newsletter section"]
 
 export default function WebsiteDesignPage() {
   const [design,setDesign]=useState<HomepageDesign>(DEFAULT_HOMEPAGE_DESIGN)
@@ -68,7 +79,7 @@ export default function WebsiteDesignPage() {
   const changed=Object.keys(design).some(k=>design[k as keyof HomepageDesign]!==saved[k as keyof HomepageDesign])
   const save=async()=>{
     setError("");setMessage("")
-    const hexKeys = ["backgroundColor","textColor","accentColor","buttonColor","buttonTextColor"] as const
+    const hexKeys = ["backgroundColor","textColor","accentColor","buttonColor","buttonTextColor","surfaceColor","mutedTextColor","borderColor","headerColor","headerTextColor","footerColor","footerTextColor","announcementColor","announcementTextColor"] as const
     for (const key of hexKeys) if (!/^#[0-9a-fA-F]{6}$/.test(design[key])) { setError(`Please enter a valid HEX color for ${key} (example: #535F4C).`); return }
     const urlKeys = ["primaryButtonUrl","secondaryButtonUrl","luxuryButtonUrl","brandButtonUrl","newsletterButtonUrl"] as const
     for (const key of urlKeys) { const value=design[key].trim(); if (!(value.startsWith("/") && !value.startsWith("//")) && !value.toLowerCase().startsWith("https://")) { setError(`Please use a site path like /products or a secure https:// link for ${key}.`); return } }
@@ -88,7 +99,7 @@ export default function WebsiteDesignPage() {
     </div>
     <div className="space-y-4">{groups.map((group,index)=><section key={group} className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 sm:p-6"><div className="mb-5 flex items-center gap-3"><span className="grid h-8 w-8 place-items-center rounded-lg border border-[#d6ae72]/20 bg-[#d6ae72]/10 text-xs text-[#e4c28e]">{String(index+3).padStart(2,"0")}</span><h2 className="text-base font-semibold text-white">{group}</h2></div><div className="grid gap-4 md:grid-cols-2">{textFields.filter(f=>f.group===group).map(f=><label key={f.key} className={`block text-sm ${f.multiline?"md:col-span-2":""}`}><span className="mb-2 block text-[10px] font-semibold uppercase tracking-[0.15em] text-white/50">{f.label}</span>{f.multiline?<textarea rows={3} value={design[f.key] as string} onChange={e=>update(f.key,e.target.value)} className="w-full rounded-xl border border-white/10 bg-[#090909] px-4 py-3 text-sm text-white outline-none focus:border-[#d6ae72]/60"/>:<input value={design[f.key] as string} onChange={e=>update(f.key,e.target.value)} className="w-full rounded-xl border border-white/10 bg-[#090909] px-4 py-3 text-sm text-white outline-none focus:border-[#d6ae72]/60"/>}</label>)}</div></section>)}</div>
     {error&&<p role="alert" className="mt-5 rounded-xl border border-red-400/25 bg-red-400/[0.08] px-4 py-3 text-sm text-red-200">{error}</p>}{message&&<p role="status" className="mt-5 rounded-xl border border-emerald-400/20 bg-emerald-400/[0.07] px-4 py-3 text-sm text-emerald-200">{message}</p>}
-    <div className="sticky bottom-4 mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#d6ae72]/25 bg-[#111110]/95 p-4 shadow-2xl backdrop-blur"><div><p className="text-sm font-medium text-white">{changed?"Unsaved design changes":"Design is saved"}</p><p className="mt-1 text-xs text-white/40">Changes update the public homepage. Products, orders and customer data are untouched.</p></div><div className="flex gap-2"><button type="button" onClick={reset} className="rounded-xl border border-white/15 px-4 py-3 text-xs font-semibold text-white/75">Reset defaults</button><button type="button" onClick={save} disabled={saving||!changed} className="rounded-xl bg-gradient-to-r from-[#e6c47f] to-[#c2944e] px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] text-[#17110a] disabled:opacity-40">{saving?"Saving…":"Save & Publish"}</button></div></div>
+    <div className="sticky bottom-4 mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#d6ae72]/25 bg-[#111110]/95 p-4 shadow-2xl backdrop-blur"><div><p className="text-sm font-medium text-white">{changed?"Unsaved design changes":"Design is saved"}</p><p className="mt-1 text-xs text-white/40">Changes update the public storefront theme and homepage. Products, orders and customer data are untouched.</p></div><div className="flex gap-2"><button type="button" onClick={reset} className="rounded-xl border border-white/15 px-4 py-3 text-xs font-semibold text-white/75">Reset defaults</button><button type="button" onClick={save} disabled={saving||!changed} className="rounded-xl bg-gradient-to-r from-[#e6c47f] to-[#c2944e] px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] text-[#17110a] disabled:opacity-40">{saving?"Saving…":"Save & Publish"}</button></div></div>
   </div>
 }
-function Header(){return <header className="mb-7"><p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#d6ae72]">NOORÉ / Storefront</p><div className="mt-3 flex flex-wrap items-end justify-between gap-3"><div><h1 className="font-editorial text-4xl text-white sm:text-5xl">Website Design Studio</h1><p className="mt-2 max-w-2xl text-sm text-white/45">Edit homepage copy, brand colors, typography and campaign buttons in one place.</p></div><div className="flex gap-2"><a href="/" target="_blank" rel="noreferrer" className="rounded-xl border border-[#d6ae72]/25 px-4 py-2.5 text-xs font-semibold text-[#e4c28e]">Preview storefront ↗</a><a href="/admin/homepage" className="rounded-xl border border-[#d6ae72]/25 px-4 py-2.5 text-xs font-semibold text-[#e4c28e]">Back to Homepage Builder</a></div></div></header>}
+function Header(){return <header className="mb-7"><p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#d6ae72]">NOORÉ / Storefront</p><div className="mt-3 flex flex-wrap items-end justify-between gap-3"><div><h1 className="font-editorial text-4xl text-white sm:text-5xl">Website Design Studio</h1><p className="mt-2 max-w-2xl text-sm text-white/45">Control global storefront colors, header, announcement bar, footer, typography and homepage content in one place.</p></div><div className="flex gap-2"><a href="/" target="_blank" rel="noreferrer" className="rounded-xl border border-[#d6ae72]/25 px-4 py-2.5 text-xs font-semibold text-[#e4c28e]">Preview storefront ↗</a><a href="/admin/homepage" className="rounded-xl border border-[#d6ae72]/25 px-4 py-2.5 text-xs font-semibold text-[#e4c28e]">Back to Homepage Builder</a></div></div></header>}
