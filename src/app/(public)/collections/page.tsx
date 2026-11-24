@@ -39,7 +39,7 @@ export default async function CollectionsPage() {
       <section className="mx-auto max-w-7xl px-5 py-14 md:px-8 md:py-20">
         <div className="mb-9 flex items-end justify-between gap-5">
           <div><p className="text-[9px] uppercase tracking-[0.28em] text-secondary">The NOORÉ edit</p><h2 className="mt-2 font-editorial text-4xl md:text-5xl">{p.secondaryTitle}</h2></div>
-          <Link href="/products" className="hidden text-[9px] font-semibold uppercase tracking-[0.18em] underline underline-offset-4 md:block">Shop all</Link>
+          <Link href={p.buttonUrl} className="hidden text-[9px] font-semibold uppercase tracking-[0.18em] underline underline-offset-4 md:block">{p.buttonText}</Link>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {collections.map(([name, copy, image, href], i) => (
