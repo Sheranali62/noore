@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { getStorefrontMedia, mediaImage } from "@/lib/storefront-media"
 import { getCategoryImage } from "@/lib/category-images"
 import { DepartmentCategories } from "@/components/home/department-categories"
 import { EditorialLanding } from "@/components/home/editorial-landing"
@@ -33,7 +34,7 @@ const categories = [
 const categoryImages = ["https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=1200&auto=format&fit=crop", "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=1200&auto=format&fit=crop", "https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?w=1200&auto=format&fit=crop", "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1200&auto=format&fit=crop", "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=1200&auto=format&fit=crop", "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=1200&auto=format&fit=crop", "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=1200&auto=format&fit=crop", "https://images.unsplash.com/photo-1506629905607-d9f3d6b1f2f0?w=1200&auto=format&fit=crop", "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=1200&auto=format&fit=crop", "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=1200&auto=format&fit=crop", "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=1200&auto=format&fit=crop", "https://images.unsplash.com/photo-1550614000-4b95d4662c3b?w=1200&auto=format&fit=crop", "https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=1200&auto=format&fit=crop", "https://images.unsplash.com/photo-1581044777550-4cfa60707c03?w=1200&auto=format&fit=crop", "https://images.unsplash.com/photo-1583846783214-7229a91b20ed?w=1200&auto=format&fit=crop", "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=1200&auto=format&fit=crop", "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1200&auto=format&fit=crop", "https://images.unsplash.com/photo-1612336307429-8a898d10e223?w=1200&auto=format&fit=crop", "https://images.unsplash.com/photo-1623609163859-ca93c959b98a?w=1200&auto=format&fit=crop", "https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=1200&auto=format&fit=crop", "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=1200&auto=format&fit=crop"]
 
 export default async function WomenPage() {
-  const [rows, imageProducts] = await Promise.all([
+  const [rows, imageProducts, media] = await Promise.all([
     prisma.product.findMany({
       where: { status: "ACTIVE", gender: { in: ["Women", "WOMEN", "women"] } },
       orderBy: { createdAt: "desc" },
@@ -46,6 +47,7 @@ export default async function WomenPage() {
       take: 250,
       select: { category: true, subcategory: true, images: true }
     }),
+    getStorefrontMedia(),
   ])
 
   return (
@@ -57,7 +59,7 @@ export default async function WomenPage() {
         categories={categories.map(([name, description], index) => ({
           name,
           description,
-          image: getCategoryImage(name, imageProducts, categoryImages[index]),
+          image: mediaImage(media, "page:women:category:" + name, getCategoryImage(name, imageProducts, categoryImages[index])),
           href: name === "New Arrivals"
             ? "/products?gender=Women&sort=newest"
             : name === "Sale"
