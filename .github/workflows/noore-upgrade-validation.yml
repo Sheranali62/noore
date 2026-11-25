@@ -16,17 +16,6 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: noore_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres -d noore_test"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/noore_test?schema=public
       NEXTAUTH_URL: http://localhost:3000
       NEXTAUTH_SECRET: ci-only-noore-test-secret-keep-out-of-production
