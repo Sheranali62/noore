@@ -29,6 +29,7 @@ export async function GET() {
     cartCount,
     coupons,
     lowStock,
+    searchTerms,
   ] = await Promise.all([
     prisma.order.count({
       where: {
@@ -125,6 +126,14 @@ export async function GET() {
         },
       },
     }),
+
+    prisma.searchEvent.groupBy({
+      by: ["query"],
+      where: { createdAt: { gte: since } },
+      _count: { query: true },
+      orderBy: { _count: { query: "desc" } },
+      take: 10,
+    }),
   ])
 
   const names = await prisma.product.findMany({
@@ -177,9 +186,9 @@ export async function GET() {
 
     status,
 
-    // Search analytics is intentionally omitted
-    // because SearchEvent is not part of the
-    // current Prisma schema.
-    topSearches: [],
+    topSearches: searchTerms.map((item) => ({
+      query: item.query,
+      searches: item._count.query,
+    })),
   })
 }
