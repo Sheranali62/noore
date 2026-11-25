@@ -138,6 +138,17 @@ export async function GET(request: NextRequest) {
     prisma.product.findMany({ where: { status: "ACTIVE", collection: { not: null } }, select: { collection: true }, distinct: ["collection"], orderBy: { collection: "asc" } }),
   ])
 
+  if (q) {
+    try {
+      await prisma.searchEvent.create({
+        data: { query: q.slice(0, 120), resultCount: total },
+      })
+    } catch (error) {
+      // Search should remain available even if analytics storage is temporarily unavailable.
+      console.error("Search analytics event could not be saved:", error)
+    }
+  }
+
   const facetValues = {
     categories: categories.map((x) => x.category),
     genders: genders.flatMap((x) => x.gender ? [x.gender] : []),
