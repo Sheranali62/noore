@@ -30,13 +30,13 @@ function safeString(value: unknown, fallback = "—") {
 }
 
 export default async function AdminOrderDetailPage({
-  const access = await requireAdmin(["SUPER_ADMIN","ADMIN","ORDER_MANAGER"])
-  if (access.response) notFound()
-
   params,
 }: {
   params: Promise<{ id: string }>
 }) {
+  const access = await requireAdmin(["SUPER_ADMIN", "ADMIN", "ORDER_MANAGER"])
+  if (access.response) notFound()
+
   /*
    * IMPORTANT:
    * Load the Order using scalar fields only.
