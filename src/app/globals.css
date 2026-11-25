@@ -1180,3 +1180,22 @@ html.dark .noore-sage-theme select {
     max-width: min(78vw, 110rem) !important;
   }
 }
+
+
+/* Fluid NOORÉ grids: cards reflow automatically with the available viewport.
+   auto-fit packs each row without leaving unused column tracks. */
+.noore-department-container { width:100%; }
+.noore-category-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));
+  align-items:stretch;
+}
+.noore-product-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));
+  align-items:stretch;
+}
+@media (min-width:1600px) {
+  .noore-department-container { max-width:94vw !important; }
+  .noore-product-container { max-width:94vw !important; }
+}
