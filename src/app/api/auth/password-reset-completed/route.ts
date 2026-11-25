@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const verified = await fetch(`${supabaseUrl.replace(/\\/$/, "")}/auth/v1/user`, {
+    const verified = await fetch(`${supabaseUrl.replace(/\/$/, "")}/auth/v1/user`, {
       method: "GET",
       headers: { apikey: anonKey, Authorization: `Bearer ${accessToken}` },
       cache: "no-store",
