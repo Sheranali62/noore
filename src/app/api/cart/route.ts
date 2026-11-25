@@ -93,6 +93,11 @@ export async function PUT(request: NextRequest) {
           })),
         })
       }
+
+      await tx.cart.update({
+        where: { id: cart.id },
+        data: { updatedAt: new Date(), abandonedReminderAt: null },
+      })
     })
 
     return NextResponse.json({ success: true, itemCount: requested.length })
