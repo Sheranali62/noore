@@ -4,7 +4,7 @@ import { requireAdmin } from "@/lib/admin"
 
 export const dynamic = "force-dynamic"
 
-type Params = { params: { id: string } }
+type Params = { params: Promise<{ id: string }> }
 
 export async function PUT(request: Request, { params }: Params) {
   const auth = await requireAdmin(["SUPER_ADMIN", "ADMIN", "CONTENT_MANAGER"])
@@ -13,7 +13,7 @@ export async function PUT(request: Request, { params }: Params) {
     const body = await request.json()
     if (!body.heading || !body.image) return NextResponse.json({ error: "Heading and desktop image are required" }, { status: 400 })
     const banner = await prisma.heroBanner.update({
-      where: { id: params.id },
+      where: { id: (await params).id },
       data: {
         heading: String(body.heading).trim(),
         subtitle: body.subtitle ? String(body.subtitle).trim() : null,
@@ -36,7 +36,7 @@ export async function DELETE(_request: Request, { params }: Params) {
   const auth = await requireAdmin(["SUPER_ADMIN", "ADMIN", "CONTENT_MANAGER"])
   if (!auth.session) return auth.response
   try {
-    await prisma.heroBanner.delete({ where: { id: params.id } })
+    await prisma.heroBanner.delete({ where: { id: (await params).id } })
     return NextResponse.json({ message: "Banner deleted" })
   } catch {
     return NextResponse.json({ error: "Unable to delete banner" }, { status: 500 })
