@@ -9,6 +9,7 @@ const cards = [
   { href: "/account/returns", icon: "↺", title: "Returns", text: "Request a return or exchange" },
   { href: "/account/profile", icon: "○", title: "Profile", text: "Update your name and email" },
   { href: "/account/addresses", icon: "⌂", title: "Addresses", text: "Manage your COD delivery details" },
+  { href: "/account/support", icon: "?", title: "Support Centre", text: "Contact customer care and follow replies" },
   { href: "/wishlist", icon: "♡", title: "Wishlist", text: "Return to pieces you love" },
 ]
 
