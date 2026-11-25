@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { isStrongPassword, PASSWORD_POLICY_MESSAGE } from "@/lib/password-policy"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 
@@ -27,7 +28,7 @@ export default function RegisterPage() {
     }
 
     if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters")
+      setError(PASSWORD_POLICY_MESSAGE)
       setLoading(false)
       return
     }
@@ -103,11 +104,11 @@ export default function RegisterPage() {
             <input
               type="password"
               required
-              minLength={6}
+              minLength={12}
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               className="w-full px-4 py-2 border border-[#D8D8CB] rounded focus:outline-none focus:border-[#535F4C]"
-              placeholder="Minimum 6 characters"
+              placeholder="12+ characters, mixed case, number and symbol"
             />
           </div>
 
