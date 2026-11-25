@@ -46,9 +46,9 @@ function personalize<T extends { gender?: string | null; category?: string | nul
 export default async function HomePage() {
   const { segment: interest } = await readInterest()
   const [featuredRaw, saleRaw, limitedRaw, popularGroups, designRow] = await Promise.all([
-    prisma.product.findMany({ where: { status: "ACTIVE" }, take: 24, orderBy: { createdAt: "desc" } }),
-    prisma.product.findMany({ where: { status: "ACTIVE", salePrice: { not: null } }, take: 12, orderBy: { createdAt: "desc" } }),
-    prisma.product.findMany({ where: { status: "ACTIVE", stock: { gt: 0, lte: 5 } }, take: 12, orderBy: { stock: "asc" } }),
+    prisma.product.findMany({ where: { status: "ACTIVE" }, take: 24, orderBy: { createdAt: "desc" }, select: { id: true, name: true, slug: true, price: true, salePrice: true, images: true, category: true, subcategory: true, type: true, tags: true, stock: true, gender: true } }),
+    prisma.product.findMany({ where: { status: "ACTIVE", salePrice: { not: null } }, take: 12, orderBy: { createdAt: "desc" }, select: { id: true, name: true, slug: true, price: true, salePrice: true, images: true, category: true, subcategory: true, type: true, tags: true, stock: true, gender: true } }),
+    prisma.product.findMany({ where: { status: "ACTIVE", stock: { gt: 0, lte: 5 } }, take: 12, orderBy: { stock: "asc" }, select: { id: true, name: true, slug: true, price: true, salePrice: true, images: true, category: true, subcategory: true, type: true, tags: true, stock: true, gender: true } }),
     prisma.orderItem.groupBy({ by: ["productId"], _sum: { quantity: true }, orderBy: { _sum: { quantity: "desc" } }, take: 8 }),
     prisma.setting.findUnique({ where: { key: "homepage_design" } }),
   ])
@@ -60,7 +60,7 @@ export default async function HomePage() {
   const saleProducts = personalize(saleRaw, interest).slice(0, 4)
   const limitedProducts = personalize(limitedRaw, interest).slice(0, 4)
   const popularIds = popularGroups.map((x: any) => x.productId)
-  const popularProducts = popularIds.length ? await prisma.product.findMany({ where: { id: { in: popularIds }, status: "ACTIVE" } }) : []
+  const popularProducts = popularIds.length ? await prisma.product.findMany({ where: { id: { in: popularIds }, status: "ACTIVE" }, select: { id: true, name: true, slug: true, price: true, salePrice: true, images: true, category: true, subcategory: true, type: true, tags: true, stock: true, gender: true } }) : []
   const popularMap = new Map(popularProducts.map((p) => [p.id, p]))
   const trendingProducts = personalize(popularIds.map((id: string) => popularMap.get(id)).filter(Boolean) as typeof popularProducts, interest)
 
