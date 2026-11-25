@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { calculateCouponDiscount } from "@/lib/coupons"
@@ -6,6 +7,13 @@ import { calculateCouponDiscount } from "@/lib/coupons"
 export const dynamic = "force-dynamic"
 
 export async function POST(request: NextRequest) {
+  const rate = checkRateLimit(`coupon-validation:${getClientIp(request)}`, 15, 60000)
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Please wait before trying again." },
+      { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds), "Cache-Control": "no-store" } }
+    )
+  }
   try {
     const body = await request.json().catch(() => ({}))
     const code = String(body.code || "").trim().toUpperCase()
