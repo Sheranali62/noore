@@ -10,7 +10,12 @@ export async function POST(request: NextRequest) {
     const normalizedName = String(name ?? "").trim()
 
     // Validate input before querying or hashing.
-    if (!normalizedEmail || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(normalizedEmail) || typeof password !== "string" || !password) {
+    if (
+      !normalizedEmail ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail) ||
+      typeof password !== "string" ||
+      !password
+    ) {
       return NextResponse.json(
         { error: "Email and password are required" },
         { status: 400 }
