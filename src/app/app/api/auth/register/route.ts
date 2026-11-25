@@ -52,12 +52,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: response.status === 429 ? "Too many registration attempts. Please try again later." : "We could not create your account. Check the details or try signing in." }, { status: response.status === 429 ? 429 : 400 })
     }
 
-    const user = await prisma.user.upsert({
-      where: { email },
-      update: { name },
-      create: { email, name, role: "CUSTOMER", password: null },
-      select: { id: true, email: true, name: true },
+    const existingAppUser = await prisma.user.findFirst({
+      where: { email: { equals: email, mode: "insensitive" } },
+      select: { id: true },
     })
+    const user = existingAppUser
+      ? await prisma.user.update({
+          where: { id: existingAppUser.id },
+          data: { name },
+          select: { id: true, email: true, name: true },
+        })
+      : await prisma.user.create({
+          data: { email, name, role: "CUSTOMER", password: null },
+          select: { id: true, email: true, name: true },
+        })
 
     return NextResponse.json({
       message: result.session
