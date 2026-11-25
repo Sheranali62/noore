@@ -51,5 +51,9 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  return NextResponse.json({ success: true, eligible: carts.length, sent, skipped })
+  const expiredRateLimitBuckets = await prisma.rateLimitBucket.deleteMany({
+    where: { updatedAt: { lt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } },
+  })
+
+  return NextResponse.json({ success: true, eligible: carts.length, sent, skipped, expiredRateLimitBuckets: expiredRateLimitBuckets.count })
 }
