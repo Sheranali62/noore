@@ -25,11 +25,20 @@ export async function POST(request: NextRequest) {
     if (contentLength > 16 * 1024) return NextResponse.json({ error: "Webhook payload is too large." }, { status: 413 })
     const body = await request.json()
     const orderNumber = String(body.orderNumber ?? "").trim()
-    const provider = String(body.provider ?? "").trim().slice(0, 60)
-    const providerReference = String(body.providerReference ?? "").trim().slice(0, 180)
+    const provider = String(body.provider ?? "").trim()
+    const providerReference = String(body.providerReference ?? "").trim()
     const status = String(body.status ?? "").toUpperCase()
     const amount = Number(body.amount)
-    if (!orderNumber || orderNumber.length > 64 || !provider || !providerReference || providerReference.length > 180 || !Number.isFinite(amount) || amount <= 0 || !["PAID", "FAILED", "REFUNDED"].includes(status)) {
+    const currency = String(body.currency ?? "PKR").toUpperCase()
+    const eventId = String(body.eventId ?? "")
+    if (
+      !orderNumber || orderNumber.length > 64 ||
+      !provider || provider.length > 60 ||
+      !providerReference || providerReference.length > 180 ||
+      !Number.isFinite(amount) || amount <= 0 ||
+      currency !== "PKR" || eventId.length > 128 ||
+      !["PAID", "FAILED", "REFUNDED"].includes(status)
+    ) {
       return NextResponse.json({ error: "Invalid payment event." }, { status: 400 })
     }
 
@@ -41,6 +50,9 @@ export async function POST(request: NextRequest) {
     }
     if (order.paymentStatus === "REFUNDED" && status !== "REFUNDED") {
       return NextResponse.json({ error: "This order has already been refunded." }, { status: 409 })
+    }
+    if (status === "REFUNDED" && order.paymentStatus !== "PAID" && order.paymentStatus !== "REFUNDED") {
+      return NextResponse.json({ error: "Only a confirmed payment can be marked as refunded." }, { status: 409 })
     }
     if (order.paymentStatus === "PAID" && status === "FAILED") {
       return NextResponse.json({ success: true, ignored: true, message: "A confirmed payment cannot be downgraded to failed." })
@@ -60,7 +72,7 @@ export async function POST(request: NextRequest) {
     await prisma.$transaction(async tx => {
       await tx.paymentTransaction.upsert({
         where: { provider_providerReference: { provider, providerReference } },
-        create: { orderId: order.id, provider, providerReference, amount, currency: "PKR", status: mapped, rawResponse: { eventId: String(body.eventId ?? ""), status: mapped } },
+        create: { orderId: order.id, provider, providerReference, amount, currency: "PKR", status: mapped, rawResponse: { eventId, status: mapped } },
         update: { status: mapped, rawResponse: { eventId: String(body.eventId ?? ""), status: mapped } },
       })
       const paymentUpdate = await tx.order.updateMany({
