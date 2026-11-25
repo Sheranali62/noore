@@ -2,8 +2,7 @@ CREATE TYPE "ReturnRequestStatus" AS ENUM ('REQUESTED','APPROVED','REJECTED','PI
 
 ALTER TABLE "NewsletterSubscriber"
   ADD COLUMN "active" boolean NOT NULL DEFAULT true,
-  ADD COLUMN "unsubscribeToken" text,
-  ADD COLUMN "updatedAt" timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+  ADD COLUMN "unsubscribeToken" text;
 CREATE UNIQUE INDEX "NewsletterSubscriber_unsubscribeToken_key" ON "NewsletterSubscriber"("unsubscribeToken");
 CREATE INDEX "NewsletterSubscriber_active_createdAt_idx" ON "NewsletterSubscriber"("active","createdAt");
 
@@ -63,8 +62,3 @@ CREATE TABLE "AuditLog" (
 );
 CREATE INDEX "AuditLog_actorId_createdAt_idx" ON "AuditLog"("actorId","createdAt");
 CREATE INDEX "AuditLog_entityType_entityId_idx" ON "AuditLog"("entityType","entityId");
-
-ALTER TABLE "ReturnRequest" ENABLE ROW LEVEL SECURITY;
-ALTER TABLE "PaymentTransaction" ENABLE ROW LEVEL SECURITY;
-ALTER TABLE "OrderEvent" ENABLE ROW LEVEL SECURITY;
-ALTER TABLE "AuditLog" ENABLE ROW LEVEL SECURITY;
