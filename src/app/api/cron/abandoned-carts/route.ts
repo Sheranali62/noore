@@ -43,6 +43,18 @@ export async function GET(request: NextRequest) {
   let failed = 0
   for (const cart of carts) {
     if (!cart.user.email) continue
+    const recentOrder = await prisma.order.findFirst({
+      where: {
+        userId: cart.userId,
+        createdAt: { gte: cart.updatedAt },
+        status: { notIn: ["CANCELLED", "REFUNDED"] },
+      },
+      select: { id: true },
+    })
+    if (recentOrder) {
+      await prisma.cart.update({ where: { id: cart.id }, data: { abandonedReminderAt: now } })
+      continue
+    }
     const lines = cart.items.filter(item => item.product.status === "ACTIVE").slice(0, 8)
     if (!lines.length) {
       await prisma.cart.update({ where: { id: cart.id }, data: { abandonedReminderAt: now } })
