@@ -5,8 +5,8 @@ import { requireAdmin } from "@/lib/admin"
 const cleanImages = (value: unknown) => Array.isArray(value) ? value.filter((v): v is string => typeof v === "string" && v.trim() !== "" && (v.startsWith("data:image/") || /^https?:\/\//i.test(v.trim()))) : []
 
 export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
-  const { response } = await requireAdmin(["SUPER_ADMIN", "ADMIN", "PRODUCT_MANAGER"])
-  if (response) return response
+  const guard = await requireAdmin(["SUPER_ADMIN", "ADMIN", "PRODUCT_MANAGER"])
+  if (guard.response) return guard.response
 
   try {
     const product = await prisma.product.findUnique({ where: { id: params.id }, include: { variants: true } })
@@ -128,6 +128,15 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         include: { variants: true },
       })
     })
+    await prisma.auditLog.create({
+      data: {
+        actorId: guard.session?.user?.id,
+        action: "UPDATE_PRODUCT",
+        entityType: "Product",
+        entityId: product.id,
+        details: { name: product.name, sku: product.sku, category: product.category, price: product.price, stock: product.stock, status: product.status },
+      },
+    })
     return NextResponse.json(product)
   } catch (error) {
     console.error("Error updating product:", error)
@@ -145,10 +154,12 @@ export async function DELETE(_request: NextRequest, { params }: { params: { id: 
 
     if (product.orderItems.length > 0) {
       await prisma.product.update({ where: { id: params.id }, data: { status: "ARCHIVED" } })
+      await prisma.auditLog.create({ data: { actorId: guard.session?.user?.id, action: "ARCHIVE_PRODUCT", entityType: "Product", entityId: params.id, details: { reason: "Referenced by an order" } } })
       return NextResponse.json({ message: "Product archived because it is referenced by an order" })
     }
 
     await prisma.product.delete({ where: { id: params.id } })
+    await prisma.auditLog.create({ data: { actorId: guard.session?.user?.id, action: "DELETE_PRODUCT", entityType: "Product", entityId: params.id } })
     return NextResponse.json({ message: "Product deleted successfully" })
   } catch (error) {
     console.error("Error deleting product:", error)
