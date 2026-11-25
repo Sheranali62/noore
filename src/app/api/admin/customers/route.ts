@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic"
 const excludedStatuses = ["CANCELLED", "REFUNDED"] as const
 
 export async function GET(request: NextRequest) {
-  const guard = await requireAdmin()
+  const guard = await requireAdmin(["SUPER_ADMIN", "ADMIN"])
   if (guard.response) return guard.response
 
   const params = request.nextUrl.searchParams
