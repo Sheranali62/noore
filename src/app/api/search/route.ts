@@ -146,6 +146,14 @@ export async function GET(request: NextRequest) {
     sizes: Array.from(new Set(products.flatMap((p) => p.variants.map((v) => v.size)))).slice(0, 20),
   }
 
+  // Store a minimal, bounded search event for merchandising analytics.
+  // Search terms are not linked to a customer account or IP address.
+  if (q) {
+    void prisma.searchEvent.create({
+      data: { query: q.replace(/\\s+/g, " ").slice(0, 120), resultCount: total },
+    }).catch((error) => console.error("Search analytics event failed:", error))
+  }
+
   return NextResponse.json({
     products,
     total,
