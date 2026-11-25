@@ -83,21 +83,34 @@ const providers: NextAuthOptions["providers"] = [
 
         const existingUser = await prisma.user.findFirst({
           where: { email: { equals: email, mode: "insensitive" } },
-          select: { id: true },
+          select: { id: true, role: true },
         })
-        const user = existingUser
-          ? await prisma.user.update({
-              where: { id: existingUser.id },
-              data: { ...(name ? { name } : {}) },
-            })
-          : await prisma.user.create({
-              data: {
-                email,
-                name,
-                password: null,
-                role: isConfiguredSuperAdmin ? "SUPER_ADMIN" : "CUSTOMER",
-              },
-            })
+        let user
+        if (existingUser) {
+          // One-time bootstrap: the configured owner email may become the
+          // first SUPER_ADMIN only while no SUPER_ADMIN exists. This does not
+          // re-promote a deliberately demoted account on every login.
+          const shouldBootstrap = isConfiguredSuperAdmin && existingUser.role !== "SUPER_ADMIN"
+          const superAdminCount = shouldBootstrap
+            ? await prisma.user.count({ where: { role: "SUPER_ADMIN" } })
+            : 1
+          user = await prisma.user.update({
+            where: { id: existingUser.id },
+            data: {
+              ...(name ? { name } : {}),
+              ...(shouldBootstrap && superAdminCount === 0 ? { role: "SUPER_ADMIN" as const } : {}),
+            },
+          })
+        } else {
+          user = await prisma.user.create({
+            data: {
+              email,
+              name,
+              password: null,
+              role: isConfiguredSuperAdmin ? "SUPER_ADMIN" : "CUSTOMER",
+            },
+          })
+        }
 
         return {
           id: user.id,
