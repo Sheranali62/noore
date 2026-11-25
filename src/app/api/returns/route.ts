@@ -12,7 +12,18 @@ export async function GET() {
     orderBy: { createdAt: "desc" },
     include: { order: { select: { id: true, orderNumber: true, total: true, status: true, items: { include: { product: { select: { name: true, images: true } }, variant: { select: { color: true, size: true } } } } } },
   })
-  return NextResponse.json({ requests })
+  const eligibleOrders = await prisma.order.findMany({
+    where: { userId: session.user.id, status: "DELIVERED" },
+    orderBy: { updatedAt: "desc" },
+    select: {
+      id: true,
+      orderNumber: true,
+      updatedAt: true,
+      items: { select: { id: true, quantity: true, product: { select: { name: true, images: true } }, variant: { select: { color: true, size: true } } } },
+    },
+    take: 50,
+  })
+  return NextResponse.json({ requests, eligibleOrders })
 }
 
 export async function POST(request: NextRequest) {
