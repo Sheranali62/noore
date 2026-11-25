@@ -27,13 +27,13 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const { response } = await requireAdmin([
+  const guard = await requireAdmin([
     "SUPER_ADMIN",
     "ADMIN",
     "ORDER_MANAGER",
   ])
 
-  if (response) return response
+  if (guard.response) return guard.response
 
   try {
     const body = await request.json()
