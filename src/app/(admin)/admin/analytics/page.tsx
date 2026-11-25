@@ -30,7 +30,7 @@ export default async function AnalyticsPage() {
     prisma.couponUsage.count({ where: { usedAt: { gte: since } } }),
     prisma.order.findMany({ where: { createdAt: { gte: since }, status: { notIn: ["CANCELLED", "REFUNDED"] } }, select: { createdAt: true, total: true } }),
     prisma.orderItem.groupBy({ by: ["productId"], where: { order: { createdAt: { gte: since }, status: { notIn: ["CANCELLED", "REFUNDED"] } } }, _sum: { quantity: true, total: true } }),
-    prisma.searchEvent.groupBy({ by: ["query"], where: { createdAt: { gte: since } }, _count: { _all: true }, _avg: { resultCount: true }, orderBy: { _count: { _all: "desc" } }, take: 10 }),
+    prisma.searchEvent.groupBy({ by: ["query"], where: { createdAt: { gte: since } }, _count: { _all: true }, _avg: { resultCount: true }, orderBy: { _count: { query: "desc" } }, take: 10 }),
     prisma.orderItem.findMany({ where: { costPrice: { not: null }, order: { createdAt: { gte: since }, status: { notIn: ["CANCELLED", "REFUNDED"] } } }, select: { quantity: true, total: true, costPrice: true } }),
   ])
 
