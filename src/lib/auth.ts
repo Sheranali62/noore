@@ -17,9 +17,32 @@ const providers: NextAuthOptions["providers"] = [
     async authorize(credentials) {
       if (!credentials?.email || !credentials?.password) return null
 
+      const emailInput = credentials.email.trim().toLowerCase()
+      const authenticateLegacyPrismaUser = async () => {
+        const legacyUser = await prisma.user.findFirst({
+          where: { email: { equals: emailInput, mode: "insensitive" } },
+        })
+        if (!legacyUser?.password) return null
+        const matches = await bcrypt.compare(credentials.password, legacyUser.password)
+        if (!matches) return null
+        return {
+          id: legacyUser.id,
+          email: legacyUser.email,
+          name: legacyUser.name,
+          role: legacyUser.role,
+        }
+      }
+
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
       const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-      if (!supabaseUrl || !supabaseAnonKey) return null
+      if (!supabaseUrl || !supabaseAnonKey) {
+        try {
+          return await authenticateLegacyPrismaUser()
+        } catch {
+          console.error("Legacy credentials authentication failed")
+          return null
+        }
+      }
 
       try {
         const authResponse = await fetch(
@@ -40,18 +63,7 @@ const providers: NextAuthOptions["providers"] = [
 
         if (!authResponse.ok) {
           // Keep legacy accounts created before Supabase Auth was connected usable.
-          const legacyUser = await prisma.user.findUnique({
-            where: { email: credentials.email.trim().toLowerCase() },
-          })
-          if (!legacyUser?.password) return null
-          const matches = await bcrypt.compare(credentials.password, legacyUser.password)
-          if (!matches) return null
-          return {
-            id: legacyUser.id,
-            email: legacyUser.email,
-            name: legacyUser.name,
-            role: legacyUser.role,
-          }
+          return await authenticateLegacyPrismaUser()
         }
 
         const authResult = await authResponse.json()
@@ -71,7 +83,6 @@ const providers: NextAuthOptions["providers"] = [
           where: { email },
           update: {
             ...(name ? { name } : {}),
-            ...(isConfiguredSuperAdmin ? { role: "SUPER_ADMIN" as const } : {}),
           },
           create: {
             email,
@@ -118,14 +129,28 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.role = token.role as string
-        session.user.id = token.id as string
+        const userId = typeof token.id === "string" ? token.id : null
+        if (!userId) {
+          session.user.id = ""
+          session.user.role = "CUSTOMER"
+          return session
+        }
+
+        // Resolve permissions from the canonical user row on every session read.
+        // Deleted users and stale staff-role claims must never remain authorized.
+        const currentUser = await prisma.user.findUnique({
+          where: { id: userId },
+          select: { id: true, role: true },
+        })
+        session.user.id = currentUser?.id ?? ""
+        session.user.role = currentUser?.role ?? "CUSTOMER"
       }
       return session
     },
   },
   session: {
     strategy: "jwt",
+    maxAge: 4 * 60 * 60,
   },
   pages: {
     signIn: "/login",
