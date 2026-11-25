@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { enforceRateLimit } from "@/lib/rate-limit"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
@@ -62,6 +63,8 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const databaseLimit = await enforceRateLimit(request, "return-request", 8, 3600000)
+  if (databaseLimit) return databaseLimit
   const session = await auth()
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Please sign in to request a return." }, { status: 401 })
