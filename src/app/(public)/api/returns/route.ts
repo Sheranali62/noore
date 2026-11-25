@@ -60,7 +60,15 @@ export async function POST(request: NextRequest) {
     const reason = String(body.reason ?? "").trim().slice(0, 100)
     const details = String(body.details ?? "").trim().slice(0, 1500)
     const itemIds: string[] = Array.isArray(body.itemIds) ? Array.from(new Set((body.itemIds as unknown[]).map((id) => String(id)))) : []
+    const evidence: string[] = Array.isArray(body.evidence) ? (body.evidence as unknown[]).map(value => String(value)) : []
+    const validEvidence = evidence.length <= 5 && evidence.every(value => {
+      try {
+        const url = new URL(value)
+        return url.protocol === "https:" && url.hostname.endsWith("blob.vercel-storage.com")
+      } catch { return false }
+    })
 
+    if (!validEvidence) return NextResponse.json({ error: "Evidence must be uploaded images from NOORÉ's secure image storage (up to 5)." }, { status: 400 })
     if (!orderId || !reason || itemIds.length === 0 || itemIds.length > 20) {
       return NextResponse.json({ error: "Choose an order, reason and at least one item." }, { status: 400 })
     }
@@ -88,7 +96,7 @@ export async function POST(request: NextRequest) {
 
     const result = await prisma.$transaction(async tx => {
       const created = await tx.returnRequest.create({
-        data: { orderId, userId, reason, details: details || null, itemIds, evidence: [] },
+        data: { orderId, userId, reason, details: details || null, itemIds, evidence },
       })
       await tx.orderEvent.create({
         data: { orderId, actorId: userId, event: "EXCHANGE_REQUESTED", message: "Customer submitted an exchange or issue request.", metadata: { returnRequestId: created.id, reason, itemIds } },
