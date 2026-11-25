@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { enforceRateLimit } from "@/lib/rate-limit"
 
 export const dynamic = "force-dynamic"
 
@@ -42,6 +43,10 @@ function parseSmartQuery(input: string) {
 export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams
   const q = params.get("q")?.trim() || ""
+  if (q) {
+    const limited = await enforceRateLimit(request, "product-search", 60, 60 * 1000)
+    if (limited) return limited
+  }
   const category = params.get("category")?.trim() || ""
   const gender = params.get("gender")?.trim() || ""
   const collection = params.get("collection")?.trim() || ""
