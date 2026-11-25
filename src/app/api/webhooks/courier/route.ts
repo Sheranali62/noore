@@ -38,6 +38,10 @@ export async function POST(request: NextRequest) {
     const order = await prisma.order.findUnique({ where: { orderNumber }, select: { id: true, orderNumber: true, status: true, trackingNumber: true, user: { select: { name: true, email: true } } } })
     if (!order) return NextResponse.json({ error: "Order not found." }, { status: 404 })
     if (order.status === "CANCELLED" || order.status === "REFUNDED" || order.status === "RETURNED") return NextResponse.json({ error: "This order is no longer active for delivery updates." }, { status: 409 })
+    const deliveryRank: Record<string, number> = { PENDING: 0, CONFIRMED: 1, PROCESSING: 2, PACKED: 3, SHIPPED: 4, OUT_FOR_DELIVERY: 5, DELIVERED: 6 }
+    if ((deliveryRank[order.status] ?? -1) > deliveryRank[status]) {
+      return NextResponse.json({ success: true, ignored: true, message: "A newer delivery status is already recorded." })
+    }
 
     await prisma.$transaction(async tx => {
       await tx.order.update({ where: { id: order.id }, data: { status: status as any, trackingNumber, ...(courier ? { courier } : {}) } })
