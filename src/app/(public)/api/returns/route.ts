@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     const orderId = String(body.orderId ?? "").trim()
     const reason = String(body.reason ?? "").trim().slice(0, 100)
     const details = String(body.details ?? "").trim().slice(0, 1500)
-    const itemIds = Array.isArray(body.itemIds) ? [...new Set(body.itemIds.map((id: unknown) => String(id)))] : []
+    const itemIds: string[] = Array.isArray(body.itemIds) ? Array.from(new Set((body.itemIds as unknown[]).map((id) => String(id)))) : []
 
     if (!orderId || !reason || itemIds.length === 0 || itemIds.length > 20) {
       return NextResponse.json({ error: "Choose an order, reason and at least one item." }, { status: 400 })
