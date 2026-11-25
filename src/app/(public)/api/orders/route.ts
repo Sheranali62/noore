@@ -13,7 +13,7 @@ function normalizeEmail(value: unknown) {
 
 async function makeOrderNumber() {
   for (let attempt = 0; attempt < 5; attempt++) {
-    const value = `NO-${new Date().getFullYear()}-${randomBytes(4)
+    const value = `NO-${new Date().getFullYear()}-${randomBytes(8)
       .toString("hex")
       .toUpperCase()}`
 
@@ -554,17 +554,26 @@ export async function POST(request: NextRequest) {
               )
             }
 
-            await tx.productVariant.update({
-              where: {
-                id: item.variantId,
-              },
-              data: {
-                stock: {
-                  decrement:
-                    item.quantity,
+            const reserved =
+              await tx.productVariant.updateMany({
+                where: {
+                  id: item.variantId,
+                  stock: {
+                    gte: item.quantity,
+                  },
                 },
-              },
-            })
+                data: {
+                  stock: {
+                    decrement: item.quantity,
+                  },
+                },
+              })
+
+            if (reserved.count !== 1) {
+              throw new Error(
+                "Stock changed while placing the order"
+              )
+            }
 
             await tx.inventoryMovement.create(
               {
@@ -606,17 +615,26 @@ export async function POST(request: NextRequest) {
               )
             }
 
-            await tx.product.update({
-              where: {
-                id: item.productId,
-              },
-              data: {
-                stock: {
-                  decrement:
-                    item.quantity,
+            const reserved =
+              await tx.product.updateMany({
+                where: {
+                  id: item.productId,
+                  stock: {
+                    gte: item.quantity,
+                  },
                 },
-              },
-            })
+                data: {
+                  stock: {
+                    decrement: item.quantity,
+                  },
+                },
+              })
+
+            if (reserved.count !== 1) {
+              throw new Error(
+                "Stock changed while placing the order"
+              )
+            }
 
             await tx.inventoryMovement.create(
               {
