@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "prisma generate --schema=prisma/schema.prisma && next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "db:generate": "prisma generate --schema=prisma/schema.prisma",
     "db:push": "prisma db push",
     "db:seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
@@ -45,5 +45,5 @@
     "@types/react-dom": "^19.3.0",
     "@types/ws": "^8.18.1",
     "autoprefixer": "^10.4.17",
-    "postcss": "^8.4.35",
-¶»§q«^
+    "eslint": "^9.39.5",
+  ¶»§q«^
