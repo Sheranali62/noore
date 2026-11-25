@@ -22,6 +22,21 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    const origin = request.headers.get("origin")
+    if (
+      (origin && new URL(origin).origin !== request.nextUrl.origin) ||
+      request.headers.get("sec-fetch-site") === "cross-site"
+    ) {
+      return NextResponse.json({ error: "Cross-site password recovery requests are not allowed." }, { status: 403 })
+    }
+    const contentType = request.headers.get("content-type") ?? ""
+    if (!contentType.toLowerCase().includes("application/json")) {
+      return NextResponse.json({ error: "A JSON request body is required." }, { status: 415 })
+    }
+    const contentLength = Number(request.headers.get("content-length") ?? 0)
+    if (contentLength > 8 * 1024) {
+      return NextResponse.json({ error: "Password recovery request is too large." }, { status: 413 })
+    }
     const body = await request.json().catch(() => ({}))
     const email = String(body.email ?? "").trim().toLowerCase()
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
