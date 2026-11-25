@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Enter a coupon code and valid cart items." }, { status: 400 })
     }
 
-    const requested = rawItems.map((item: any) => ({
+    const requested: { productId: string; variantId: string | null; quantity: number }[] = rawItems.map((item: any) => ({
       productId: String(item.productId ?? ""),
       variantId: item.variantId ? String(item.variantId) : null,
       quantity: Number(item.quantity),
