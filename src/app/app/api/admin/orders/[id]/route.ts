@@ -27,13 +27,13 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { response } = await requireAdmin([
+  const guard = await requireAdmin([
     "SUPER_ADMIN",
     "ADMIN",
     "ORDER_MANAGER",
   ])
 
-  if (response) return response
+  if (guard.response) return guard.response
 
   try {
     const body = await request.json()
@@ -110,6 +110,14 @@ export async function PATCH(
       }
 
       const nextStatus = status ?? current.status
+
+      if (nextStatus !== current.status) {
+        const claimed = await tx.order.updateMany({
+          where: { id: (await params).id, status: current.status },
+          data: { status: nextStatus },
+        })
+        if (claimed.count !== 1) throw new Error("CONCURRENT_ORDER_UPDATE")
+      }
 
       const wasCancelled =
         current.status === "CANCELLED" ||
@@ -226,16 +234,14 @@ export async function PATCH(
               throw new Error("INSUFFICIENT_STOCK")
             }
 
-            await tx.productVariant.update({
+            const changed = await tx.productVariant.updateMany({
               where: {
                 id: item.variantId,
+                stock: { gte: item.quantity },
               },
-              data: {
-                stock: {
-                  decrement: item.quantity,
-                },
-              },
+              data: { stock: { decrement: item.quantity } },
             })
+            if (changed.count !== 1) throw new Error("INSUFFICIENT_STOCK")
 
             await tx.inventoryMovement.create({
               data: {
@@ -267,16 +273,14 @@ export async function PATCH(
               throw new Error("INSUFFICIENT_STOCK")
             }
 
-            await tx.product.update({
+            const changed = await tx.product.updateMany({
               where: {
                 id: item.productId,
+                stock: { gte: item.quantity },
               },
-              data: {
-                stock: {
-                  decrement: item.quantity,
-                },
-              },
+              data: { stock: { decrement: item.quantity } },
             })
+            if (changed.count !== 1) throw new Error("INSUFFICIENT_STOCK")
 
             await tx.inventoryMovement.create({
               data: {
@@ -293,7 +297,7 @@ export async function PATCH(
         }
       }
 
-      return tx.order.update({
+      const updatedOrder = await tx.order.update({
         where: {
           id: (await params).id,
         },
@@ -303,7 +307,9 @@ export async function PATCH(
             paymentStatus ??
             (nextStatus === "REFUNDED"
               ? "REFUNDED"
-              : undefined),
+              : nextStatus === "DELIVERED" && current.paymentMethod === "COD"
+                ? "PAID"
+                : undefined),
           trackingNumber:
             body.trackingNumber !== undefined
               ? trackingNumber
@@ -335,6 +341,29 @@ export async function PATCH(
           },
         },
       })
+
+      if (status || paymentStatus || body.trackingNumber !== undefined || body.courier !== undefined || body.courierCompanyId !== undefined) {
+        await tx.orderEvent.create({
+          data: {
+            orderId: (await params).id,
+            actorId: guard.session?.user?.id,
+            event: status ? `ORDER_${status}` : paymentStatus ? `PAYMENT_${paymentStatus}` : "ORDER_SHIPMENT_UPDATED",
+            message: status ? `Order status changed to ${status}.` : paymentStatus ? `Payment status changed to ${paymentStatus}.` : "Shipment details updated.",
+            metadata: { status: status ?? null, paymentStatus: paymentStatus ?? null, trackingNumber, courier: selectedCourierName || courier },
+          },
+        })
+        await tx.auditLog.create({
+          data: {
+            actorId: guard.session?.user?.id,
+            action: "UPDATE_ORDER",
+            entityType: "Order",
+            entityId: (await params).id,
+            details: { status: status ?? null, paymentStatus: paymentStatus ?? null, trackingNumber, courier: selectedCourierName || courier },
+          },
+        })
+      }
+
+      return updatedOrder
     })
 
     if (
@@ -368,6 +397,13 @@ export async function PATCH(
       return NextResponse.json(
         { error: "Order not found" },
         { status: 404 }
+      )
+    }
+
+    if (error instanceof Error && error.message === "CONCURRENT_ORDER_UPDATE") {
+      return NextResponse.json(
+        { error: "This order was updated by another administrator. Refresh and try again." },
+        { status: 409 }
       )
     }
 
