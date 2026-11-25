@@ -22,6 +22,7 @@ const playfair = Playfair_Display({
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://noore-nine.vercel.app"
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://noore-nine.vercel.app"),
   metadataBase: new URL(SITE_URL),
   title: {
     default: "NOORÉ — Premium Pakistani Fashion",
