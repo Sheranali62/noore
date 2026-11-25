@@ -262,13 +262,14 @@ function SettingsSection({ icon: Icon, eyebrow, title, description, children }: 
   )
 }
 
-function Field({ label, value, onChange, hint, placeholder, type = "text", min, prefix }: { label: string; value: string; onChange: (value: string) => void; hint?: string; placeholder?: string; type?: string; min?: string; prefix?: string }) {
+function Field({ label, value, onChange, hint, placeholder, type = "text", min, max, prefix, suffix }: { label: string; value: string; onChange: (value: string) => void; hint?: string; placeholder?: string; type?: string; min?: string; max?: string; prefix?: string; suffix?: string }) {
   return (
     <label className="block text-sm">
       <FieldLabel>{label}</FieldLabel>
       <div className="relative">
         {prefix && <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-white/35">{prefix}</span>}
-        <input type={type} min={min} value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className={inputClass + (prefix ? " pl-10" : "")} />
+        {suffix && <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-white/35">{suffix}</span>}
+        <input type={type} min={min} max={max} value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className={inputClass + (prefix ? " pl-10" : "") + (suffix ? " pr-10" : "")} />
       </div>
       {hint && <FieldHint>{hint}</FieldHint>}
     </label>
