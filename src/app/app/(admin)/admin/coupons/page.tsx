@@ -1,8 +1,13 @@
 import { prisma } from "@/lib/prisma"
+import { notFound } from "next/navigation"
+import { requireAdmin } from "@/lib/admin"
 import Link from "next/link"
 import { CouponActions } from "@/components/admin/coupon-actions"
 
 export default async function AdminCouponsPage() {
+  const access = await requireAdmin(["SUPER_ADMIN","ADMIN"])
+  if (access.response) notFound()
+
   const coupons = await prisma.coupon.findMany({ orderBy: { createdAt: "desc" } })
   const active = coupons.filter(c => c.active).length
   const expired = coupons.filter(c => new Date(c.expiryDate).getTime() < Date.now()).length
