@@ -27,7 +27,34 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
 
   const order = await prisma.order.findFirst({
     where: { id: (await params).id, userId: session.user.id },
-    include: { address: true, items: { include: { product: true, variant: true } }, orderEvents: { orderBy: { createdAt: "desc" } } },
+    select: {
+      id: true,
+      orderNumber: true,
+      status: true,
+      createdAt: true,
+      trackingNumber: true,
+      subtotal: true,
+      discount: true,
+      shipping: true,
+      tax: true,
+      total: true,
+      paymentStatus: true,
+      address: { select: { name: true, phone: true, address: true, city: true, province: true, postal: true } },
+      items: {
+        select: {
+          id: true,
+          quantity: true,
+          price: true,
+          total: true,
+          product: { select: { id: true, name: true, slug: true, images: true } },
+          variant: { select: { color: true, size: true } },
+        },
+      },
+      orderEvents: {
+        orderBy: { createdAt: "desc" },
+        select: { id: true, event: true, message: true, createdAt: true },
+      },
+    },
   })
   if (!order) notFound()
 
