@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
 import { prisma } from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
@@ -40,6 +41,13 @@ function parseSmartQuery(input: string) {
 }
 
 export async function GET(request: NextRequest) {
+  const rate = checkRateLimit(`search:${getClientIp(request)}`, 60, 60000)
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Please wait before trying again." },
+      { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds), "Cache-Control": "no-store" } }
+    )
+  }
   const params = request.nextUrl.searchParams
   const q = params.get("q")?.trim() || ""
   const category = params.get("category")?.trim() || ""
