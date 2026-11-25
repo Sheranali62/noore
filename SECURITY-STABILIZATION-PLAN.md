@@ -98,6 +98,8 @@ This document records an initial review, not a penetration-test certification. F
 
 
 ## Additional audit updates (2026-11-25)
+- Added a deliberately limited CSP in both Next.js response headers and middleware: `frame-ancestors 'self'`, `object-src 'none'`, and `base-uri 'self'`. This adds clickjacking/object/base-URI protections without imposing a restrictive script/style allowlist that could break the current storefront; full CSP remains a separately tested task.
+
 - Vercel environment metadata confirms production `NEXT_PUBLIC_SUPABASE_URL` points to the connected Supabase project `jaanfteuzqdluzxpkzay`, so that project is the production Supabase Auth endpoint. This does **not** prove Prisma's production `DATABASE_URL` points to the same Supabase database; that value remains encrypted and was not read.
 - The security branch currently has a preview-specific Neon `DATABASE_URL`, but the preview Supabase Auth URL/key metadata is scoped to a different feature branch. Do not use the security preview for live-auth tests until an isolated preview Auth configuration is supplied; avoid testing registration against production Auth.
 
