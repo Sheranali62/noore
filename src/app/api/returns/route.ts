@@ -112,19 +112,60 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "One or more selected items do not belong to this order." }, { status: 400 })
     }
 
-    const existing = await prisma.returnRequest.findFirst({
-      where: {
-        orderId,
-        userId: session.user.id,
-        status: { in: ["REQUESTED", "APPROVED", "PICKUP_SCHEDULED", "RECEIVED"] },
-      },
-      select: { id: true },
-    })
-    if (existing) {
-      return NextResponse.json({ error: "A return request is already open for this order." }, { status: 409 })
+    if (itemIds.length > 20 || itemIds.some(id => !id || id.length > 128)) {
+      return NextResponse.json({ error: "Select a valid number of order items." }, { status: 400 })
     }
 
     const result = await prisma.$transaction(async tx => {
+      // Lock the order while checking existing requests so simultaneous
+      // submissions cannot create duplicate return requests for the same order.
+      await tx.$queryRaw<Array<{ id: string }>>`
+        SELECT "id" FROM "Order" WHERE "id" = ${orderId} AND "userId" = ${session.user.id} FOR UPDATE
+      `
+      const lockedOrder = await tx.order.findFirst({
+        where: { id: orderId, userId: session.user.id },
+        select: {
+          id: true,
+          status: true,
+          updatedAt: true,
+          orderEvents: {
+            where: { event: "ORDER_DELIVERED" },
+            orderBy: { createdAt: "desc" },
+            take: 1,
+            select: { createdAt: true },
+          },
+        },
+      })
+      if (!lockedOrder) throw new Error("RETURN_ORDER_NOT_FOUND")
+      if (lockedOrder.status !== "DELIVERED") throw new Error("RETURN_ORDER_NOT_DELIVERED")
+      const lockedDeliveredAt = lockedOrder.orderEvents[0]?.createdAt ?? lockedOrder.updatedAt
+      if (Date.now() - lockedDeliveredAt.getTime() > 7 * 24 * 60 * 60 * 1000) {
+        throw new Error("RETURN_WINDOW_CLOSED")
+      }
+
+      const existing = await tx.returnRequest.findFirst({
+        where: {
+          orderId,
+          userId: session.user.id,
+          status: { in: ["REQUESTED", "APPROVED", "PICKUP_SCHEDULED", "RECEIVED"] },
+        },
+        select: { id: true },
+      })
+      if (existing) throw new Error("RETURN_ALREADY_OPEN")
+
+      const completed = await tx.returnRequest.findMany({
+        where: {
+          orderId,
+          userId: session.user.id,
+          status: { in: ["RECEIVED", "REFUNDED", "EXCHANGED"] },
+        },
+        select: { itemIds: true },
+      })
+      const completedItemIds = new Set(completed.flatMap(row => row.itemIds))
+      if (itemIds.some(itemId => completedItemIds.has(itemId))) {
+        throw new Error("RETURN_ITEM_ALREADY_RETURNED")
+      }
+
       const created = await tx.returnRequest.create({
         data: { orderId, userId: session.user.id, reason, details: details || null, itemIds, evidence },
       })
@@ -141,6 +182,23 @@ export async function POST(request: NextRequest) {
     })
     return NextResponse.json({ request: result, message: "Your return request has been submitted." }, { status: 201 })
   } catch (error) {
+    if (error instanceof Error) {
+      if (error.message === "RETURN_ALREADY_OPEN") {
+        return NextResponse.json({ error: "A return request is already open for this order." }, { status: 409 })
+      }
+      if (error.message === "RETURN_ITEM_ALREADY_RETURNED") {
+        return NextResponse.json({ error: "One or more selected items have already been returned or exchanged." }, { status: 409 })
+      }
+      if (error.message === "RETURN_ORDER_NOT_DELIVERED") {
+        return NextResponse.json({ error: "Returns can only be requested for delivered orders." }, { status: 409 })
+      }
+      if (error.message === "RETURN_WINDOW_CLOSED") {
+        return NextResponse.json({ error: "The 7-day return window for this order has ended." }, { status: 409 })
+      }
+      if (error.message === "RETURN_ORDER_NOT_FOUND") {
+        return NextResponse.json({ error: "Order not found." }, { status: 404 })
+      }
+    }
     console.error("Return request creation failed:", error)
     return NextResponse.json({ error: "Unable to submit your return request." }, { status: 500 })
   }
