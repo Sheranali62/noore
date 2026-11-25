@@ -19,6 +19,7 @@ import {
   RotateCcw,
   ScrollText,
   CreditCard,
+  Mail,
 } from "lucide-react"
 
 const items = [
@@ -29,6 +30,7 @@ const items = [
   { href: "/admin/returns", label: "Returns & Exchanges", icon: RotateCcw },
   { href: "/admin/audit-logs", label: "Audit Log", icon: ScrollText },
   { href: "/admin/payments", label: "Payments", icon: CreditCard },
+  { href: "/admin/newsletter", label: "Newsletter", icon: Mail },
   { href: "/admin/couriers", label: "Couriers", icon: Truck },
   { href: "/admin/customers", label: "Customers", icon: Users },
   { href: "/admin/coupons", label: "Coupons", icon: Gift },
