@@ -17,11 +17,15 @@
 1. The repository's `package.json` pins Next.js at `14.1.0`; this is an old release and must be upgraded to a currently supported, security-patched version after compatibility checks.
 2. Prisma schema uses PostgreSQL and reads `DATABASE_URL`. The project includes Neon driver-adapter dependencies and Neon migration workflows, while the connected Supabase project is active. The authoritative production database and each environment's actual database target must be reconciled before migration.
 3. The inspected Supabase `public` tables have RLS enabled, but the policy catalog query returned zero policies. The inspected table grants include broad CRUD privileges for `anon` and `authenticated`. With no policies, RLS is default-deny for Data API row access; grants should nevertheless be narrowed to least privilege and policies added only after mapping actual app access.
-4. Authentication uses Supabase password verification followed by a NextAuth JWT and a Prisma user record. The initial branch patch now re-reads the canonical Prisma role on each server-side session resolution, limits sessions to four hours, and makes the configured Super Admin email a bootstrap-only rule for newly created app users rather than re-promoting an existing account at every login. This still requires build and regression testing.
-5. Admin APIs use a shared `requireAdmin` helper in inspected routes. Continue auditing every route and each HTTP method for role scope, object ownership, input validation, and rate limiting.
-6. Existing Next.js headers include nosniff, frame, referrer, permissions policy and HSTS. CSP, cookie/session hardening, CSRF/origin protections and upload validation still need route-aware review.
-7. GitHub `main` currently reports branch protection disabled. Configure required reviews/checks and restrict production releases after confirming repository administration permissions.
-8. Supabase Security Advisor reports 30 public tables with RLS enabled but no policies, plus leaked-password protection disabled. With no Supabase JS client found in the repository, the web app appears to use Prisma for application data and Supabase Auth for credential verification; confirm no external Data API consumer before revoking broad `anon`/`authenticated` table grants. Enable leaked-password protection in Supabase Auth settings after confirming the supported setting and impact.
+4. Authentication uses Supabase password verification followed by a NextAuth JWT and a Prisma user record. The branch patch now re-reads the canonical Prisma role on each server-side session resolution, limits sessions to four hours, makes the configured Super Admin email a bootstrap-only rule for newly created app users, and clears the session identity if its Prisma user has been deleted. This still requires build and regression testing.
+5. Admin APIs use a shared `requireAdmin` helper in inspected routes. Role restrictions are present on sampled admin order, inventory, coupon, category, courier, review and upload handlers. The complete route/method audit is still in progress.
+6. The first route review found a potential account-linking flaw in guest checkout: when a guest submits an email already present in `User`, the order is attached to that existing user record without proving control of that account. Review and fix this before production release; preserve guest checkout but do not silently link it to another customer's account.
+7. Registration routes create users directly in Prisma with bcrypt hashes, while the credentials sign-in path verifies passwords against Supabase Auth. Confirm the registration and sign-in flows are consistent end-to-end; otherwise newly registered users may not be able to authenticate through the configured credentials provider. Do not bulk migrate or reset customer credentials.
+8. Order tracking uses order number plus email as the lookup proof. Keep order numbers high-entropy and rate-limit tracking attempts; avoid returning unnecessary customer/address data.
+9. The inspected upload endpoint checks MIME type and size, but MIME metadata alone does not prove the uploaded bytes are a safe image. Add file-signature validation and consider image re-encoding before storage.
+10. Existing Next.js headers include nosniff, frame, referrer, permissions policy and HSTS. CSP, cookie/session hardening, CSRF/origin protections and comprehensive upload validation still need route-aware review.
+11. GitHub `main` currently reports branch protection disabled. Configure required reviews/checks and restrict production releases after confirming repository administration permissions.
+12. Supabase Security Advisor reports 30 public tables with RLS enabled but no policies, plus leaked-password protection disabled. With no Supabase JS client found in the repository, the web app appears to use Prisma for application data and Supabase Auth for credential verification; confirm no external Data API consumer before revoking broad `anon`/`authenticated` table grants. Enable leaked-password protection in Supabase Auth settings after confirming the supported setting and impact.
 
 ## Implementation sequence
 
@@ -35,10 +39,11 @@
 - Upgrade Next.js/React and transitive dependencies using a reviewed lockfile update.
 - Revalidate role and account status on each server session; use short admin sessions and reauthentication for sensitive operations.
 - Apply explicit role permissions to every admin endpoint.
-- Add rate limits for login, registration, password reset, coupon validation, reviews and public write endpoints.
+- Add rate limits for login, registration, password reset, coupon validation, reviews, order tracking and public write endpoints.
 - Add strict Zod validation, payload limits, safe error responses and origin/CSRF protections.
 - Harden headers with a tested CSP and secure cookie settings; avoid breaking checkout, OAuth or image delivery.
 - Review uploads, external URLs, redirects, webhook signatures and secret handling.
+- Resolve the registration/authentication provider mismatch and guest checkout account-linking issue before release.
 
 ### Gate 2 — Database and storage security
 - Map every table, view, function, trigger and storage bucket to its access requirements.
@@ -66,6 +71,7 @@
 
 - [x] Create isolated working branch from current `main`.
 - [x] Inspect package manifest, auth implementation, admin helper, middleware, Prisma schema and connected Supabase table security metadata.
+- [x] Review a representative set of customer and admin API routes; record high-risk findings above.
 - [ ] Complete route-by-route authorization audit.
 - [ ] Verify production database target and backup/restore readiness.
 - [ ] Implement and test application hardening.
