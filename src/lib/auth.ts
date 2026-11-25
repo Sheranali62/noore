@@ -127,14 +127,17 @@ export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers,
   callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
+    async jwt({ token, user, trigger }) {
+      const userId = user?.id ?? (trigger === "update" && typeof token.id === "string" ? token.id : null)
+      if (userId) {
         const currentUser = await prisma.user.findUnique({
-          where: { id: user.id },
-          select: { id: true, role: true, updatedAt: true },
+          where: { id: userId },
+          select: { id: true, role: true, name: true, email: true, updatedAt: true },
         })
         token.role = currentUser?.role ?? "CUSTOMER"
         token.id = currentUser?.id ?? ""
+        token.name = currentUser?.name ?? null
+        token.email = currentUser?.email ?? null
         token.userUpdatedAt = currentUser?.updatedAt.getTime() ?? 0
       }
       return token
