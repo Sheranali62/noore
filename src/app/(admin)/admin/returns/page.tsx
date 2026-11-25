@@ -12,7 +12,7 @@ type RequestItem = {
   adminNote: string | null
   refundAmount: number | null
   createdAt: string
-  order: { id: string; orderNumber: string; total: number; status: string }
+  order: { id: string; orderNumber: string; total: number; status: string; items: Array<{ id: string; product: { name: string }; variant: { color: string; size: string } | null }> }
   user: { id: string; name: string | null; email: string }
 }
 
@@ -84,7 +84,7 @@ export default function AdminReturnsPage() {
                 <span className="rounded-full border border-[#d6ae72]/30 bg-[#d6ae72]/10 px-3 py-1 text-xs font-semibold text-[#e4c28e]">{item.status.replaceAll("_", " ")}</span>
               </div>
               {item.details && <p className="mt-4 rounded-xl bg-white/[.04] p-4 text-sm leading-6 text-white/75">{item.details}</p>}
-              <p className="mt-3 text-xs text-white/45">Selected order item IDs: {item.itemIds.length ? item.itemIds.join(", ") : "All items"}</p>
+              <div className="mt-3 space-y-1 text-xs text-white/55"><p className="font-semibold uppercase tracking-wider text-white/35">Requested items</p>{item.itemIds.length ? item.itemIds.map(id => { const productItem = item.order.items.find(entry => entry.id === id); return <p key={id}>• {productItem ? productItem.product.name + (productItem.variant ? ` · ${productItem.variant.color} / ${productItem.variant.size}` : "") : "Item no longer available"}</p> }) : <p>All items</p>}</div>
               <div className="mt-5 grid gap-4 lg:grid-cols-[1fr_1fr_180px_auto]">
                 <label className="text-xs text-white/50">Admin note
                   <textarea rows={2} value={notes[item.id] || ""} onChange={event => setNotes(current => ({ ...current, [item.id]: event.target.value }))} className="mt-2 w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm text-white outline-none focus:border-[#d6ae72]" placeholder="Internal/customer-facing decision note" />
