@@ -62,9 +62,9 @@ const stories = [
   },
 ]
 
-function readInterest(): { segment: InterestSegment | null; scores: Record<InterestSegment, number> } {
+async function readInterest(): Promise<{ segment: InterestSegment | null; scores: Record<InterestSegment, number> }> {
   try {
-    const raw = cookies().get(PERSONALIZATION_COOKIE)?.value
+    const raw = (await cookies()).get(PERSONALIZATION_COOKIE)?.value
     if (!raw) return { segment: null, scores: { women: 0, men: 0, kids: 0 } }
     const parsed = JSON.parse(decodeURIComponent(raw))
     const scores = {
@@ -93,7 +93,7 @@ function personalize<
 }
 
 export default async function HomePage() {
-  const { segment: interest } = readInterest()
+  const { segment: interest } = await readInterest()
   const media = await getStorefrontMedia()
 
   const [newRaw, saleRaw, limitedRaw, popularGroups, categoryImageRows, journalPosts] = await Promise.all([
