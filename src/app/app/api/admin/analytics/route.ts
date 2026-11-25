@@ -8,8 +8,7 @@ export async function GET() {
   const guard = await requireAdmin([
     "SUPER_ADMIN",
     "ADMIN",
-    "ORDER_MANAGER",
-  ])
+      ])
 
   if (guard.response) {
     return guard.response
