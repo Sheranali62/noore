@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
 import { randomBytes } from "crypto"
 import { prisma } from "@/lib/prisma"
 
@@ -9,6 +10,13 @@ function validEmail(value: string) {
 }
 
 export async function POST(request: NextRequest) {
+  const rate = checkRateLimit(`newsletter:${getClientIp(request)}`, 5, 3600000)
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Please wait before trying again." },
+      { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds), "Cache-Control": "no-store" } }
+    )
+  }
   try {
     const body = await request.json().catch(() => ({}))
     const email = String(body.email ?? "").trim().toLowerCase()
