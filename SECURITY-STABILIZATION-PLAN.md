@@ -85,3 +85,12 @@
 - [ ] Obtain approval before production promotion.
 
 This document records an initial review, not a penetration-test certification. Findings must be revalidated against the deployed production commit and live environment before release.
+
+## Follow-up fixes (2026-11-25)
+
+- Fixed the order-tracking client URL: the page now calls the existing `GET /api/orders` handler instead of the nonexistent `/api/orders/track` path.
+- Reduced the order-tracking response to the fields rendered by the customer page (order status, total, timestamps, payment method, courier tracking, item quantities/prices, product name/images, and variant color/size). The response no longer includes the customer's address or account email.
+- Restricted report exports by role: sales and customer exports are limited to `SUPER_ADMIN` and `ADMIN`; inventory exports also permit `PRODUCT_MANAGER`. Unknown report types now return HTTP 400.
+- The checkout route on this branch already uses 64-bit random order-number entropy and conditional atomic stock decrements for both product and variant stock. These changes remain part of the review scope.
+- Remaining release gate: add a shared, production-appropriate rate limiter to public order tracking. No reliable shared rate-limit store is currently configured in the repository; do not use a process-local in-memory limiter as a production security control. Also add automated tests for concurrent stock reservation, tracking authorization/response shape, and report role matrix.
+- Validation remains pending because the Vercel preview build has been blocked by the free-plan build-rate limit. No production deployment or database schema/data change has been made.
