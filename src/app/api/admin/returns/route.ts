@@ -72,7 +72,11 @@ export async function PATCH(request: NextRequest) {
           if (item.variantId) {
             const variant = await tx.productVariant.findUnique({ where: { id: item.variantId }, select: { stock: true } })
             if (!variant) continue
-            await tx.productVariant.update({ where: { id: item.variantId }, data: { stock: { increment: item.quantity } } })
+            const changed = await tx.productVariant.updateMany({
+              where: { id: item.variantId, stock: variant.stock },
+              data: { stock: { increment: item.quantity } },
+            })
+            if (changed.count !== 1) throw new Error("RETURN_STOCK_CONFLICT")
             await tx.inventoryMovement.create({
               data: {
                 productId: item.productId,
@@ -88,7 +92,11 @@ export async function PATCH(request: NextRequest) {
           } else {
             const product = await tx.product.findUnique({ where: { id: item.productId }, select: { stock: true } })
             if (!product) continue
-            await tx.product.update({ where: { id: item.productId }, data: { stock: { increment: item.quantity } } })
+            const changed = await tx.product.updateMany({
+              where: { id: item.productId, stock: product.stock },
+              data: { stock: { increment: item.quantity } },
+            })
+            if (changed.count !== 1) throw new Error("RETURN_STOCK_CONFLICT")
             await tx.inventoryMovement.create({
               data: {
                 productId: item.productId,
@@ -134,6 +142,9 @@ export async function PATCH(request: NextRequest) {
   } catch (error) {
     if (error instanceof Error && error.message === "RETURN_STATUS_CONFLICT") {
       return NextResponse.json({ error: "This return request was updated by another administrator. Refresh and try again." }, { status: 409 })
+    }
+    if (error instanceof Error && error.message === "RETURN_STOCK_CONFLICT") {
+      return NextResponse.json({ error: "Inventory changed while receiving this return. Refresh and try again." }, { status: 409 })
     }
     console.error("Return request update failed:", error)
     return NextResponse.json({ error: "Unable to update return request." }, { status: 500 })
