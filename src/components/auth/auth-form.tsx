@@ -153,8 +153,8 @@ export function AuthForm({ type }: AuthFormProps) {
             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             className="w-full px-3 py-2 border border-cream rounded focus:outline-none focus:border-charcoal"
             placeholder={type === "login" ? "Enter your password" : "12+ characters, mixed case, number and symbol"}
-            {type === "register" && <p className="mt-1 text-xs text-secondary">{PASSWORD_POLICY_MESSAGE}</p>}
           />
+          {type === "register" && <p className="mt-1 text-xs text-secondary">{PASSWORD_POLICY_MESSAGE}</p>}
         </div>
 
         {type === "register" && (
