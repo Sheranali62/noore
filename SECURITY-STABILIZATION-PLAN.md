@@ -19,8 +19,8 @@
 3. The inspected Supabase `public` tables have RLS enabled, but the policy catalog query returned zero policies. The inspected table grants include broad CRUD privileges for `anon` and `authenticated`. With no policies, RLS is default-deny for Data API row access; grants should nevertheless be narrowed to least privilege and policies added only after mapping actual app access.
 4. Authentication uses Supabase password verification followed by a NextAuth JWT and a Prisma user record. The branch patch now re-reads the canonical Prisma role on each server-side session resolution, limits sessions to four hours, makes the configured Super Admin email a bootstrap-only rule for newly created app users, and clears the session identity if its Prisma user has been deleted. This still requires build and regression testing.
 5. Admin APIs use a shared `requireAdmin` helper in inspected routes. Role restrictions are present on sampled admin order, inventory, coupon, category, courier, review and upload handlers. The complete route/method audit is still in progress.
-6. The first route review found a potential account-linking flaw in guest checkout: when a guest submits an email already present in `User`, the order is attached to that existing user record without proving control of that account. Review and fix this before production release; preserve guest checkout but do not silently link it to another customer's account.
-7. Registration routes create users directly in Prisma with bcrypt hashes, while the credentials sign-in path verifies passwords against Supabase Auth. Confirm the registration and sign-in flows are consistent end-to-end; otherwise newly registered users may not be able to authenticate through the configured credentials provider. Do not bulk migrate or reset customer credentials.
+6. The guest-checkout account-linking flaw has been addressed on the working branch: unauthenticated checkout now refuses to attach an order to an existing account based on email alone, including case-insensitive matches. A customer with an existing account must sign in. Authenticated checkout also requires the submitted contact email to match the session email. Regression testing is still required.
+7. Registration routes now normalize email addresses, reject malformed email/password input, require passwords of at least eight characters, and use case-insensitive existing-account checks. The credentials provider now supports bcrypt verification for legacy Prisma-registered accounts when Supabase password authentication does not succeed, preserving existing account credentials. Test registration, legacy login, Supabase login, Google OAuth, and password recovery before release; no customer passwords were migrated or reset.
 8. Order tracking uses order number plus email as the lookup proof. Keep order numbers high-entropy and rate-limit tracking attempts; avoid returning unnecessary customer/address data.
 9. The inspected upload endpoint checks MIME type and size, but MIME metadata alone does not prove the uploaded bytes are a safe image. Add file-signature validation and consider image re-encoding before storage.
 10. Existing Next.js headers include nosniff, frame, referrer, permissions policy and HSTS. CSP, cookie/session hardening, CSRF/origin protections and comprehensive upload validation still need route-aware review.
@@ -74,7 +74,8 @@
 - [x] Review a representative set of customer and admin API routes; record high-risk findings above.
 - [ ] Complete route-by-route authorization audit.
 - [ ] Verify production database target and backup/restore readiness.
-- [ ] Implement and test application hardening.
+- [x] Implement initial guest-checkout account-linking protection and registration/legacy-login compatibility on the isolated branch.
+- [ ] Run build, type-check and authentication/checkout regression tests.
 - [ ] Implement database least-privilege policies in a reviewed migration.
 - [ ] Complete end-to-end security and commerce tests.
 - [ ] Obtain approval before production promotion.
