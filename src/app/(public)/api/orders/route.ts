@@ -485,6 +485,16 @@ export async function POST(request: NextRequest) {
             )
           }
 
+          // Serialize coupon claims so per-customer limits cannot be raced by
+          // two simultaneous checkout transactions.
+          await tx.$queryRaw<Array<{ id: string }>>`
+            SELECT "id" FROM "Coupon" WHERE "id" = ${appliedCoupon.id} FOR UPDATE
+          `
+          appliedCoupon = await tx.coupon.findUnique({
+            where: { id: appliedCoupon.id },
+          })
+          if (!appliedCoupon) throw new Error("Invalid coupon code")
+
           const existingCustomerUsage =
             await tx.couponUsage.count({
               where: {
