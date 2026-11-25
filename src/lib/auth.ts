@@ -36,6 +36,7 @@ const providers: NextAuthOptions["providers"] = [
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
       const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
       if (!supabaseUrl || !supabaseAnonKey) {
+        if (process.env.NODE_ENV === "production") return null
         try {
           return await authenticateLegacyPrismaUser()
         } catch {
