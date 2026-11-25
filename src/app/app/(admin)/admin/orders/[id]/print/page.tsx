@@ -1,4 +1,5 @@
 ﻿import { notFound } from "next/navigation"
+import { requireAdmin } from "@/lib/admin"
 import { prisma } from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
@@ -37,6 +38,9 @@ function formatDateTime(date: Date) {
 }
 
 export default async function PrintOrderPage({
+  const access = await requireAdmin(["SUPER_ADMIN","ADMIN","ORDER_MANAGER"])
+  if (access.response) notFound()
+
   params,
   searchParams,
 }: {
