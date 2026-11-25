@@ -23,17 +23,23 @@ const STATUS_MAP: Record<string, string> = {
 
 export async function POST(request: NextRequest) {
   const secret = process.env.COURIER_WEBHOOK_SECRET
-  if (!secret) return NextResponse.json({ error: "Courier webhook is not configured." }, { status: 503 })
+  if (!secret || secret.length < 32) return NextResponse.json({ error: "Courier webhook is not configured securely." }, { status: 503 })
   if (!authorized(request, secret)) return NextResponse.json({ error: "Unauthorized." }, { status: 401 })
 
   try {
+    const contentType = request.headers.get("content-type") ?? ""
+    if (!contentType.toLowerCase().includes("application/json")) {
+      return NextResponse.json({ error: "A JSON webhook body is required." }, { status: 415 })
+    }
+    const contentLength = Number(request.headers.get("content-length") ?? 0)
+    if (contentLength > 16 * 1024) return NextResponse.json({ error: "Webhook payload is too large." }, { status: 413 })
     const body = await request.json()
     const orderNumber = String(body.orderNumber ?? "").trim()
     const trackingNumber = String(body.trackingNumber ?? "").trim()
     const courier = String(body.courier ?? "").trim().slice(0, 100)
     const providerStatus = String(body.status ?? "").toUpperCase()
     const status = STATUS_MAP[providerStatus]
-    if (!orderNumber || !trackingNumber || !status) return NextResponse.json({ error: "Invalid courier event." }, { status: 400 })
+    if (!orderNumber || orderNumber.length > 64 || !trackingNumber || trackingNumber.length > 180 || !status) return NextResponse.json({ error: "Invalid courier event." }, { status: 400 })
 
     const order = await prisma.order.findUnique({ where: { orderNumber }, select: { id: true, orderNumber: true, status: true, trackingNumber: true, user: { select: { name: true, email: true } } } })
     if (!order) return NextResponse.json({ error: "Order not found." }, { status: 404 })
@@ -44,7 +50,11 @@ export async function POST(request: NextRequest) {
     }
 
     await prisma.$transaction(async tx => {
-      await tx.order.update({ where: { id: order.id }, data: { status: status as any, trackingNumber, ...(courier ? { courier } : {}) } })
+      const updated = await tx.order.updateMany({
+        where: { id: order.id, status: order.status },
+        data: { status: status as any, trackingNumber, ...(courier ? { courier } : {}) },
+      })
+      if (updated.count !== 1) throw new Error("COURIER_STATUS_CONFLICT")
       await tx.orderEvent.create({ data: { orderId: order.id, event: `COURIER_${providerStatus}`, message: courier ? `${courier}: ${providerStatus.replaceAll("_", " ").toLowerCase()}.` : `Courier update: ${providerStatus.replaceAll("_", " ").toLowerCase()}.`, metadata: { trackingNumber, courier, providerStatus } } })
       await tx.auditLog.create({ data: { action: "COURIER_WEBHOOK", entityType: "Order", entityId: order.id, details: { trackingNumber, courier, providerStatus } } })
     })
@@ -60,6 +70,9 @@ export async function POST(request: NextRequest) {
     }
     return NextResponse.json({ success: true })
   } catch (error) {
+    if (error instanceof Error && error.message === "COURIER_STATUS_CONFLICT") {
+      return NextResponse.json({ error: "A newer courier event was processed concurrently. Please retry this event." }, { status: 409 })
+    }
     console.error("Courier webhook failed:", error)
     return NextResponse.json({ error: "Unable to process courier event." }, { status: 500 })
   }
