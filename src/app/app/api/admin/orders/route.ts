@@ -20,6 +20,7 @@ export async function GET() {
       select: {
         id: true,
         orderNumber: true,
+        subtotal: true,
         total: true,
         status: true,
         paymentMethod: true,
@@ -31,6 +32,15 @@ export async function GET() {
           select: {
             name: true,
             email: true,
+          },
+        },
+        address: {
+          select: {
+            name: true,
+            phone: true,
+            address: true,
+            city: true,
+            province: true,
           },
         },
       },
