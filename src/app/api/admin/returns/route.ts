@@ -58,6 +58,14 @@ export async function PATCH(request: NextRequest) {
     }
 
     const result = await prisma.$transaction(async tx => {
+      if (status !== current.status) {
+        const claimed = await tx.returnRequest.updateMany({
+          where: { id, status: current.status },
+          data: { status: status as any },
+        })
+        if (claimed.count !== 1) throw new Error("RETURN_STATUS_CONFLICT")
+      }
+
       if (status === "RECEIVED" && current.status !== "RECEIVED") {
         const returnedItems = current.order.items.filter(item => current.itemIds.includes(item.id))
         for (const item of returnedItems) {
@@ -96,10 +104,9 @@ export async function PATCH(request: NextRequest) {
         }
       }
 
-      const updated = await tx.returnRequest.update({
-        where: { id },
-        data: { status: status as any, ...(adminNote !== undefined ? { adminNote } : {}) },
-      })
+      const updated = adminNote !== undefined
+        ? await tx.returnRequest.update({ where: { id }, data: { adminNote } })
+        : await tx.returnRequest.findUnique({ where: { id } })
       if (status === "REFUNDED") {
         await tx.order.update({ where: { id: current.orderId }, data: { paymentStatus: "REFUNDED" } })
       }
@@ -125,6 +132,9 @@ export async function PATCH(request: NextRequest) {
     })
     return NextResponse.json({ request: result })
   } catch (error) {
+    if (error instanceof Error && error.message === "RETURN_STATUS_CONFLICT") {
+      return NextResponse.json({ error: "This return request was updated by another administrator. Refresh and try again." }, { status: 409 })
+    }
     console.error("Return request update failed:", error)
     return NextResponse.json({ error: "Unable to update return request." }, { status: 500 })
   }
