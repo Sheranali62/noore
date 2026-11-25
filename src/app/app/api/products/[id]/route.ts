@@ -4,12 +4,12 @@ import { requireAdmin } from "@/lib/admin"
 
 const cleanImages = (value: unknown) => Array.isArray(value) ? value.filter((v): v is string => typeof v === "string" && v.trim() !== "" && (v.startsWith("data:image/") || /^https?:\/\//i.test(v.trim()))) : []
 
-export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { response } = await requireAdmin(["SUPER_ADMIN", "ADMIN", "PRODUCT_MANAGER"])
   if (response) return response
 
   try {
-    const product = await prisma.product.findUnique({ where: { id: params.id }, include: { variants: true } })
+    const product = await prisma.product.findUnique({ where: { id: (await params).id }, include: { variants: true } })
     if (!product) return NextResponse.json({ error: "Product not found" }, { status: 404 })
     return NextResponse.json(product)
   } catch (error) {
@@ -18,7 +18,7 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { response } = await requireAdmin(["SUPER_ADMIN", "ADMIN", "PRODUCT_MANAGER"])
   if (response) return response
 
@@ -57,7 +57,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: "Low-stock threshold must be a whole number" }, { status: 400 })
     }
 
-    const duplicate = await prisma.product.findFirst({ where: { OR: [{ slug }, { sku }], NOT: { id: params.id } }, select: { id: true } })
+    const duplicate = await prisma.product.findFirst({ where: { OR: [{ slug }, { sku }], NOT: { id: (await params).id } }, select: { id: true } })
     if (duplicate) return NextResponse.json({ error: "Slug or SKU already exists" }, { status: 409 })
 
     const rawVariants = Array.isArray(body.variants) ? body.variants : []
@@ -76,7 +76,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     if (new Set(variants.map((v: any) => v.sku)).size !== variants.length) {
       return NextResponse.json({ error: "Variant SKUs must be unique" }, { status: 400 })
     }
-    const existing = await prisma.productVariant.findMany({ where: { productId: params.id }, select: { id: true } })
+    const existing = await prisma.productVariant.findMany({ where: { productId: (await params).id }, select: { id: true } })
     const existingIds = new Set(existing.map(v => v.id))
     if (variants.some((v: any) => v.id && !existingIds.has(v.id))) {
       return NextResponse.json({ error: "Invalid product variant" }, { status: 400 })
@@ -96,11 +96,11 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         if (variant.id) {
           await tx.productVariant.update({ where: { id: variant.id }, data: { color: variant.color, size: variant.size, sku: variant.sku, price: variant.price, stock: variant.stock, images: variant.images } })
         } else {
-          await tx.productVariant.create({ data: { productId: params.id, color: variant.color, size: variant.size, sku: variant.sku, price: variant.price, stock: variant.stock, images: variant.images } })
+          await tx.productVariant.create({ data: { productId: (await params).id, color: variant.color, size: variant.size, sku: variant.sku, price: variant.price, stock: variant.stock, images: variant.images } })
         }
       }
       return tx.product.update({
-        where: { id: params.id },
+        where: { id: (await params).id },
         data: {
           name,
           slug,
@@ -135,20 +135,20 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { response } = await requireAdmin(["SUPER_ADMIN", "ADMIN", "PRODUCT_MANAGER"])
   if (response) return response
 
   try {
-    const product = await prisma.product.findUnique({ where: { id: params.id }, select: { id: true, orderItems: { select: { id: true }, take: 1 } } })
+    const product = await prisma.product.findUnique({ where: { id: (await params).id }, select: { id: true, orderItems: { select: { id: true }, take: 1 } } })
     if (!product) return NextResponse.json({ error: "Product not found" }, { status: 404 })
 
     if (product.orderItems.length > 0) {
-      await prisma.product.update({ where: { id: params.id }, data: { status: "ARCHIVED" } })
+      await prisma.product.update({ where: { id: (await params).id }, data: { status: "ARCHIVED" } })
       return NextResponse.json({ message: "Product archived because it is referenced by an order" })
     }
 
-    await prisma.product.delete({ where: { id: params.id } })
+    await prisma.product.delete({ where: { id: (await params).id } })
     return NextResponse.json({ message: "Product deleted successfully" })
   } catch (error) {
     console.error("Error deleting product:", error)
