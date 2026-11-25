@@ -110,6 +110,16 @@ export async function POST(request: Request) {
             },
           })
 
+          await tx.auditLog.create({
+            data: {
+              actorId: guard.session?.user?.id,
+              action: "ADJUST_INVENTORY",
+              entityType: "ProductVariant",
+              entityId: variant.id,
+              details: { productId, change, beforeStock: variant.stock, afterStock: after, reason, note },
+            },
+          })
+
           return {
             beforeStock:
               variant.stock,
@@ -145,6 +155,16 @@ export async function POST(request: Request) {
             afterStock: after,
             reason,
             note,
+          },
+        })
+
+        await tx.auditLog.create({
+          data: {
+            actorId: guard.session?.user?.id,
+            action: "ADJUST_INVENTORY",
+            entityType: "Product",
+            entityId: product.id,
+            details: { change, beforeStock: product.stock, afterStock: after, reason, note },
           },
         })
 
