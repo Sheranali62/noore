@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
+import { checkRateLimit, getClientIp, enforceRateLimit } from "@/lib/rate-limit"
 import { prisma } from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
