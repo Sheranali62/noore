@@ -7,6 +7,8 @@ import { calculateCouponDiscount } from "@/lib/coupons"
 export const dynamic = "force-dynamic"
 
 export async function POST(request: NextRequest) {
+  const databaseLimit = await enforceRateLimit(request, "coupon-validation", 30, 60000)
+  if (databaseLimit) return databaseLimit
   const rate = checkRateLimit(`coupon-validation:${getClientIp(request)}`, 15, 60000)
   if (!rate.allowed) {
     return NextResponse.json(
