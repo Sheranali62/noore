@@ -68,6 +68,7 @@ export async function POST(request: NextRequest) {
     const itemIds = Array.isArray(body.itemIds)
       ? Array.from(new Set(body.itemIds.map((id: unknown) => String(id))))
       : []
+    const evidence = Array.isArray(body.evidence) ? body.evidence.map((value: unknown) => String(value)) : []
     const allowedReasons = [
       "Wrong item received",
       "Damaged or defective",
@@ -76,7 +77,7 @@ export async function POST(request: NextRequest) {
       "Other",
     ]
 
-    if (!orderId || !allowedReasons.includes(reason) || !itemIds.length) {
+    if (!orderId || !allowedReasons.includes(reason) || !itemIds.length || evidence.length > 5) {
       return NextResponse.json({ error: "Select an order, return reason and at least one item." }, { status: 400 })
     }
 
@@ -92,6 +93,9 @@ export async function POST(request: NextRequest) {
     if (Date.now() - deliveredAt.getTime() > 14 * 24 * 60 * 60 * 1000) {
       return NextResponse.json({ error: "The 14-day return window for this order has ended." }, { status: 409 })
     }
+
+    const validEvidence = evidence.every(value => { try { const url = new URL(value); return url.protocol === "https:" && url.hostname.endsWith(".blob.vercel-storage.com") } catch { return false } })
+    if (!validEvidence) return NextResponse.json({ error: "Return evidence must be uploaded using the provided image uploader." }, { status: 400 })
 
     const validIds = new Set(order.items.map(item => item.id))
     if (itemIds.some(id => !validIds.has(id))) {
@@ -112,7 +116,7 @@ export async function POST(request: NextRequest) {
 
     const result = await prisma.$transaction(async tx => {
       const created = await tx.returnRequest.create({
-        data: { orderId, userId: session.user.id, reason, details: details || null, itemIds },
+        data: { orderId, userId: session.user.id, reason, details: details || null, itemIds, evidence },
       })
       await tx.orderEvent.create({
         data: {
