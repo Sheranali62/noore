@@ -48,7 +48,8 @@ export default function CheckoutPage() {
         setSettings({
           freeShippingThreshold: Number(s.freeShippingThreshold ?? FALLBACK.freeShippingThreshold),
           standardShipping: Number(s.standardShipping ?? FALLBACK.standardShipping),
-          expressShipping: Number(s.expressShipping ?? FALLBACK.expressShipping),\n          taxRate: Number(s.taxRate ?? FALLBACK.taxRate),
+          expressShipping: Number(s.expressShipping ?? FALLBACK.expressShipping),
+          taxRate: Number(s.taxRate ?? FALLBACK.taxRate),
         })
       }
       if (addressesResult.status === "fulfilled" && addressesResult.value?.addresses) {
@@ -71,7 +72,8 @@ export default function CheckoutPage() {
 
   const shipping = formData.deliveryMethod === "express" ? settings.expressShipping : (total >= settings.freeShippingThreshold ? 0 : settings.standardShipping)
   const discount = coupon?.discount || 0
-  const tax = Math.round(Math.max(0, total - discount) * settings.taxRate / 100 * 100) / 100\n  const grandTotal = Math.max(0, total - discount + shipping + tax)
+  const tax = Math.round(Math.max(0, total - discount) * settings.taxRate / 100 * 100) / 100
+  const grandTotal = Math.max(0, total - discount + shipping + tax)
   const freeShippingGap = Math.max(0, settings.freeShippingThreshold - total)
 
   const update = (key: keyof typeof formData, value: string) => setFormData(prev => ({ ...prev, [key]: value }))
@@ -180,7 +182,13 @@ export default function CheckoutPage() {
         </div>}
         <div className="mt-6 flex flex-col items-center justify-between gap-4 border border-[#B8AA91] bg-[#465340] p-5 sm:flex-row">
           <div className="flex items-center gap-3"><ShieldCheck size={20} className="text-[#D4A07D]"/><div><p className="text-sm font-medium">Need help with your order?</p><p className="mt-1 text-xs text-[#B8AA91]">Our support team is here to help.</p></div></div>
-          <a href={"https://wa.me/923150490498?text="+encodeURIComponent("Hello NOORÉ, I have placed an order and would like to confirm the details.\nOrder: #"+orderNumber+"\nName: "+(confirmedOrder?.name||"")+"\nPhone: "+(confirmedOrder?.phone||"")+"\nItems: "+(confirmedOrder?.items.map(item=>item.name+" x "+item.quantity).join(", ")||"") +"\nTotal due (COD): PKR "+(confirmedOrder?.total.toLocaleString()||"") +"\nDelivery: "+(confirmedOrder?.address||"")+", "+(confirmedOrder?.city||"")+", "+(confirmedOrder?.province||"")+"." )} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center border border-[#D4A07D] px-5 py-3 text-xs font-semibold uppercase tracking-wider text-[#D4A07D] hover:bg-[#D4A07D]/10">Send order details on WhatsApp</a>
+          <a href={"https://wa.me/923150490498?text="+encodeURIComponent("Hello NOORÉ, I have placed an order and would like to confirm the details.
+Order: #"+orderNumber+"
+Name: "+(confirmedOrder?.name||"")+"
+Phone: "+(confirmedOrder?.phone||"")+"
+Items: "+(confirmedOrder?.items.map(item=>item.name+" x "+item.quantity).join(", ")||"") +"
+Total due (COD): PKR "+(confirmedOrder?.total.toLocaleString()||"") +"
+Delivery: "+(confirmedOrder?.address||"")+", "+(confirmedOrder?.city||"")+", "+(confirmedOrder?.province||"")+"." )} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center border border-[#D4A07D] px-5 py-3 text-xs font-semibold uppercase tracking-wider text-[#D4A07D] hover:bg-[#D4A07D]/10">Send order details on WhatsApp</a>
         </div>
         <div className="mt-6 text-center"><Link href="/products" className="text-xs uppercase tracking-[0.18em] text-[#B8AA91] underline underline-offset-4 hover:text-[#D4A07D]">Continue shopping</Link></div>
       </div>
