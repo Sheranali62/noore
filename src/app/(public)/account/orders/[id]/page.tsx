@@ -27,7 +27,7 @@ export default async function OrderDetailPage({ params }: { params: { id: string
 
   const order = await prisma.order.findFirst({
     where: { id: params.id, userId: session.user.id },
-    include: { address: true, items: { include: { product: true, variant: true } } },
+    include: { address: true, items: { include: { product: true, variant: true } }, orderEvents: { orderBy: { createdAt: "desc" } } },
   })
   if (!order) notFound()
 
@@ -47,6 +47,7 @@ export default async function OrderDetailPage({ params }: { params: { id: string
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <Link href={`/order-tracking?orderNumber=${encodeURIComponent(order.orderNumber)}`} className="border border-[#D8D8CB] bg-white rounded-xl px-4 py-2.5 text-sm font-medium">Track order</Link>
+            {order.status === "DELIVERED" && <Link href="/account/returns" className="rounded-xl bg-[#535F4C] px-4 py-2.5 text-sm font-medium text-white">Request return</Link>}
             <span className={`rounded-full px-4 py-2 text-xs uppercase tracking-wide font-medium ${statusClass(order.status)}`}>{order.status.replaceAll("_", " ")}</span>
           </div>
         </div>
@@ -93,6 +94,11 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                 </div>
               )}
             </section>
+
+            {order.orderEvents.length > 0 && <section className="bg-white border border-[#D8D8CB] rounded-3xl p-6 md:p-8">
+              <h2 className="font-editorial text-2xl">Order activity</h2>
+              <div className="mt-5 space-y-4">{order.orderEvents.map(event => <div key={event.id} className="flex gap-3 border-l-2 border-[#535F4C]/30 pl-4"><div className="min-w-0"><p className="text-sm font-medium">{event.event.replaceAll("_", " ")}</p><p className="mt-1 text-sm text-[#777967]">{event.message || "Order updated."}</p><p className="mt-1 text-[11px] text-[#777967]">{new Date(event.createdAt).toLocaleString()}</p></div></div>)}</div>
+            </section>}
 
             <section className="bg-white border border-[#D8D8CB] rounded-3xl p-6 md:p-8">
               <h2 className="font-editorial text-2xl">Items</h2>
