@@ -23,33 +23,38 @@ import {
   LifeBuoy,
 } from "lucide-react"
 
+const ADMIN = ["SUPER_ADMIN", "ADMIN"] as const
+const PRODUCT = [...ADMIN, "PRODUCT_MANAGER"] as const
+const ORDER = [...ADMIN, "ORDER_MANAGER"] as const
+const CONTENT = [...ADMIN, "CONTENT_MANAGER"] as const
+
 const items = [
-  { href: "/admin", label: "Dashboard", icon: Home },
-  { href: "/admin/products", label: "Products", icon: Package },
-  { href: "/admin/categories", label: "Categories", icon: FolderTree },
-  { href: "/admin/orders", label: "Orders", icon: ClipboardList },
-  { href: "/admin/returns", label: "Returns & Exchanges", icon: RotateCcw },
-  { href: "/admin/audit-logs", label: "Audit Log", icon: ScrollText },
-  { href: "/admin/payments", label: "Payments", icon: CreditCard },
-  { href: "/admin/newsletter", label: "Newsletter", icon: Mail },
-  { href: "/admin/support", label: "Support Centre", icon: LifeBuoy },
-  { href: "/admin/couriers", label: "Couriers", icon: Truck },
-  { href: "/admin/customers", label: "Customers", icon: Users },
-  { href: "/admin/coupons", label: "Coupons", icon: Gift },
-  { href: "/admin/inventory", label: "Inventory", icon: Boxes },
-  { href: "/admin/homepage", label: "Homepage", icon: Image },
-  { href: "/admin/website-design", label: "Website Design", icon: Palette },
-  { href: "/admin/page-content", label: "Page Content", icon: FileText },
-  { href: "/admin/storefront-media", label: "Storefront Images", icon: Image },
-  { href: "/admin/analytics", label: "Reports", icon: BarChart3 },
-  { href: "/admin/settings", label: "Settings", icon: Settings },
+  { href: "/admin", label: "Dashboard", icon: Home, roles: ADMIN },
+  { href: "/admin/products", label: "Products", icon: Package, roles: PRODUCT },
+  { href: "/admin/categories", label: "Categories", icon: FolderTree, roles: PRODUCT },
+  { href: "/admin/orders", label: "Orders", icon: ClipboardList, roles: ORDER },
+  { href: "/admin/returns", label: "Returns & Exchanges", icon: RotateCcw, roles: ORDER },
+  { href: "/admin/audit-logs", label: "Audit Log", icon: ScrollText, roles: ADMIN },
+  { href: "/admin/payments", label: "Payments", icon: CreditCard, roles: ADMIN },
+  { href: "/admin/newsletter", label: "Newsletter", icon: Mail, roles: ADMIN },
+  { href: "/admin/support", label: "Support Centre", icon: LifeBuoy, roles: ORDER },
+  { href: "/admin/couriers", label: "Couriers", icon: Truck, roles: ORDER },
+  { href: "/admin/customers", label: "Customers", icon: Users, roles: ADMIN },
+  { href: "/admin/coupons", label: "Coupons", icon: Gift, roles: ADMIN },
+  { href: "/admin/inventory", label: "Inventory", icon: Boxes, roles: PRODUCT },
+  { href: "/admin/homepage", label: "Homepage", icon: Image, roles: CONTENT },
+  { href: "/admin/website-design", label: "Website Design", icon: Palette, roles: CONTENT },
+  { href: "/admin/page-content", label: "Page Content", icon: FileText, roles: CONTENT },
+  { href: "/admin/storefront-media", label: "Storefront Images", icon: Image, roles: CONTENT },
+  { href: "/admin/analytics", label: "Reports", icon: BarChart3, roles: ADMIN },
+  { href: "/admin/settings", label: "Settings", icon: Settings, roles: ADMIN },
 ] as const
 
-export default function AdminNav({ mobile = false }: { mobile?: boolean }) {
+export default function AdminNav({ mobile = false, role = "CUSTOMER" }: { mobile?: boolean; role?: string }) {
   const pathname = usePathname()
   return (
     <nav className={mobile ? "flex flex-col gap-1.5" : "space-y-1.5"} aria-label="Admin navigation">
-      {items.map(({ href, label, icon: Icon }) => {
+      {items.filter(item => (item.roles as readonly string[]).includes(role)).map(({ href, label, icon: Icon }) => {
         const active = href === "/admin" ? pathname === href : pathname.startsWith(href)
         return (
           <Link
