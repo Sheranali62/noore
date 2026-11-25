@@ -84,17 +84,10 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    if (!order) {
+    if (!order || normalizeEmail(order.user?.email) !== email) {
       return trackingResponse(
-        { error: "Order not found" },
+        { error: "Order not found or verification failed" },
         { status: 404 }
-      )
-    }
-
-    if (normalizeEmail(order.user?.email) !== email) {
-      return trackingResponse(
-        { error: "Unauthorized" },
-        { status: 401 }
       )
     }
 
@@ -790,7 +783,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       order,
-      { status: 201 }
+      { status: 201, headers: { "Cache-Control": "private, no-store, max-age=0" } }
     )
   } catch (error) {
     console.error(
