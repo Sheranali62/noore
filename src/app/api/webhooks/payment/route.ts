@@ -27,11 +27,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid payment event." }, { status: 400 })
     }
 
-    const order = await prisma.order.findUnique({ where: { orderNumber }, select: { id: true, total: true, paymentStatus: true } })
+    const order = await prisma.order.findUnique({ where: { orderNumber }, select: { id: true, total: true, paymentStatus: true, status: true } })
     if (!order) return NextResponse.json({ error: "Order not found." }, { status: 404 })
     if (Math.abs(order.total - amount) > 0.01) return NextResponse.json({ error: "Payment amount does not match the order total." }, { status: 409 })
+    if (["CANCELLED", "REFUNDED"].includes(order.status) && status === "PAID") {
+      return NextResponse.json({ error: "Payment cannot be marked as paid for a cancelled or refunded order." }, { status: 409 })
+    }
     if (order.paymentStatus === "REFUNDED" && status !== "REFUNDED") {
       return NextResponse.json({ error: "This order has already been refunded." }, { status: 409 })
+    }
+    if (order.paymentStatus === "PAID" && status === "FAILED") {
+      return NextResponse.json({ success: true, ignored: true, message: "A confirmed payment cannot be downgraded to failed." })
     }
     const existing = await prisma.paymentTransaction.findUnique({
       where: { provider_providerReference: { provider, providerReference } },
