@@ -389,9 +389,9 @@ export async function POST(request: NextRequest) {
 
         if (!userId) {
           const existing =
-            await tx.user.findUnique({
+            await tx.user.findFirst({
               where: {
-                email,
+                email: { equals: email, mode: "insensitive" },
               },
               select: {
                 id: true,
