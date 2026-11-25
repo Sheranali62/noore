@@ -22,6 +22,7 @@ model User {
   couponUsage        CouponUsage[]
   inventoryMovements InventoryMovement[]
   returnRequests     ReturnRequest[]
+  supportTickets     SupportTicket[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -197,6 +198,7 @@ model Order {
   returnRequests   ReturnRequest[]
   paymentTransactions PaymentTransaction[]
   orderEvents      OrderEvent[]
+  supportTickets   SupportTicket[]
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
 }
@@ -404,6 +406,47 @@ model AuditLog {
   @@index([entityType, entityId])
 }
 
+model SupportTicket {
+  id        String                @id @default(cuid())
+  userId    String
+  user      User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderId   String?
+  order     Order?                @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  subject   String
+  category  String
+  status    SupportTicketStatus   @default(OPEN)
+  priority  SupportTicketPriority @default(NORMAL)
+  messages  SupportTicketMessage[]
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
+
+  @@index([userId, updatedAt])
+  @@index([status, priority, updatedAt])
+  @@index([orderId])
+}
+
+model SupportTicketMessage {
+  id          String        @id @default(cuid())
+  ticketId    String
+  ticket      SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  senderId    String?
+  isStaff     Boolean       @default(false)
+  message     String
+  attachments String[]      @default([])
+  createdAt   DateTime      @default(now())
+
+  @@index([ticketId, createdAt])
+}
+
+model RateLimitBucket {
+  key         String   @id
+  count       Int      @default(0)
+  windowStart DateTime
+  updatedAt   DateTime @updatedAt
+
+  @@index([updatedAt])
+}
+
 model HomepageSection {
   id          String   @id @default(cuid())
   type        String
@@ -498,4 +541,19 @@ enum ReturnRequestStatus {
 enum CouponType {
   PERCENTAGE
   FIXED
+}
+
+enum SupportTicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_CUSTOMER
+  RESOLVED
+  CLOSED
+}
+
+enum SupportTicketPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
 }
