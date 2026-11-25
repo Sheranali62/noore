@@ -27,13 +27,13 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const { response } = await requireAdmin([
+  const guard = await requireAdmin([
     "SUPER_ADMIN",
     "ADMIN",
     "ORDER_MANAGER",
   ])
 
-  if (response) return response
+  if (guard.response) return guard.response
 
   try {
     const body = await request.json()
@@ -293,7 +293,7 @@ export async function PATCH(
         }
       }
 
-      return tx.order.update({
+      const updatedOrder = await tx.order.update({
         where: {
           id: params.id,
         },
@@ -335,6 +335,38 @@ export async function PATCH(
           },
         },
       })
+
+      await tx.orderEvent.create({
+        data: {
+          orderId: params.id,
+          actorId: guard.session?.user?.id || null,
+          event: "ORDER_UPDATED",
+          message: `Order status changed from ${current.status} to ${nextStatus}.`,
+          metadata: {
+            previousStatus: current.status,
+            status: nextStatus,
+            paymentStatus: paymentStatus ?? current.paymentStatus,
+            trackingNumber: trackingNumber ?? current.trackingNumber,
+            courier: selectedCourierName ?? courier ?? current.courier,
+          },
+        },
+      })
+
+      await tx.auditLog.create({
+        data: {
+          actorId: guard.session?.user?.id || null,
+          action: "ORDER_UPDATED",
+          entityType: "Order",
+          entityId: params.id,
+          details: {
+            previousStatus: current.status,
+            status: nextStatus,
+            paymentStatus: paymentStatus ?? current.paymentStatus,
+          },
+        },
+      })
+
+      return updatedOrder
     })
 
     if (
