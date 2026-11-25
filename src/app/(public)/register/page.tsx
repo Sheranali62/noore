@@ -8,6 +8,7 @@ export default function RegisterPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [success, setSuccess] = useState("")
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -26,8 +27,8 @@ export default function RegisterPage() {
       return
     }
 
-    if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters")
+    if (formData.password.length < 8) {
+      setError("Password must be at least 8 characters")
       setLoading(false)
       return
     }
@@ -46,8 +47,11 @@ export default function RegisterPage() {
       const data = await response.json()
 
       if (response.ok) {
-        // Redirect to login with success message
-        router.push("/login?registered=true")
+        if (data.requiresEmailConfirmation) {
+          setSuccess(data.message || "Please check your email to confirm your account before signing in.")
+        } else {
+          router.push("/login?registered=true")
+        }
       } else {
         setError(data.error || "Registration failed. Please try again.")
       }
@@ -70,6 +74,11 @@ export default function RegisterPage() {
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded mb-4 text-sm">
             {error}
+          </div>
+        )}
+        {success && (
+          <div role="status" className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-4 text-sm">
+            {success} <Link href="/login" className="font-semibold underline">Continue to sign in</Link>
           </div>
         )}
 
@@ -103,11 +112,11 @@ export default function RegisterPage() {
             <input
               type="password"
               required
-              minLength={6}
+              minLength={8}
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               className="w-full px-4 py-2 border border-[#D8D8CB] rounded focus:outline-none focus:border-[#535F4C]"
-              placeholder="Minimum 6 characters"
+              placeholder="Minimum 8 characters"
             />
           </div>
 
