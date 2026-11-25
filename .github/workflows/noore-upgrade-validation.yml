@@ -1,0 +1,61 @@
+name: NOORE upgrade validation
+# Re-run validation after server-side password policy and recovery hardening.
+
+on:
+  push:
+    branches:
+      - feature/complete-ecommerce-upgrade
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: noore-upgrade-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/noore_test?schema=public
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: ci-only-noore-test-secret-keep-out-of-production
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-only-anon-key
+    steps:
+      - name: Check out source without a persisted write token
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install exact locked dependencies
+        run: npm ci
+
+      - name: Validate Prisma schema
+        run: npx prisma validate --schema=prisma/schema.prisma
+
+      - name: Generate Prisma client
+        run: npx prisma generate --schema=prisma/schema.prisma
+
+      - name: Type-check the application
+        run: npx tsc --noEmit
+
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Lint application
+        run: npm run lint
+
+      - name: Build application
+        run: npm run build

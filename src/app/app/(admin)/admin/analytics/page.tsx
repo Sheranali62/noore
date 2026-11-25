@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/admin"
 
@@ -11,7 +12,7 @@ export default async function AnalyticsPage() {
     "ORDER_MANAGER",
   ])
 
-  if (guard.response) return null
+  if (guard.response) notFound()
 
   const since = new Date()
   since.setDate(since.getDate() - 30)

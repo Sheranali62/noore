@@ -4,6 +4,8 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
+export const dynamic = "force-dynamic"
+
 const steps = [
   ["PENDING", "Order placed", "We received your order."],
   ["CONFIRMED", "Confirmed", "Your order has been confirmed."],
@@ -21,13 +23,40 @@ function statusClass(status: string) {
   return "bg-[#EEEDE6] text-[#535F4C]"
 }
 
-export default async function OrderDetailPage({ params }: { params: { id: string } }) {
+export default async function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions)
-  if (!session?.user?.id) redirect(`/login?callbackUrl=/account/orders/${params.id}`)
+  if (!session?.user?.id) redirect(`/login?callbackUrl=/account/orders/${(await params).id}`)
 
   const order = await prisma.order.findFirst({
-    where: { id: params.id, userId: session.user.id },
-    include: { address: true, items: { include: { product: true, variant: true } } },
+    where: { id: (await params).id, userId: session.user.id },
+    select: {
+      id: true,
+      orderNumber: true,
+      status: true,
+      createdAt: true,
+      trackingNumber: true,
+      subtotal: true,
+      discount: true,
+      shipping: true,
+      tax: true,
+      total: true,
+      paymentStatus: true,
+      address: { select: { name: true, phone: true, address: true, city: true, province: true, postal: true } },
+      items: {
+        select: {
+          id: true,
+          quantity: true,
+          price: true,
+          total: true,
+          product: { select: { id: true, name: true, slug: true, images: true } },
+          variant: { select: { color: true, size: true } },
+        },
+      },
+      orderEvents: {
+        orderBy: { createdAt: "desc" },
+        select: { id: true, event: true, message: true, createdAt: true },
+      },
+    },
   })
   if (!order) notFound()
 
@@ -47,6 +76,7 @@ export default async function OrderDetailPage({ params }: { params: { id: string
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <Link href={`/order-tracking?orderNumber=${encodeURIComponent(order.orderNumber)}`} className="border border-[#D8D8CB] bg-white rounded-xl px-4 py-2.5 text-sm font-medium">Track order</Link>
+            {order.status === "DELIVERED" && <Link href="/account/returns" className="rounded-xl bg-[#535F4C] px-4 py-2.5 text-sm font-medium text-white">Request return</Link>}
             <span className={`rounded-full px-4 py-2 text-xs uppercase tracking-wide font-medium ${statusClass(order.status)}`}>{order.status.replaceAll("_", " ")}</span>
           </div>
         </div>
@@ -94,6 +124,11 @@ export default async function OrderDetailPage({ params }: { params: { id: string
               )}
             </section>
 
+            {order.orderEvents.length > 0 && <section className="bg-white border border-[#D8D8CB] rounded-3xl p-6 md:p-8">
+              <h2 className="font-editorial text-2xl">Order activity</h2>
+              <div className="mt-5 space-y-4">{order.orderEvents.map(event => <div key={event.id} className="flex gap-3 border-l-2 border-[#535F4C]/30 pl-4"><div className="min-w-0"><p className="text-sm font-medium">{event.event.replaceAll("_", " ")}</p><p className="mt-1 text-sm text-[#777967]">{event.message || "Order updated."}</p><p className="mt-1 text-[11px] text-[#777967]">{new Date(event.createdAt).toLocaleString()}</p></div></div>)}</div>
+            </section>}
+
             <section className="bg-white border border-[#D8D8CB] rounded-3xl p-6 md:p-8">
               <h2 className="font-editorial text-2xl">Items</h2>
               <div className="mt-5 divide-y divide-[#3a3328]">
@@ -121,6 +156,7 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                 <div className="flex justify-between"><span className="text-[#777967]">Subtotal</span><span>PKR {order.subtotal.toLocaleString()}</span></div>
                 {order.discount > 0 && <div className="flex justify-between"><span className="text-[#777967]">Discount</span><span>- PKR {order.discount.toLocaleString()}</span></div>}
                 <div className="flex justify-between"><span className="text-[#777967]">Shipping</span><span>{order.shipping === 0 ? "FREE" : `PKR ${order.shipping.toLocaleString()}`}</span></div>
+                {order.tax > 0 && <div className="flex justify-between"><span className="text-[#777967]">Tax</span><span>PKR {order.tax.toLocaleString()}</span></div>}
                 <div className="border-t border-[#D8D8CB] pt-3 mt-3 flex justify-between font-semibold"><span>Total</span><span>PKR {order.total.toLocaleString()}</span></div>
               </div>
               <div className="mt-5 rounded-2xl bg-[#EEEDE6] p-4">

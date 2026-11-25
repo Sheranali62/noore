@@ -2,6 +2,6 @@ import { prisma } from "@/lib/prisma"
 import { EditorialLanding } from "@/components/home/editorial-landing"
 export const dynamic = "force-dynamic"
 export default async function SalePage() {
-  const rows = await prisma.product.findMany({ where: { status: "ACTIVE", salePrice: { not: null } }, orderBy: { createdAt: "desc" }, take: 16, include: { variants: { select: { color: true }, distinct: ["color"] } } })
+  const rows = await prisma.product.findMany({ where: { status: "ACTIVE", salePrice: { not: null } }, orderBy: { createdAt: "desc" }, take: 16, select: { id: true, name: true, slug: true, price: true, salePrice: true, images: true, category: true, stock: true, gender: true, variants: { select: { color: true }, distinct: ["color"] } } })
   return <EditorialLanding eyebrow="NOORÉ / Sale" title="Beautiful pieces, considered prices." description="A curated selection of signature NOORÉ styles, now available at special prices." image="https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=2200&auto=format&fit=crop" href="/products?sale=1" secondaryTitle="The sale edit" products={rows.map(p => ({...p, colors: p.variants.map(v => v.color)}))} />
 }

@@ -4,6 +4,8 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
+export const dynamic = "force-dynamic"
+
 const steps = [
   ["PENDING", "Order placed", "We received your order."],
   ["CONFIRMED", "Confirmed", "Your order has been confirmed."],
@@ -21,13 +23,36 @@ function statusClass(status: string) {
   return "bg-amber-100 text-amber-800"
 }
 
-export default async function OrderDetailPage({ params }: { params: { id: string } }) {
+export default async function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions)
-  if (!session?.user?.id) redirect(`/login?callbackUrl=/account/orders/${params.id}`)
+  if (!session?.user?.id) redirect(`/login?callbackUrl=/account/orders/${(await params).id}`)
 
   const order = await prisma.order.findFirst({
-    where: { id: params.id, userId: session.user.id },
-    include: { address: true, items: { include: { product: true, variant: true } } },
+    where: { id: (await params).id, userId: session.user.id },
+    select: {
+      id: true,
+      orderNumber: true,
+      status: true,
+      createdAt: true,
+      trackingNumber: true,
+      subtotal: true,
+      discount: true,
+      shipping: true,
+      tax: true,
+      total: true,
+      paymentStatus: true,
+      address: { select: { name: true, phone: true, address: true, city: true, province: true, postal: true } },
+      items: {
+        select: {
+          id: true,
+          quantity: true,
+          price: true,
+          total: true,
+          product: { select: { id: true, name: true, slug: true, images: true } },
+          variant: { select: { color: true, size: true } },
+        },
+      },
+    },
   })
   if (!order) notFound()
 

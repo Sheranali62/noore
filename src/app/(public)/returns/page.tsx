@@ -32,6 +32,10 @@ export default function ReturnsPage() {
           <p className="mt-3 text-sm leading-7 text-[#6F756A]">Exchange eligibility, item condition requirements, exclusions and any applicable shipping costs must be confirmed by our customer care team for your specific order. Please do not dispatch an item until you have received instructions. This page does not promise a cash refund; contact us if your item arrived damaged, incorrect or incomplete so we can review it.</p>
         </article>
         <div className="flex flex-col gap-3 rounded-2xl border border-[#D8D5CA] p-6 sm:flex-row sm:items-center sm:justify-between">
+          <div><h2 className="font-editorial text-xl">Submit an exchange request online</h2><p className="mt-1 text-xs text-[#6F756A]">Sign in to select delivered order items and attach photos.</p></div>
+          <Link href="/account/returns" className="inline-flex items-center justify-center rounded-lg bg-[#535F4C] px-4 py-3 text-xs font-bold uppercase tracking-wider text-[#F7F6F2]">Open exchange requests</Link>
+        </div>
+        <div className="flex flex-col gap-3 rounded-2xl border border-[#D8D5CA] p-6 sm:flex-row sm:items-center sm:justify-between">
           <div><h2 className="font-editorial text-xl">Start an exchange request</h2><p className="mt-1 text-xs text-[#6F756A]">Have your order reference ready.</p></div>
           <a href={SOCIAL_LINKS.whatsapp} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#535F4C] px-4 py-3 text-xs font-bold uppercase tracking-wider text-[#F7F6F2]"><MessageCircle className="h-4 w-4" /> Contact customer care</a>
         </div>

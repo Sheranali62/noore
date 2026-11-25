@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/admin"
 
@@ -7,15 +8,15 @@ export const dynamic = "force-dynamic"
 const money = (value: number) => `PKR ${Math.round(value).toLocaleString("en-PK")}`
 
 export default async function AnalyticsPage() {
-  const guard = await requireAdmin(["SUPER_ADMIN", "ADMIN", "ORDER_MANAGER"])
-  if (guard.response) return null
+  const guard = await requireAdmin(["SUPER_ADMIN", "ADMIN"])
+  if (guard.response) notFound()
 
   const since = new Date()
   since.setDate(since.getDate() - 30)
   const previousSince = new Date(since)
   previousSince.setDate(previousSince.getDate() - 30)
 
-  const [orders, validOrders, revenue, previousRevenue, customers, active, units, top, statuses, abandoned, wishlists, couponUses, dailyOrders, categoryGroups] = await Promise.all([
+  const [orders, validOrders, revenue, previousRevenue, customers, active, units, top, statuses, abandoned, wishlists, couponUses, dailyOrders, categoryGroups, searchGroups, costItems] = await Promise.all([
     prisma.order.count({ where: { createdAt: { gte: since } } }),
     prisma.order.count({ where: { createdAt: { gte: since }, status: { notIn: ["CANCELLED", "REFUNDED"] } } }),
     prisma.order.aggregate({ where: { createdAt: { gte: since }, status: { notIn: ["CANCELLED", "REFUNDED"] } }, _sum: { total: true } }),
@@ -25,11 +26,13 @@ export default async function AnalyticsPage() {
     prisma.orderItem.aggregate({ where: { order: { createdAt: { gte: since }, status: { notIn: ["CANCELLED", "REFUNDED"] } } }, _sum: { quantity: true } }),
     prisma.orderItem.groupBy({ by: ["productId"], where: { order: { createdAt: { gte: since }, status: { notIn: ["CANCELLED", "REFUNDED"] } } }, _sum: { quantity: true, total: true }, orderBy: { _sum: { quantity: "desc" } }, take: 8 }),
     prisma.order.groupBy({ by: ["status"], _count: { _all: true }, orderBy: { _count: { status: "desc" } } }),
-    prisma.cart.count({ where: { updatedAt: { lt: new Date(Date.now() - 2 * 60 * 60 * 1000) }, items: { some: {} } } }),
+    prisma.cart.count({ where: { updatedAt: { lt: new Date(Date.now() - 2 * 60 * 60 * 1000) }, items: { some: {} }, abandonedReminderAt: null } }),
     prisma.wishlistItem.count({ where: { createdAt: { gte: since } } }),
     prisma.couponUsage.count({ where: { usedAt: { gte: since } } }),
     prisma.order.findMany({ where: { createdAt: { gte: since }, status: { notIn: ["CANCELLED", "REFUNDED"] } }, select: { createdAt: true, total: true } }),
     prisma.orderItem.groupBy({ by: ["productId"], where: { order: { createdAt: { gte: since }, status: { notIn: ["CANCELLED", "REFUNDED"] } } }, _sum: { quantity: true, total: true } }),
+    prisma.searchEvent.groupBy({ by: ["query"], where: { createdAt: { gte: since } }, _count: { _all: true }, _avg: { resultCount: true }, orderBy: { _count: { query: "desc" } }, take: 10 }),
+    prisma.orderItem.findMany({ where: { costPrice: { not: null }, order: { createdAt: { gte: since }, status: { notIn: ["CANCELLED", "REFUNDED"] } } }, select: { quantity: true, total: true, costPrice: true, order: { select: { subtotal: true, discount: true } } } }),
   ])
 
   const productIds = Array.from(new Set([...top.map(item => item.productId), ...categoryGroups.map(item => item.productId)]))
@@ -56,6 +59,8 @@ export default async function AnalyticsPage() {
   })
   const maxRevenue = Math.max(...days.map(day => day.revenue), 1)
   const currentRevenue = revenue._sum.total || 0
+  const grossProfit = costItems.reduce((sum, item) => sum + (item.total - (item.order.subtotal > 0 ? item.order.discount * item.total / item.order.subtotal : 0)) - (item.costPrice || 0) * item.quantity, 0)
+  const costCoverage = costItems.length
   const oldRevenue = previousRevenue._sum.total || 0
   const growth = oldRevenue > 0 ? ((currentRevenue - oldRevenue) / oldRevenue) * 100 : null
   const cards = [
@@ -67,6 +72,7 @@ export default async function AnalyticsPage() {
     ["Abandoned carts", abandoned.toLocaleString("en-PK"), "With items, inactive 2+ hours"],
     ["Wishlist adds", wishlists.toLocaleString("en-PK"), "Last 30 days"],
     ["Coupon uses", couponUses.toLocaleString("en-PK"), "Last 30 days"],
+    ["Gross profit", money(grossProfit), costCoverage ? `Recorded costs · ${costCoverage} order lines` : "Add product costs to calculate"],
   ]
 
   return <div className="mx-auto max-w-[1500px] space-y-6 pb-12 text-white">
@@ -91,6 +97,11 @@ export default async function AnalyticsPage() {
       <div className="rounded-2xl border border-white/10 bg-[#171615] p-5 sm:p-6"><h2 className="text-lg font-semibold">Category performance</h2><p className="mt-1 text-xs text-white/40">Revenue contribution by product category</p><div className="mt-6 space-y-5">{categoryRows.length?categoryRows.map(([name,data])=>{const max=Math.max(...categoryRows.map(row=>row[1].revenue),1);return <div key={name}><div className="mb-2 flex justify-between gap-3 text-sm"><span className="text-white/75">{name}</span><span className="font-medium">{money(data.revenue)}</span></div><div className="h-2 rounded-full bg-white/10"><div className="h-2 rounded-full bg-gradient-to-r from-[#98703b] to-[#e8c58a]" style={{width:`${data.revenue/max*100}%`}} /></div><p className="mt-1 text-[10px] text-white/35">{data.units} units sold</p></div>}) : <Empty text="Category performance will appear after your first sales." />}</div></div>
       <div className="rounded-2xl border border-white/10 bg-[#171615] p-5 sm:p-6"><h2 className="text-lg font-semibold">Order pipeline</h2><p className="mt-1 text-xs text-white/40">Current order status distribution</p><div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">{statuses.map(status=><div key={status.status} className="rounded-xl border border-white/[0.07] bg-white/[0.025] p-4"><p className="text-[10px] uppercase tracking-wider text-white/40">{status.status.replaceAll("_"," ").toLowerCase()}</p><p className="mt-2 text-2xl font-semibold">{status._count._all}</p></div>)}</div><Link href="/admin/orders" className="mt-5 inline-block text-xs font-semibold text-[#e4c28e] hover:text-white">Manage orders →</Link></div>
     </section>
+    <section className="rounded-2xl border border-white/10 bg-[#171615] p-5 sm:p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-lg font-semibold">Customer search insights</h2><p className="mt-1 text-xs text-white/40">Most-used search terms over the last 30 days, including average result counts.</p></div><span className="text-[10px] uppercase tracking-wider text-white/35">Search analytics</span></div>
+      {searchGroups.length ? <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">{searchGroups.map(item => <div key={item.query} className="rounded-xl border border-white/10 bg-white/[.025] p-4"><p className="truncate text-sm font-medium text-[#e4c28e]">{item.query}</p><p className="mt-2 text-xl font-semibold">{item._count._all}</p><p className="text-[10px] text-white/40">searches · avg. {Math.round(item._avg.resultCount || 0)} results</p></div>)}</div> : <p className="mt-5 text-sm text-white/45">Search terms will appear here as customers use the storefront search.</p>}
+    </section>
+
     <footer className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#d6ae72]/20 bg-[#d6ae72]/[0.05] p-5"><div><p className="text-sm font-semibold text-[#e4c28e]">Reports are based on your live store records</p><p className="mt-1 text-xs text-white/45">No sample figures are added. CSV exports use the existing report endpoints.</p></div><div className="flex flex-wrap gap-2"><Link href="/admin" className="rounded-lg border border-white/15 px-3 py-2 text-xs text-white/75 hover:border-[#d6ae72]">Dashboard</Link><Link href="/admin/inventory" className="rounded-lg border border-white/15 px-3 py-2 text-xs text-white/75 hover:border-[#d6ae72]">Inventory</Link></div></footer>
   </div>
 }

@@ -10,6 +10,7 @@ const DEFAULTS: Record<string, string> = {
   freeShippingThreshold: "5000",
   standardShipping: "250",
   expressShipping: "500",
+  taxRate: "0",
   currency: "PKR",
 }
 
@@ -32,9 +33,9 @@ export async function PUT(request: Request) {
     if (typeof body?.[key] !== "string") return NextResponse.json({ error: `${key} must be a string` }, { status: 400 })
     values[key] = body[key].trim()
   }
-  for (const key of ["freeShippingThreshold", "standardShipping", "expressShipping"]) {
+  for (const key of ["freeShippingThreshold", "standardShipping", "expressShipping", "taxRate"]) {
     const value = Number(values[key])
-    if (!Number.isFinite(value) || value < 0) return NextResponse.json({ error: `${key} must be a valid non-negative number` }, { status: 400 })
+    if (!Number.isFinite(value) || value < 0 || (key === "taxRate" && value > 100)) return NextResponse.json({ error: `${key} must be a valid number${key === "taxRate" ? " between 0 and 100" : " and cannot be negative"}` }, { status: 400 })
   }
   if (!values.siteName || !values.currency) return NextResponse.json({ error: "Site name and currency are required" }, { status: 400 })
 

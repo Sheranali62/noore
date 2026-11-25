@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/abandoned-carts",
+      "schedule": "0 10 * * *"
+    },
+    {
+      "path": "/api/cron/low-stock",
+      "schedule": "15 10 * * *"
+    }
+  ]
+}

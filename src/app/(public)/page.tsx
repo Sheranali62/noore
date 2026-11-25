@@ -62,9 +62,10 @@ const stories = [
   },
 ]
 
-function readInterest(): { segment: InterestSegment | null; scores: Record<InterestSegment, number> } {
+async function readInterest(): Promise<{ segment: InterestSegment | null; scores: Record<InterestSegment, number> }> {
   try {
-    const raw = cookies().get(PERSONALIZATION_COOKIE)?.value
+    const cookieStore = await cookies()
+    const raw = cookieStore.get(PERSONALIZATION_COOKIE)?.value
     if (!raw) return { segment: null, scores: { women: 0, men: 0, kids: 0 } }
     const parsed = JSON.parse(decodeURIComponent(raw))
     const scores = {
@@ -93,7 +94,7 @@ function personalize<
 }
 
 export default async function HomePage() {
-  const { segment: interest } = readInterest()
+  const { segment: interest } = await readInterest()
   const media = await getStorefrontMedia()
 
   const [newRaw, saleRaw, limitedRaw, popularGroups, categoryImageRows, journalPosts] = await Promise.all([
@@ -101,16 +102,19 @@ export default async function HomePage() {
       where: { status: "ACTIVE" },
       take: 24,
       orderBy: { createdAt: "desc" },
+      select: { id: true, name: true, slug: true, price: true, salePrice: true, images: true, category: true, subcategory: true, type: true, tags: true, stock: true, gender: true },
     }),
     prisma.product.findMany({
       where: { status: "ACTIVE", salePrice: { not: null } },
       take: 12,
       orderBy: { createdAt: "desc" },
+      select: { id: true, name: true, slug: true, price: true, salePrice: true, images: true, category: true, subcategory: true, type: true, tags: true, stock: true, gender: true },
     }),
     prisma.product.findMany({
       where: { status: "ACTIVE", stock: { gt: 0, lte: 5 } },
       take: 12,
       orderBy: { stock: "asc" },
+      select: { id: true, name: true, slug: true, price: true, salePrice: true, images: true, category: true, subcategory: true, type: true, tags: true, stock: true, gender: true },
     }),
     prisma.orderItem.groupBy({
       by: ["productId"],
@@ -144,7 +148,10 @@ export default async function HomePage() {
 
   const popularIds = popularGroups.map((x: any) => x.productId)
   const popularProducts = popularIds.length
-    ? await prisma.product.findMany({ where: { id: { in: popularIds }, status: "ACTIVE" } })
+    ? await prisma.product.findMany({
+        where: { id: { in: popularIds }, status: "ACTIVE" },
+        select: { id: true, name: true, slug: true, price: true, salePrice: true, images: true, category: true, subcategory: true, type: true, tags: true, stock: true, gender: true },
+      })
     : []
   const popularMap = new Map(popularProducts.map((p) => [p.id, p]))
   const trendingProducts = personalize(

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { enforceRateLimit } from "@/lib/rate-limit"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { calculateCouponDiscount } from "@/lib/coupons"
@@ -11,9 +12,19 @@ function normalizeEmail(value: unknown) {
   return String(value ?? "").trim().toLowerCase()
 }
 
+function trackingResponse(body: unknown, options?: { status?: number }) {
+  return NextResponse.json(body, {
+    ...options,
+    headers: {
+      "Cache-Control": "private, no-store, max-age=0",
+      Pragma: "no-cache",
+    },
+  })
+}
+
 async function makeOrderNumber() {
   for (let attempt = 0; attempt < 5; attempt++) {
-    const value = `NO-${new Date().getFullYear()}-${randomBytes(4)
+    const value = `NO-${new Date().getFullYear()}-${randomBytes(8)
       .toString("hex")
       .toUpperCase()}`
 
@@ -29,54 +40,62 @@ async function makeOrderNumber() {
 }
 
 export async function GET(request: NextRequest) {
+  const databaseLimit = await enforceRateLimit(request, "order-tracking", 20, 60000)
+  if (databaseLimit) return databaseLimit
   try {
     const searchParams = request.nextUrl.searchParams
     const orderNumber = searchParams.get("orderNumber")?.trim()
     const email = normalizeEmail(searchParams.get("email"))
 
-    if (!orderNumber || !email) {
-      return NextResponse.json(
-        { error: "Order number and email are required" },
+    if (
+      !orderNumber ||
+      orderNumber.length > 64 ||
+      !email ||
+      email.length > 254 ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+    ) {
+      return trackingResponse(
+        { error: "A valid order number and email are required" },
         { status: 400 }
       )
     }
 
     const order = await prisma.order.findUnique({
       where: { orderNumber },
-      include: {
+      select: {
+        orderNumber: true,
+        status: true,
+        total: true,
+        createdAt: true,
+        paymentMethod: true,
+        trackingNumber: true,
+        courier: true,
+        user: { select: { email: true } },
         items: {
-          include: {
-            product: true,
-          },
-        },
-        user: {
           select: {
-            email: true,
+            id: true,
+            quantity: true,
+            price: true,
+            total: true,
+            product: { select: { name: true, images: true } },
+            variant: { select: { color: true, size: true } },
           },
         },
-        address: true,
       },
     })
 
-    if (!order) {
-      return NextResponse.json(
-        { error: "Order not found" },
+    if (!order || normalizeEmail(order.user?.email) !== email) {
+      return trackingResponse(
+        { error: "Order not found or verification failed" },
         { status: 404 }
       )
     }
 
-    if (normalizeEmail(order.user?.email) !== email) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      )
-    }
-
-    return NextResponse.json({ order })
+    return trackingResponse({ order })
   } catch (error) {
     console.error("Error tracking order:", error)
 
-    return NextResponse.json(
+    return trackingResponse(
       { error: "Failed to track order" },
       { status: 500 }
     )
@@ -84,8 +103,32 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const databaseLimit = await enforceRateLimit(request, "order-creation", 10, 3600000)
+  if (databaseLimit) return databaseLimit
   try {
+    const origin = request.headers.get("origin")
+    const fetchSite = request.headers.get("sec-fetch-site")
+    if (
+      (origin && new URL(origin).origin !== request.nextUrl.origin) ||
+      fetchSite === "cross-site"
+    ) {
+      return NextResponse.json({ error: "Cross-site order requests are not allowed" }, { status: 403 })
+    }
+
+    const contentType = request.headers.get("content-type") ?? ""
+    if (!contentType.toLowerCase().includes("application/json")) {
+      return NextResponse.json({ error: "A JSON request body is required" }, { status: 415 })
+    }
+
+    const contentLength = Number(request.headers.get("content-length") ?? 0)
+    if (contentLength > 64 * 1024) {
+      return NextResponse.json({ error: "Order request is too large" }, { status: 413 })
+    }
+
     const body = await request.json()
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return NextResponse.json({ error: "Invalid order request" }, { status: 400 })
+    }
 
     const customer = body.customer ?? {}
     const address = body.address ?? {}
@@ -111,14 +154,23 @@ export async function POST(request: NextRequest) {
 
     if (
       !name ||
+      name.length > 120 ||
       !email ||
-      !email.includes("@") ||
+      email.length > 254 ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
       !phone ||
+      phone.length > 32 ||
       !addressLine ||
+      addressLine.length > 300 ||
       !city ||
+      city.length > 100 ||
       !province ||
+      province.length > 100 ||
       !postal ||
-      !items.length
+      postal.length > 24 ||
+      !items.length ||
+      items.length > 50 ||
+      (couponCode !== null && couponCode.length > 64)
     ) {
       return NextResponse.json(
         {
@@ -148,13 +200,25 @@ export async function POST(request: NextRequest) {
     }
 
     const session = await auth()
+    const sessionUserId = session?.user?.id
+    const sessionEmail = normalizeEmail(session?.user?.email)
+    if (sessionUserId && sessionEmail !== email) {
+      return NextResponse.json(
+        { error: "Please use the email address on your signed-in NOORÉ account" },
+        { status: 403 }
+      )
+    }
 
     const subtotalInput = Number(body.subtotal)
     const shippingInput = Number(body.shipping)
+    const taxInput = Number(body.tax ?? 0)
+    const totalInput = Number(body.total)
 
     if (
       !Number.isFinite(subtotalInput) ||
-      !Number.isFinite(shippingInput)
+      !Number.isFinite(shippingInput) ||
+      !Number.isFinite(taxInput) ||
+      !Number.isFinite(totalInput)
     ) {
       return NextResponse.json(
         { error: "Invalid totals" },
@@ -174,12 +238,22 @@ export async function POST(request: NextRequest) {
       requested.some(
         (item: any) =>
           !item.productId ||
+          item.productId.length > 128 ||
+          (item.variantId !== null && item.variantId.length > 128) ||
           !Number.isInteger(item.quantity) ||
-          item.quantity < 1
+          item.quantity < 1 ||
+          item.quantity > 99
       )
     ) {
       return NextResponse.json(
         { error: "Invalid cart items" },
+        { status: 400 }
+      )
+    }
+
+    if (new Set(requested.map((item: any) => `${item.productId}:${item.variantId ?? "no-variant"}`)).size !== requested.length) {
+      return NextResponse.json(
+        { error: "Remove duplicate items from your cart and try again" },
         { status: 400 }
       )
     }
@@ -234,6 +308,7 @@ export async function POST(request: NextRequest) {
       variantId: string | null
       quantity: number
       price: number
+      costPrice: number | null
       total: number
     }[] = []
 
@@ -297,6 +372,7 @@ export async function POST(request: NextRequest) {
         variantId: variant?.id ?? null,
         quantity: item.quantity,
         price,
+        costPrice: product.costPrice ?? null,
         total,
       })
     }
@@ -309,6 +385,7 @@ export async function POST(request: NextRequest) {
               "freeShippingThreshold",
               "standardShipping",
               "expressShipping",
+              "taxRate",
             ],
           },
         },
@@ -321,6 +398,7 @@ export async function POST(request: NextRequest) {
       freeShippingThreshold: 5000,
       standardShipping: 250,
       expressShipping: 500,
+      taxRate: 0,
     }
 
     for (const setting of shippingSettings) {
@@ -358,52 +436,29 @@ export async function POST(request: NextRequest) {
 
     const order = await prisma.$transaction(
       async (tx) => {
-        let userId = session?.user?.id
+        let userId = sessionUserId
 
         if (userId) {
-          const current =
-            await tx.user.findUnique({
-              where: {
-                id: userId,
-              },
-              select: {
-                id: true,
-              },
-            })
-
+          const current = await tx.user.findUnique({
+            where: { id: userId },
+            select: { id: true },
+          })
           if (!current) {
-            userId = undefined
+            throw new Error("Your session is no longer valid. Please sign in again.")
           }
-        }
-
-        if (!userId) {
-          const existing =
-            await tx.user.findUnique({
-              where: {
-                email,
-              },
-              select: {
-                id: true,
-              },
-            })
-
+        } else {
+          const existing = await tx.user.findFirst({
+            where: { email: { equals: email, mode: "insensitive" } },
+            select: { id: true },
+          })
           if (existing) {
-            userId = existing.id
-          } else {
-            const created =
-              await tx.user.create({
-                data: {
-                  email,
-                  name,
-                  role: "CUSTOMER",
-                },
-                select: {
-                  id: true,
-                },
-              })
-
-            userId = created.id
+            throw new Error("An account already uses this email. Please sign in before placing this order.")
           }
+          const created = await tx.user.create({
+            data: { email, name, role: "CUSTOMER" },
+            select: { id: true },
+          })
+          userId = created.id
         }
 
         let discount = 0
@@ -422,6 +477,16 @@ export async function POST(request: NextRequest) {
               "Invalid coupon code"
             )
           }
+
+          // Serialize coupon claims so per-customer limits cannot be raced by
+          // two simultaneous checkout transactions.
+          await tx.$queryRaw<Array<{ id: string }>>`
+            SELECT "id" FROM "Coupon" WHERE "id" = ${appliedCoupon.id} FOR UPDATE
+          `
+          appliedCoupon = await tx.coupon.findUnique({
+            where: { id: appliedCoupon.id },
+          })
+          if (!appliedCoupon) throw new Error("Invalid coupon code")
 
           const existingCustomerUsage =
             await tx.couponUsage.count({
@@ -539,17 +604,11 @@ export async function POST(request: NextRequest) {
               )
             }
 
-            await tx.productVariant.update({
-              where: {
-                id: item.variantId,
-              },
-              data: {
-                stock: {
-                  decrement:
-                    item.quantity,
-                },
-              },
+            const changed = await tx.productVariant.updateMany({
+              where: { id: item.variantId, stock: current.stock },
+              data: { stock: { decrement: item.quantity } },
             })
+            if (changed.count !== 1) throw new Error("Stock changed while placing the order")
 
             await tx.inventoryMovement.create(
               {
@@ -591,17 +650,11 @@ export async function POST(request: NextRequest) {
               )
             }
 
-            await tx.product.update({
-              where: {
-                id: item.productId,
-              },
-              data: {
-                stock: {
-                  decrement:
-                    item.quantity,
-                },
-              },
+            const changed = await tx.product.updateMany({
+              where: { id: item.productId, stock: current.stock },
+              data: { stock: { decrement: item.quantity } },
             })
+            if (changed.count !== 1) throw new Error("Stock changed while placing the order")
 
             await tx.inventoryMovement.create(
               {
@@ -624,12 +677,13 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        const total = Math.max(
-          0,
-          subtotal -
-            discount +
-            shipping
-        )
+        const taxRate = Math.min(100, Math.max(0, shippingValues.taxRate || 0))
+        const tax = Math.round(Math.max(0, subtotal - discount) * taxRate) / 100
+        const total = Math.max(0, subtotal - discount + shipping + tax)
+
+        if (Math.abs(tax - taxInput) > 0.01 || Math.abs(total - totalInput) > 0.01) {
+          throw new Error("Cart total changed. Please review your order and try again.")
+        }
 
         const createdOrder =
           await tx.order.create({
@@ -641,6 +695,7 @@ export async function POST(request: NextRequest) {
               subtotal,
               discount,
               shipping,
+              tax,
               total,
               couponCode:
                 appliedCoupon?.code ??
@@ -666,6 +721,26 @@ export async function POST(request: NextRequest) {
             },
           })
 
+        await tx.orderEvent.create({
+          data: {
+            orderId: createdOrder.id,
+            actorId: userId,
+            event: "ORDER_CREATED",
+            message: "Customer placed a new Cash on Delivery order.",
+            metadata: { orderNumber, paymentMethod: "COD", total },
+          },
+        })
+
+        await tx.auditLog.create({
+          data: {
+            actorId: userId,
+            action: "CREATE_ORDER",
+            entityType: "Order",
+            entityId: createdOrder.id,
+            details: { orderNumber, total, itemCount: orderItems.length },
+          },
+        })
+
         if (appliedCoupon) {
           await tx.couponUsage.create({
             data: {
@@ -682,35 +757,33 @@ export async function POST(request: NextRequest) {
       }
     )
 
-    void sendOrderStatusEmail({
-      to: email,
-      customerName: name,
-      orderNumber:
-        order.orderNumber,
-      status: "PENDING",
-    }).catch((err) =>
-      console.error(
-        "Order confirmation email failed",
-        err
-      )
-    )
-
-    void sendNewOrderAdminEmail({
-      customerName: name,
-      customerEmail: email,
-      customerPhone: phone,
-      orderNumber: order.orderNumber,
-      total: order.total,
-      address: addressLine,
-      city,
-      province,
-    }).catch((err) =>
-      console.error("New order store notification failed", err)
-    )
+    const notificationResults = await Promise.allSettled([
+      sendOrderStatusEmail({
+        to: email,
+        customerName: name,
+        orderNumber: order.orderNumber,
+        status: "PENDING",
+      }),
+      sendNewOrderAdminEmail({
+        customerName: name,
+        customerEmail: email,
+        customerPhone: phone,
+        orderNumber: order.orderNumber,
+        total: order.total,
+        address: addressLine,
+        city,
+        province,
+      }),
+    ])
+    notificationResults.forEach((result, index) => {
+      if (result.status === "rejected") {
+        console.error(index === 0 ? "Customer order email failed" : "Admin order notification failed", result.reason)
+      }
+    })
 
     return NextResponse.json(
       order,
-      { status: 201 }
+      { status: 201, headers: { "Cache-Control": "private, no-store, max-age=0" } }
     )
   } catch (error) {
     console.error(
@@ -718,14 +791,23 @@ export async function POST(request: NextRequest) {
       error
     )
 
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Failed to place order. Please try again."
-
+    const message = error instanceof Error ? error.message : ""
+    const safeMessages = new Set([
+      "Invalid coupon code",
+      "This coupon is inactive",
+      "This coupon is not active yet",
+      "This coupon has expired",
+      "This coupon has reached its usage limit",
+      "This coupon has just reached its usage limit",
+      "You have reached the usage limit for this coupon",
+      "Stock changed while placing the order",
+      "Your session is no longer valid. Please sign in again.",
+      "An account already uses this email. Please sign in before placing this order.",
+      "Cart total changed. Please review your order and try again.",
+    ])
     return NextResponse.json(
-      { error: message },
-      { status: 400 }
+      { error: safeMessages.has(message) ? message : "Failed to place order. Please try again." },
+      { status: message === "Stock changed while placing the order" ? 409 : 400 }
     )
   }
 }

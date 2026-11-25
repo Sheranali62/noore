@@ -1,4 +1,5 @@
 ﻿import { notFound } from "next/navigation"
+import { requireAdmin } from "@/lib/admin"
 import { prisma } from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
@@ -40,14 +41,17 @@ export default async function PrintOrderPage({
   params,
   searchParams,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
   searchParams?: { mode?: string }
 }) {
+  const access = await requireAdmin(["SUPER_ADMIN", "ADMIN", "ORDER_MANAGER"])
+  if (access.response) notFound()
+
   let order
 
   try {
     order = await prisma.order.findUnique({
-      where: { id: params.id },
+      where: { id: (await params).id },
       include: {
         user: {
           select: {

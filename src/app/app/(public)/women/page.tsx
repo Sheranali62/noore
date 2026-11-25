@@ -36,7 +36,7 @@ export default async function WomenPage() {
     where: { status: "ACTIVE", gender: { in: ["Women", "WOMEN", "women"] } },
     orderBy: { createdAt: "desc" },
     take: 12,
-    include: { variants: { select: { color: true }, distinct: ["color"] } }
+    select: { id: true, name: true, slug: true, price: true, salePrice: true, images: true, category: true, stock: true, gender: true, variants: { select: { color: true }, distinct: ["color"] } }
   })
 
   return (

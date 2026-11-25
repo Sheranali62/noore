@@ -1,68 +1,92 @@
-﻿import { NextRequest, NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
+import { enforceRateLimit } from "@/lib/rate-limit"
 import { prisma } from "@/lib/prisma"
-import bcrypt from "bcryptjs"
+import { isStrongPassword, PASSWORD_POLICY_MESSAGE } from "@/lib/password-policy"
+
+export const dynamic = "force-dynamic"
 
 export async function POST(request: NextRequest) {
+  const databaseLimit = await enforceRateLimit(request, "register", 5, 3600000)
+  if (databaseLimit) return databaseLimit
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  if (!supabaseUrl || !anonKey) {
+    return NextResponse.json({ error: "Registration is temporarily unavailable." }, { status: 503 })
+  }
+
   try {
-    const body = await request.json()
-    const { name, email, password } = body
-
-    // Validate
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: "Email and password are required" },
-        { status: 400 }
-      )
+    const origin = request.headers.get("origin")
+    let crossSite = request.headers.get("sec-fetch-site") === "cross-site"
+    if (origin) {
+      try {
+        crossSite = crossSite || new URL(origin).origin !== request.nextUrl.origin
+      } catch {
+        crossSite = true
+      }
+    }
+    if (crossSite) {
+      return NextResponse.json({ error: "Cross-site registration is not allowed" }, { status: 403 })
+    }
+    const contentType = request.headers.get("content-type") ?? ""
+    if (!contentType.toLowerCase().includes("application/json")) {
+      return NextResponse.json({ error: "A JSON request body is required" }, { status: 415 })
+    }
+    const contentLength = Number(request.headers.get("content-length") ?? 0)
+    if (contentLength > 16 * 1024) {
+      return NextResponse.json({ error: "Registration request is too large" }, { status: 413 })
     }
 
-    if (password.length < 6) {
-      return NextResponse.json(
-        { error: "Password must be at least 6 characters" },
-        { status: 400 }
-      )
+    const body = await request.json().catch(() => null)
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return NextResponse.json({ error: "Invalid registration request." }, { status: 400 })
+    }
+    const name = String(body.name ?? "").trim().slice(0, 100)
+    const email = String(body.email ?? "").trim().toLowerCase()
+    const password = String(body.password ?? "")
+
+    if (!name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
+      return NextResponse.json({ error: "Enter your name and a valid email address." }, { status: 400 })
+    }
+    if (!isStrongPassword(password)) {
+      return NextResponse.json({ error: PASSWORD_POLICY_MESSAGE }, { status: 400 })
     }
 
-    // Check if user exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
+    const response = await fetch(`${supabaseUrl.replace(/\/$/, "")}/auth/v1/signup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", apikey: anonKey },
+      body: JSON.stringify({ email, password, data: { full_name: name, name } }),
+      cache: "no-store",
     })
-
-    if (existingUser) {
-      return NextResponse.json(
-        { error: "User already exists" },
-        { status: 400 }
-      )
+    const result = await response.json().catch(() => ({}))
+    if (!response.ok || !result.user?.id || !result.user?.email) {
+      console.error("Supabase registration failed:", response.status)
+      return NextResponse.json({ error: response.status === 429 ? "Too many registration attempts. Please try again later." : "We could not create your account. Check the details or try signing in." }, { status: response.status === 429 ? 429 : 400 })
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10)
-
-    // Create user
-    const user = await prisma.user.create({
-      data: {
-        name: name || null,
-        email,
-        password: hashedPassword,
-        role: "CUSTOMER",
-      },
+    const existingAppUser = await prisma.user.findFirst({
+      where: { email: { equals: email, mode: "insensitive" } },
+      select: { id: true },
     })
+    const user = existingAppUser
+      ? await prisma.user.update({
+          where: { id: existingAppUser.id },
+          data: { name },
+          select: { id: true, email: true, name: true },
+        })
+      : await prisma.user.create({
+          data: { email, name, role: "CUSTOMER", password: null },
+          select: { id: true, email: true, name: true },
+        })
 
-    return NextResponse.json(
-      { 
-        message: "User created successfully", 
-        user: { 
-          id: user.id, 
-          email: user.email, 
-          name: user.name 
-        } 
-      },
-      { status: 201 }
-    )
+    return NextResponse.json({
+      message: result.session
+        ? "Your NOORÉ account is ready. You can sign in now."
+        : "Your account has been created. Please verify your email using the link we sent you.",
+      requiresEmailConfirmation: !result.session,
+      user,
+    }, { status: 201 })
   } catch (error) {
     console.error("Registration error:", error)
-    return NextResponse.json(
-      { error: "Failed to create user" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Failed to create your account. Please try again." }, { status: 500 })
   }
 }

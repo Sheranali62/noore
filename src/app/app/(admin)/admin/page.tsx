@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/admin"
 import { OrderStatus } from "@prisma/client"
@@ -10,7 +11,13 @@ const label = (value: string) => value.replaceAll("_", " ")
 
 export default async function AdminPage() {
   const guard = await requireAdmin()
-  if (guard.response) return null
+  if (guard.response) redirect("/login?callbackUrl=/admin")
+
+  const role = guard.session?.user?.role
+  if (role === "ORDER_MANAGER") redirect("/admin/orders")
+  if (role === "PRODUCT_MANAGER") redirect("/admin/products")
+  if (role === "CONTENT_MANAGER") redirect("/admin/homepage")
+  if (role !== "SUPER_ADMIN" && role !== "ADMIN") redirect("/login")
 
   const now = new Date()
   const start30 = new Date(now)

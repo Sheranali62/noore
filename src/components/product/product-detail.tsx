@@ -16,7 +16,7 @@ type Review = { id: string; rating: number; comment: string | null; verified: bo
 type Product = {
   id: string; name: string; slug: string; description: string | null; price: number; salePrice: number | null
   images: string[]; category: string; subcategory: string | null; collection: string | null; gender: string | null
-  type: string | null; fabric: string | null; pieces: number | null; stock: number; lowStock: number; sku: string; tags: string[]
+  type: string | null; fabric: string | null; pieces: number | null; stock: number; lowStock?: number; sku: string; tags: string[]
   variants: Variant[]; reviews: Review[]
 }
 type Props = { product: Product; relatedProducts: any[] }
@@ -255,7 +255,7 @@ export function ProductDetail({ product, relatedProducts }: Props) {
           </div>}
 
           <div className="mt-7 flex items-center justify-between border-y border-border py-4 text-xs">
-            <span className={`flex items-center gap-2 ${inStock ? "text-green-700" : "text-red-600"}`}><span className={`h-1.5 w-1.5 rounded-full ${inStock ? "bg-green-600" : "bg-red-500"}`} />{inStock ? (availableStock <= product.lowStock ? `Only ${availableStock} left — order soon` : "In stock and ready to ship") : "Currently out of stock"}</span>
+            <span className={`flex items-center gap-2 ${inStock ? "text-green-700" : "text-red-600"}`}><span className={`h-1.5 w-1.5 rounded-full ${inStock ? "bg-green-600" : "bg-red-500"}`} />{inStock ? (availableStock <= (product.lowStock ?? 5) ? `Only ${availableStock} left — order soon` : "In stock and ready to ship") : "Currently out of stock"}</span>
             {inStock && <span className="text-secondary">{availableStock} available</span>}
           </div>
 

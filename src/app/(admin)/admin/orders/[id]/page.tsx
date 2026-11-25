@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation"
+import { requireAdmin } from "@/lib/admin"
 import { prisma } from "@/lib/prisma"
 import { OrderAdminForm } from "@/components/admin/order-admin-form"
 
@@ -31,8 +32,11 @@ function safeString(value: unknown, fallback = "—") {
 export default async function AdminOrderDetailPage({
   params,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
+  const access = await requireAdmin(["SUPER_ADMIN", "ADMIN", "ORDER_MANAGER"])
+  if (access.response) notFound()
+
   /*
    * IMPORTANT:
    * Load the Order using scalar fields only.
@@ -56,7 +60,7 @@ export default async function AdminOrderDetailPage({
   try {
     order = await prisma.order.findUnique({
       where: {
-        id: params.id,
+        id: (await params).id,
       },
       select: {
         id: true,
@@ -113,7 +117,7 @@ export default async function AdminOrderDetailPage({
             </a>
 
             <a
-              href={`/admin/orders/${params.id}`}
+              href={`/admin/orders/${(await params).id}`}
               className="inline-flex bg-black text-white px-4 py-2 rounded hover:opacity-90 transition"
             >
               Retry

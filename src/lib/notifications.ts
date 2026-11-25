@@ -95,3 +95,19 @@ export async function sendNooreEmailConnectionTest(to: string) {
   const text = "NOORÉ email connection test: Your email service is connected. No customer order was created."
   return sendEmail({ to, subject, html, text })
 }
+
+
+export async function sendSupportTicketEmail(input: {
+  to: string
+  ticketId: string
+  subject: string
+  message: string
+  staffReply: boolean
+}) {
+  const { site } = emailConfig()
+  const subject = input.staffReply ? `NOORÉ Support · Reply to ${input.subject}` : `New NOORÉ support request · ${input.subject}`
+  const link = input.staffReply ? `${site}/account/support` : `${site}/admin/support`
+  const html = `<div style="background:#f5f1e9;padding:32px 12px;font-family:Arial,sans-serif;color:#24211c"><div style="max-width:580px;margin:auto;background:#fff;padding:36px;border:1px solid #e7dfd2"><p style="font-family:Georgia,serif;font-size:28px;letter-spacing:5px">NOORÉ</p><p style="font-size:12px;letter-spacing:2px;color:#927345">CUSTOMER SUPPORT</p><h1 style="font-family:Georgia,serif;font-weight:400;font-size:25px">${escapeHtml(input.subject)}</h1><p style="white-space:pre-wrap;line-height:1.7">${escapeHtml(input.message.slice(0, 5000))}</p><p style="margin-top:28px"><a href="${link}" style="display:inline-block;background:#535F4C;color:#fff;padding:13px 20px;text-decoration:none;font-size:12px;font-weight:bold">OPEN SUPPORT CENTRE</a></p><p style="font-size:11px;color:#786f63">Ticket reference: ${escapeHtml(input.ticketId)}</p></div></div>`
+  const text = `NOORÉ Support: ${input.subject}\n\n${input.message}\n\nOpen: ${link}\nTicket: ${input.ticketId}`
+  return sendEmail({ to: input.to, subject, html, text })
+}

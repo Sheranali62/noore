@@ -12,10 +12,10 @@ export const revalidate = 0
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }) {
   const product = await prisma.product.findUnique({
-    where: { slug: params.slug },
+    where: { slug: (await params).slug, status: "ACTIVE" },
     select: {
       name: true,
       description: true,
@@ -38,7 +38,7 @@ export async function generateMetadata({
       product.description ||
       `Shop ${product.name} from NOORÉ.`,
     alternates: {
-      canonical: `/product/${params.slug}`,
+      canonical: `/product/${(await params).slug}`,
     },
     openGraph: {
       title: product.seoTitle || product.name,
@@ -65,14 +65,34 @@ export async function generateMetadata({
 export default async function ProductPage({
   params,
 }: {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }) {
   const product = await prisma.product.findUnique({
     where: {
-      slug: params.slug,
+      slug: (await params).slug,
     },
-    include: {
-      variants: true,
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      description: true,
+      category: true,
+      subcategory: true,
+      collection: true,
+      gender: true,
+      type: true,
+      fabric: true,
+      pieces: true,
+      price: true,
+      salePrice: true,
+      stock: true,
+      images: true,
+      sku: true,
+      tags: true,
+      status: true,
+      variants: {
+        select: { id: true, color: true, size: true, sku: true, price: true, stock: true, images: true },
+      },
       reviews: {
         where: {
           approved: true,
@@ -86,6 +106,7 @@ export default async function ProductPage({
           rating: true,
           comment: true,
           verified: true,
+          approved: true,
           createdAt: true,
           user: { select: { name: true } },
         },
@@ -109,17 +130,7 @@ export default async function ProductPage({
     orderBy: {
       createdAt: "desc",
     },
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      price: true,
-      salePrice: true,
-      images: true,
-      category: true,
-      stock: true,
-      gender: true,
-    },
+    select: { id: true },
   })
 
   const jsonLd = productJsonLd({
@@ -134,6 +145,7 @@ export default async function ProductPage({
    */
   const productForDetail = {
     ...product,
+    lowStock: 5,
     reviews: product.reviews.map((review) => ({
       ...review,
       author: review.user?.name || "NOORÉ customer",

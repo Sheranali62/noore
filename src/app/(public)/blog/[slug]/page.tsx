@@ -5,9 +5,9 @@ import { format } from "date-fns"
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://noore-nine.vercel.app"
 
-export async function generateMetadata({ params }: { params: { slug: string } }) {
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const post = await prisma.blogPost.findUnique({
-    where: { slug: params.slug, published: true },
+    where: { slug: (await params).slug, published: true },
     select: {
       title: true,
       excerpt: true,
@@ -50,9 +50,9 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   }
 }
 
-export default async function BlogDetailPage({ params }: { params: { slug: string } }) {
+export default async function BlogDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const post = await prisma.blogPost.findUnique({
-    where: { slug: params.slug, published: true },
+    where: { slug: (await params).slug, published: true },
   })
 
   if (!post) notFound()

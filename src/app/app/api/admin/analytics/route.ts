@@ -8,8 +8,7 @@ export async function GET() {
   const guard = await requireAdmin([
     "SUPER_ADMIN",
     "ADMIN",
-    "ORDER_MANAGER",
-  ])
+      ])
 
   if (guard.response) {
     return guard.response
@@ -101,6 +100,7 @@ export async function GET() {
         items: {
           some: {},
         },
+        abandonedReminderAt: null,
         updatedAt: {
           lt: new Date(
             Date.now() - 2 * 60 * 60 * 1000
@@ -126,6 +126,23 @@ export async function GET() {
       },
     }),
   ])
+
+  const costItems = await prisma.orderItem.findMany({
+    where: {
+      costPrice: { not: null },
+      order: { createdAt: { gte: since }, status: { notIn: ["CANCELLED", "REFUNDED"] } },
+    },
+    select: { quantity: true, total: true, costPrice: true, order: { select: { subtotal: true, discount: true } } },
+  })
+  const grossProfit = costItems.reduce((sum, item) => sum + (item.total - (item.order.subtotal > 0 ? item.order.discount * item.total / item.order.subtotal : 0)) - (item.costPrice || 0) * item.quantity, 0)
+
+  const searchGroups = await prisma.searchEvent.groupBy({
+    by: ["query"],
+    _count: { _all: true },
+    _avg: { resultCount: true },
+    orderBy: { _count: { query: "desc" } },
+    take: 10,
+  })
 
   const names = await prisma.product.findMany({
     where: {
@@ -158,6 +175,8 @@ export async function GET() {
     abandonedCarts: cartCount,
     couponUses: coupons,
     lowStock,
+    grossProfit,
+    costLines: costItems.length,
 
     topProducts: top.map((item) => ({
       productId: item.productId,
@@ -177,9 +196,10 @@ export async function GET() {
 
     status,
 
-    // Search analytics is intentionally omitted
-    // because SearchEvent is not part of the
-    // current Prisma schema.
-    topSearches: [],
+    topSearches: searchGroups.map((item) => ({
+      query: item.query,
+      searches: item._count._all,
+      averageResults: Math.round(item._avg.resultCount || 0),
+    })),
   })
 }

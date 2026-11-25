@@ -1,7 +1,12 @@
 import { prisma } from "@/lib/prisma"
+import { notFound } from "next/navigation"
+import { requireAdmin } from "@/lib/admin"
 import Link from "next/link"
 
 export default async function AdminInventoryPage() {
+  const access = await requireAdmin(["SUPER_ADMIN","ADMIN","PRODUCT_MANAGER"])
+  if (access.response) notFound()
+
   const products = await prisma.product.findMany({ orderBy: { stock: "asc" }, where: { status: "ACTIVE" } })
   const lowStockProducts = products.filter(p => p.stock < 5)
   const outOfStockProducts = products.filter(p => p.stock === 0)

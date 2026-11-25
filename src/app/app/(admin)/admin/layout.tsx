@@ -18,6 +18,7 @@ export default async function AdminLayout({
   }
 
   const email = session.user.email ?? "Admin"
+  const role = session.user.role ?? "CUSTOMER"
 
   return (
     <div className="min-h-screen bg-background">
@@ -41,7 +42,7 @@ export default async function AdminLayout({
         </div>
 
         <div className="mt-6">
-          <AdminNav />
+          <AdminNav role={role} />
         </div>
 
         <div className="absolute bottom-6 left-6 right-6 rounded-xl border border-white/10 bg-white/5 p-4 text-xs text-white/50">
@@ -57,7 +58,7 @@ export default async function AdminLayout({
       <div className="lg:pl-64">
         {/* Mobile header */}
         <header className="sticky top-0 z-40 border-b border-white/10 bg-charcoal px-4 text-white shadow-lg lg:hidden">
-          <MobileAdminNav email={email} />
+          <MobileAdminNav email={email} role={role} />
         </header>
 
         <main className="p-4 sm:p-6 lg:p-8">

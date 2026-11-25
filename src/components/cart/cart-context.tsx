@@ -1,6 +1,7 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react"
+import { useSession } from "next-auth/react"
 
 export type CartItem = {
   id: string
@@ -35,6 +36,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([])
   const [hydrated, setHydrated] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
+  const { data: session, status: sessionStatus } = useSession()
+  const [syncedUserId, setSyncedUserId] = useState<string | null>(null)
 
   // Restore the saved cart before allowing any writes to localStorage.
   useEffect(() => {
@@ -50,6 +53,71 @@ export function CartProvider({ children }: { children: ReactNode }) {
       setHydrated(true)
     }
   }, [])
+
+  // When a customer signs in, merge their guest cart with the saved account cart.
+  useEffect(() => {
+    if (!hydrated || sessionStatus === "loading") return
+    const userId = session?.user?.id
+    if (!userId) {
+      setSyncedUserId(null)
+      return
+    }
+
+    let active = true
+    const guestItems = items
+    async function syncOnSignIn() {
+      try {
+        const response = await fetch("/api/cart", { cache: "no-store" })
+        if (!response.ok) return
+        const data = await response.json()
+        const savedItems: CartItem[] = Array.isArray(data.items) ? data.items : []
+        const merged = new Map<string, CartItem>()
+
+        for (const item of savedItems) merged.set(item.id, item)
+        for (const item of guestItems) {
+          const existing = merged.get(item.id)
+          const stock = Number((existing as any)?.stock ?? (item as any).stock ?? 99)
+          merged.set(item.id, {
+            ...item,
+            quantity: Math.min(stock, (existing?.quantity ?? 0) + item.quantity),
+          })
+        }
+
+        if (!active) return
+        const nextItems = Array.from(merged.values()).filter(item => item.quantity > 0)
+        setItems(nextItems)
+        setSyncedUserId(userId ?? null)
+      } catch (error) {
+        console.error("Could not restore the saved NOORÉ cart:", error)
+      }
+    }
+
+    void syncOnSignIn()
+    return () => { active = false }
+  // Only run this merge when the authenticated account changes.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hydrated, sessionStatus, session?.user?.id])
+
+  // Persist every subsequent cart change for signed-in customers.
+  useEffect(() => {
+    if (!syncedUserId || syncedUserId !== session?.user?.id || !hydrated) return
+    fetch("/api/cart", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        items: items.map(item => ({
+          productId: item.productId,
+          variantId: item.variantId || null,
+          quantity: item.quantity,
+        })),
+      }),
+    }).then(async response => {
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}))
+        console.warn("NOORÉ cart sync:", data.error || response.statusText)
+      }
+    }).catch(error => console.error("NOORÉ cart sync failed:", error))
+  }, [items, syncedUserId, session?.user?.id, hydrated])
 
   // Do not overwrite the saved cart with the initial empty state before hydration.
   useEffect(() => {

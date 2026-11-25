@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/admin"
 
-export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { response } = await requireAdmin(["SUPER_ADMIN", "ADMIN"])
   if (response) return response
   try {
-    const coupon = await prisma.coupon.findUnique({ where: { id: params.id } })
+    const coupon = await prisma.coupon.findUnique({ where: { id: (await params).id } })
     if (!coupon) return NextResponse.json({ error: "Coupon not found" }, { status: 404 })
     return NextResponse.json(coupon)
   } catch (error) {
@@ -34,15 +34,15 @@ function parseCoupon(body: any) {
   return { code, type: type as any, value, minOrder, maxDiscount, startDate, expiryDate, usageLimit, perCustomer, active: body.active !== false, applicableCategories: Array.isArray(body.applicableCategories) ? body.applicableCategories.map(String) : [], applicableProductIds: Array.isArray(body.applicableProductIds) ? body.applicableProductIds.map(String) : [] }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { response } = await requireAdmin(["SUPER_ADMIN", "ADMIN"])
   if (response) return response
   try {
     const body = await request.json()
     const data = parseCoupon(body)
-    const duplicate = await prisma.coupon.findFirst({ where: { code: data.code, NOT: { id: params.id } }, select: { id: true } })
+    const duplicate = await prisma.coupon.findFirst({ where: { code: data.code, NOT: { id: (await params).id } }, select: { id: true } })
     if (duplicate) return NextResponse.json({ error: "Coupon code already exists" }, { status: 400 })
-    const coupon = await prisma.coupon.update({ where: { id: params.id }, data })
+    const coupon = await prisma.coupon.update({ where: { id: (await params).id }, data })
     return NextResponse.json(coupon)
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to update coupon"
@@ -50,13 +50,13 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { response } = await requireAdmin(["SUPER_ADMIN", "ADMIN"])
   if (response) return response
   try {
     const body = await request.json()
     if (typeof body.active !== "boolean") return NextResponse.json({ error: "Active must be a boolean" }, { status: 400 })
-    const coupon = await prisma.coupon.update({ where: { id: params.id }, data: { active: body.active } })
+    const coupon = await prisma.coupon.update({ where: { id: (await params).id }, data: { active: body.active } })
     return NextResponse.json(coupon)
   } catch (error) {
     console.error("Error changing coupon status:", error)
@@ -64,16 +64,16 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   }
 }
 
-export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { response } = await requireAdmin(["SUPER_ADMIN", "ADMIN"])
   if (response) return response
   try {
-    const usage = await prisma.couponUsage.count({ where: { couponId: params.id } })
+    const usage = await prisma.couponUsage.count({ where: { couponId: (await params).id } })
     if (usage > 0) {
-      await prisma.coupon.update({ where: { id: params.id }, data: { active: false } })
+      await prisma.coupon.update({ where: { id: (await params).id }, data: { active: false } })
       return NextResponse.json({ message: "Coupon has usage history and was deactivated instead" })
     }
-    await prisma.coupon.delete({ where: { id: params.id } })
+    await prisma.coupon.delete({ where: { id: (await params).id } })
     return NextResponse.json({ message: "Coupon deleted successfully" })
   } catch (error) {
     console.error("Error deleting coupon:", error)

@@ -1,25 +1,32 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth/next"
 import { prisma } from "@/lib/prisma"
 import { authOptions } from "@/lib/auth"
+import { enforceRateLimit } from "@/lib/rate-limit"
 
 export const dynamic = "force-dynamic"
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const productId = searchParams.get("productId") || undefined
-  const exclude = new Set((searchParams.get("exclude") || "").split(",").filter(Boolean))
+export async function GET(request: NextRequest) {
+  const rateLimit = await enforceRateLimit(request, "recommendations", 60, 60000)
+  if (rateLimit) return rateLimit
+  const { searchParams } = request.nextUrl
+  const rawProductId = searchParams.get("productId") || ""
+  if (rawProductId.length > 128) return NextResponse.json({ error: "Invalid product ID." }, { status: 400 })
+  const productId = rawProductId || undefined
+  const excludeIds = (searchParams.get("exclude") || "").split(",").filter(Boolean).slice(0, 50)
+  if (excludeIds.some(id => id.length > 128)) return NextResponse.json({ error: "Invalid exclusion list." }, { status: 400 })
+  const exclude = new Set(excludeIds)
   if (productId) exclude.add(productId)
 
-  const source = productId ? await prisma.product.findUnique({ where: { id: productId }, select: { category: true, subcategory: true, collection: true, gender: true, fabric: true, tags: true } }) : null
+  const source = productId ? await prisma.product.findFirst({ where: { id: productId, status: "ACTIVE" }, select: { category: true, subcategory: true, collection: true, gender: true, fabric: true, tags: true } }) : null
   const session = await getServerSession(authOptions)
   let preferredIds: string[] = []
   if (session?.user?.id) {
     const [wishlist, orders] = await Promise.all([
-      prisma.wishlist.findUnique({ where: { userId: session.user.id }, include: { items: { select: { productId: true } } } }),
+      prisma.wishlist.findUnique({ where: { userId: session.user.id }, include: { items: { take: 50, select: { productId: true } } } }),
       prisma.order.findMany({ where: { userId: session.user.id }, select: { items: { select: { productId: true } } }, orderBy: { createdAt: "desc" }, take: 12 }),
     ])
-    preferredIds = [...(wishlist?.items.map(i => i.productId) || []), ...orders.flatMap(o => o.items.map(i => i.productId))]
+    preferredIds = Array.from(new Set([...(wishlist?.items.map(i => i.productId) || []), ...orders.flatMap(o => o.items.map(i => i.productId))])).slice(0, 100)
   }
 
   let preferredCategories: string[] = []
@@ -44,5 +51,5 @@ export async function GET(request: Request) {
   if (products.length < 4) {
     products = await prisma.product.findMany({ where: { status: "ACTIVE", id: { notIn: [...exclude] } }, take: 8, orderBy: { createdAt: "desc" }, select: { id: true, name: true, slug: true, price: true, salePrice: true, images: true, category: true, stock: true, lowStock: true } })
   }
-  return NextResponse.json({ products })
+  return NextResponse.json({ products }, { headers: { "Cache-Control": "private, no-store, max-age=0" } })
 }

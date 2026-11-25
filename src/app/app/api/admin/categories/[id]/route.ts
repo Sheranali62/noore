@@ -111,9 +111,7 @@ export async function PATCH(
   {
     params,
   }: {
-    params: {
-      id: string
-    }
+    params: Promise<{ id: string }>
   }
 ) {
   const { response } = await requireAdmin(
@@ -125,7 +123,7 @@ export async function PATCH(
   }
 
   try {
-    const categoryId = params.id
+    const categoryId = (await params).id
 
     if (!categoryId) {
       return NextResponse.json(
@@ -478,9 +476,7 @@ export async function DELETE(
   {
     params,
   }: {
-    params: {
-      id: string
-    }
+    params: Promise<{ id: string }>
   }
 ) {
   const { response } = await requireAdmin(
@@ -492,7 +488,7 @@ export async function DELETE(
   }
 
   try {
-    const categoryId = params.id
+    const categoryId = (await params).id
 
     if (!categoryId) {
       return NextResponse.json(
