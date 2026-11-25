@@ -20,6 +20,7 @@ import {
   ScrollText,
   CreditCard,
   Mail,
+  LifeBuoy,
 } from "lucide-react"
 
 const items = [
@@ -31,6 +32,7 @@ const items = [
   { href: "/admin/audit-logs", label: "Audit Log", icon: ScrollText },
   { href: "/admin/payments", label: "Payments", icon: CreditCard },
   { href: "/admin/newsletter", label: "Newsletter", icon: Mail },
+  { href: "/admin/support", label: "Support Centre", icon: LifeBuoy },
   { href: "/admin/couriers", label: "Couriers", icon: Truck },
   { href: "/admin/customers", label: "Customers", icon: Users },
   { href: "/admin/coupons", label: "Coupons", icon: Gift },
