@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     const coupon = await prisma.coupon.findUnique({ where: { code } })
     if (!coupon) return NextResponse.json({ error: "Invalid coupon code." }, { status: 400 })
 
-    const productIds = Array.from(new Set(requested.map(item => item.productId)))
+    const productIds: string[] = Array.from(new Set<string>(requested.map(item => item.productId)))
     const products = await prisma.product.findMany({
       where: { id: { in: productIds }, status: "ACTIVE" },
       include: { variants: { select: { id: true, price: true, stock: true } } },
