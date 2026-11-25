@@ -11,11 +11,16 @@ export async function GET(request: NextRequest) {
   if (guard.response) return guard.response
 
   const params = request.nextUrl.searchParams
-  const search = (params.get("search") || "").trim()
+  const search = (params.get("search") || "").trim().slice(0, 100)
   const status = params.get("status") || "all"
-  const city = params.get("city") || "all"
-  const page = Math.max(1, Number(params.get("page") || 1))
-  const pageSize = Math.min(50, Math.max(1, Number(params.get("pageSize") || 8)))
+  const city = (params.get("city") || "all").trim().slice(0, 100)
+  if (!["all", "active", "inactive"].includes(status)) {
+    return NextResponse.json({ error: "Invalid customer status filter" }, { status: 400 })
+  }
+  const requestedPage = Number(params.get("page") || 1)
+  const requestedPageSize = Number(params.get("pageSize") || 8)
+  const page = Number.isFinite(requestedPage) ? Math.max(1, Math.floor(requestedPage)) : 1
+  const pageSize = Number.isFinite(requestedPageSize) ? Math.min(50, Math.max(1, Math.floor(requestedPageSize))) : 8
   const activeSince = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)
 
   const where: any = {
