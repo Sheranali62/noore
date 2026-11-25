@@ -1,5 +1,5 @@
 name: NOORE upgrade validation
-# Re-run validation after correcting the admin route guard signatures.
+# Re-run validation after server-side password policy and recovery hardening.
 
 on:
   push:
