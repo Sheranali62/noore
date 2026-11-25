@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { ArrowUp, X, Truck, Sparkles, Instagram, Facebook, Youtube, MessageCircle, ArrowUpRight, Heart } from "lucide-react"
+import { ArrowUp, X, Truck, Sparkles, MessageCircle, ArrowUpRight, Heart } from "lucide-react"
+import { FaInstagram, FaFacebookF, FaYoutube } from "react-icons/fa"
 import { usePathname, useRouter } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
 import Link from "next/link"
@@ -146,9 +147,9 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
           </Link>
           <p className="mt-5 max-w-sm text-sm leading-7 text-[#E2E2D8]">{siteDesign.footerDescription || "Thoughtful style, considered details and modern essentials. Discover the NOORÉ edit and find pieces made to feel like your own."}</p>
           <div className="mt-6 flex flex-wrap items-center gap-3">
-            {SOCIAL_LINKS.instagram && !SOCIAL_LINKS.instagram.includes("YOUR_") && <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="grid h-10 w-10 place-items-center rounded-full border border-white/10 text-[#d6c5a6] transition hover:border-[#D4A07D]/60 hover:bg-[#D4A07D]/10 hover:text-white"><Instagram className="h-4 w-4" /></a>}
-            {SOCIAL_LINKS.facebook && !SOCIAL_LINKS.facebook.includes("YOUR_") && <a href={SOCIAL_LINKS.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="grid h-10 w-10 place-items-center rounded-full border border-white/10 text-[#d6c5a6] transition hover:border-[#D4A07D]/60 hover:bg-[#D4A07D]/10 hover:text-white"><Facebook className="h-4 w-4" /></a>}
-            {SOCIAL_LINKS.youtube && !SOCIAL_LINKS.youtube.includes("YOUR_") && <a href={SOCIAL_LINKS.youtube} target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="grid h-10 w-10 place-items-center rounded-full border border-white/10 text-[#d6c5a6] transition hover:border-[#D4A07D]/60 hover:bg-[#D4A07D]/10 hover:text-white"><Youtube className="h-4 w-4" /></a>}
+            {SOCIAL_LINKS.instagram && !SOCIAL_LINKS.instagram.includes("YOUR_") && <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="grid h-10 w-10 place-items-center rounded-full border border-white/10 text-[#d6c5a6] transition hover:border-[#D4A07D]/60 hover:bg-[#D4A07D]/10 hover:text-white"><FaInstagram className="h-4 w-4" /></a>}
+            {SOCIAL_LINKS.facebook && !SOCIAL_LINKS.facebook.includes("YOUR_") && <a href={SOCIAL_LINKS.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="grid h-10 w-10 place-items-center rounded-full border border-white/10 text-[#d6c5a6] transition hover:border-[#D4A07D]/60 hover:bg-[#D4A07D]/10 hover:text-white"><FaFacebookF className="h-4 w-4" /></a>}
+            {SOCIAL_LINKS.youtube && !SOCIAL_LINKS.youtube.includes("YOUR_") && <a href={SOCIAL_LINKS.youtube} target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="grid h-10 w-10 place-items-center rounded-full border border-white/10 text-[#d6c5a6] transition hover:border-[#D4A07D]/60 hover:bg-[#D4A07D]/10 hover:text-white"><FaYoutube className="h-4 w-4" /></a>}
             <a href={SOCIAL_LINKS.whatsapp} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp customer care" className="grid h-10 w-10 place-items-center rounded-full border border-white/10 text-[#d6c5a6] transition hover:border-[#D4A07D]/60 hover:bg-[#D4A07D]/10 hover:text-white"><MessageCircle className="h-4 w-4" /></a>
           </div>
         </div>
