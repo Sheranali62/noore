@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
       orderNumber.length > 64 ||
       !email ||
       email.length > 254 ||
-      !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
     ) {
       return trackingResponse(
         { error: "A valid order number and email are required" },
@@ -164,7 +164,7 @@ export async function POST(request: NextRequest) {
       name.length > 120 ||
       !email ||
       email.length > 254 ||
-      !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email) ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
       !phone ||
       phone.length > 32 ||
       !addressLine ||
