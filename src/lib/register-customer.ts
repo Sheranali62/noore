@@ -33,7 +33,9 @@ export async function registerCustomer(request: NextRequest) {
     })
     const result = await response.json().catch(() => ({}))
 
-    if (!response.ok || !result.user?.id) {
+    const authUser = result.user || result
+    const duplicateIdentity = Array.isArray(authUser.identities) && authUser.identities.length === 0
+    if (!response.ok || !authUser.id || duplicateIdentity) {
       const message = String(result.msg || result.message || result.error_description || result.error || "")
       if (/already|registered|exists/i.test(message)) {
         return NextResponse.json({ error: "An account with this email may already exist. Please sign in or reset your password." }, { status: 409 })
@@ -42,6 +44,7 @@ export async function registerCustomer(request: NextRequest) {
       return NextResponse.json({ error: "We could not create your account. Please check your details and try again." }, { status: 400 })
     }
 
+    const requiresEmailConfirmation = !result.session && !result.access_token
     const user = await prisma.user.upsert({
       where: { email },
       update: { name },
@@ -50,8 +53,8 @@ export async function registerCustomer(request: NextRequest) {
     })
 
     return NextResponse.json({
-      message: result.session ? "Account created successfully." : "Account created. Please check your email to confirm your address.",
-      requiresEmailConfirmation: !result.session,
+      message: requiresEmailConfirmation ? "Account created. Please check your email to confirm your address." : "Account created successfully.",
+      requiresEmailConfirmation,
       user,
     }, { status: 201 })
   } catch (error) {
