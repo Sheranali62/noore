@@ -447,6 +447,15 @@ model SupportTicketMessage {
   @@index([ticketId, createdAt])
 }
 
+model RateLimitBucket {
+  key         String   @id
+  count       Int      @default(0)
+  windowStart DateTime
+  updatedAt   DateTime @updatedAt
+
+  @@index([updatedAt])
+}
+
 model HomepageSection {
   id          String   @id @default(cuid())
   type        String
