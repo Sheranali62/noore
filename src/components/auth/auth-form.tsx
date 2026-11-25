@@ -4,6 +4,7 @@ import { useState } from "react"
 import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { isStrongPassword, PASSWORD_POLICY_MESSAGE } from "@/lib/password-policy"
 
 type AuthFormProps = {
   type: "login" | "register"
@@ -26,6 +27,11 @@ export function AuthForm({ type }: AuthFormProps) {
     setError(null)
 
     if (type === "register") {
+      if (!isStrongPassword(formData.password)) {
+        setError(PASSWORD_POLICY_MESSAGE)
+        setLoading(false)
+        return
+      }
       if (formData.password !== formData.confirmPassword) {
         setError("Passwords do not match")
         setLoading(false)
@@ -140,11 +146,12 @@ export function AuthForm({ type }: AuthFormProps) {
           <input
             type="password"
             required
-            minLength={6}
+            minLength={type === "register" ? 12 : 1}
             value={formData.password}
             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             className="w-full px-3 py-2 border border-cream rounded focus:outline-none focus:border-charcoal"
-            placeholder={type === "login" ? "Enter your password" : "Min 6 characters"}
+            placeholder={type === "login" ? "Enter your password" : "12+ characters, mixed case, number and symbol"}
+            {type === "register" && <p className="mt-1 text-xs text-secondary">{PASSWORD_POLICY_MESSAGE}</p>}
           />
         </div>
 
