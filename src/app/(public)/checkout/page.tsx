@@ -12,11 +12,11 @@ type Address = { id: string; name: string; phone: string; address: string; city:
 type Coupon = { code: string; type: string; value: number; discount: number }
 type ConfirmedOrder = {
   name: string; email: string; phone: string; address: string; city: string; province: string; postal: string;
-  deliveryMethod: string; subtotal: number; discount: number; shipping: number; total: number;
+  deliveryMethod: string; subtotal: number; discount: number; shipping: number; tax: number; total: number;
   items: Array<{ id: string; name: string; image: string; quantity: number; price: number; variantLabel: string }>
 }
 
-const FALLBACK = { freeShippingThreshold: 5000, standardShipping: 250, expressShipping: 500 }
+const FALLBACK = { freeShippingThreshold: 5000, standardShipping: 250, expressShipping: 500, taxRate: 0 }
 
 export default function CheckoutPage() {
   const router = useRouter()
@@ -48,7 +48,7 @@ export default function CheckoutPage() {
         setSettings({
           freeShippingThreshold: Number(s.freeShippingThreshold ?? FALLBACK.freeShippingThreshold),
           standardShipping: Number(s.standardShipping ?? FALLBACK.standardShipping),
-          expressShipping: Number(s.expressShipping ?? FALLBACK.expressShipping),
+          expressShipping: Number(s.expressShipping ?? FALLBACK.expressShipping),\n          taxRate: Number(s.taxRate ?? FALLBACK.taxRate),
         })
       }
       if (addressesResult.status === "fulfilled" && addressesResult.value?.addresses) {
@@ -71,7 +71,7 @@ export default function CheckoutPage() {
 
   const shipping = formData.deliveryMethod === "express" ? settings.expressShipping : (total >= settings.freeShippingThreshold ? 0 : settings.standardShipping)
   const discount = coupon?.discount || 0
-  const grandTotal = Math.max(0, total - discount + shipping)
+  const tax = Math.round(Math.max(0, total - discount) * settings.taxRate / 100 * 100) / 100\n  const grandTotal = Math.max(0, total - discount + shipping + tax)
   const freeShippingGap = Math.max(0, settings.freeShippingThreshold - total)
 
   const update = (key: keyof typeof formData, value: string) => setFormData(prev => ({ ...prev, [key]: value }))
@@ -123,7 +123,7 @@ export default function CheckoutPage() {
       setConfirmedOrder({
         name: formData.name.trim(), email: formData.email.trim(), phone: formData.phone.trim(),
         address: formData.address.trim(), city: formData.city, province: formData.province, postal: formData.postal.trim(),
-        deliveryMethod: formData.deliveryMethod, subtotal: total, discount, shipping, total: grandTotal,
+        deliveryMethod: formData.deliveryMethod, subtotal: total, discount, shipping, tax, total: grandTotal,
         items: items.map(item => ({
           id: item.id || item.productId, name: item.name, image: item.image, quantity: item.quantity, price: item.price,
           variantLabel: (item as any).variantLabel || "",
@@ -169,7 +169,7 @@ export default function CheckoutPage() {
           <aside className="space-y-5">
             <section className="border border-[#B8AA91] bg-[#465340] p-5">
               <h2 className="font-semibold">Order summary</h2>
-              <div className="mt-4 space-y-3 text-sm"><div className="flex justify-between"><span className="text-[#B8AA91]">Subtotal</span><span>PKR {confirmedOrder.subtotal.toLocaleString()}</span></div>{confirmedOrder.discount>0&&<div className="flex justify-between"><span className="text-[#B8AA91]">Discount</span><span>- PKR {confirmedOrder.discount.toLocaleString()}</span></div>}<div className="flex justify-between"><span className="text-[#B8AA91]">Shipping</span><span>{confirmedOrder.shipping===0?"FREE":"PKR "+confirmedOrder.shipping.toLocaleString()}</span></div><div className="flex justify-between border-t border-[#B8AA91] pt-3 font-semibold"><span>Total due</span><span>PKR {confirmedOrder.total.toLocaleString()}</span></div></div>
+              <div className="mt-4 space-y-3 text-sm"><div className="flex justify-between"><span className="text-[#B8AA91]">Subtotal</span><span>PKR {confirmedOrder.subtotal.toLocaleString()}</span></div>{confirmedOrder.discount>0&&<div className="flex justify-between"><span className="text-[#B8AA91]">Discount</span><span>- PKR {confirmedOrder.discount.toLocaleString()}</span></div>}<div className="flex justify-between"><span className="text-[#B8AA91]">Shipping</span><span>{confirmedOrder.shipping===0?"FREE":"PKR "+confirmedOrder.shipping.toLocaleString()}</span></div>{confirmedOrder.tax>0&&<div className="flex justify-between"><span className="text-[#B8AA91]">Tax</span><span>PKR {confirmedOrder.tax.toLocaleString()}</span></div>}<div className="flex justify-between border-t border-[#B8AA91] pt-3 font-semibold"><span>Total due</span><span>PKR {confirmedOrder.total.toLocaleString()}</span></div></div>
               <p className="mt-4 border border-[#B8AA91] bg-[#535F4C] p-3 text-xs text-[#B8AA91]">Cash on Delivery · Pay when your order arrives.</p>
             </section>
             <section className="border border-[#B8AA91] bg-[#465340] p-5">
@@ -210,7 +210,7 @@ export default function CheckoutPage() {
         </section>
 
         <aside className="lg:sticky lg:top-24 space-y-4">
-          <div className="bg-[#465340] border border-[#B8AA91] p-5 md:p-6"><div className="flex items-center justify-between"><h2 className="font-editorial text-2xl font-semibold">Your order</h2><Link href="/cart" className="text-xs underline">Edit bag</Link></div><div className="mt-5 max-h-64 overflow-y-auto space-y-4">{items.map(item=><div key={item.id||item.productId} className="flex gap-3"><img src={item.image} alt={item.name} className="w-16 h-20 object-cover bg-[#24211c]"/><div className="min-w-0 flex-1"><p className="text-sm font-medium truncate">{item.name}</p>{(item as any).variantLabel&&<p className="text-[11px] text-[#B8AA91] mt-1">{(item as any).variantLabel}</p>}<p className="text-xs text-[#B8AA91] mt-1">Qty {item.quantity}</p></div><p className="text-sm font-medium">PKR {(item.price*item.quantity).toLocaleString()}</p></div>)}</div><div className="mt-5 pt-5 border-t border-[#B8AA91] space-y-3 text-sm"><div className="flex justify-between"><span className="text-[#B8AA91]">Subtotal</span><span>PKR {total.toLocaleString()}</span></div>{discount>0&&<div className="flex justify-between"><span className="text-[#B8AA91]">Discount {coupon&&`(${coupon.code})`}</span><span>- PKR {discount.toLocaleString()}</span></div>}<div className="flex justify-between"><span className="text-[#B8AA91]">Shipping</span><span>{shipping===0?"FREE":`PKR ${shipping.toLocaleString()}`}</span></div><div className="pt-4 mt-2 border-t border-[#B8AA91] flex justify-between font-semibold"><span>Total</span><span>PKR {grandTotal.toLocaleString()}</span></div></div></div>
+          <div className="bg-[#465340] border border-[#B8AA91] p-5 md:p-6"><div className="flex items-center justify-between"><h2 className="font-editorial text-2xl font-semibold">Your order</h2><Link href="/cart" className="text-xs underline">Edit bag</Link></div><div className="mt-5 max-h-64 overflow-y-auto space-y-4">{items.map(item=><div key={item.id||item.productId} className="flex gap-3"><img src={item.image} alt={item.name} className="w-16 h-20 object-cover bg-[#24211c]"/><div className="min-w-0 flex-1"><p className="text-sm font-medium truncate">{item.name}</p>{(item as any).variantLabel&&<p className="text-[11px] text-[#B8AA91] mt-1">{(item as any).variantLabel}</p>}<p className="text-xs text-[#B8AA91] mt-1">Qty {item.quantity}</p></div><p className="text-sm font-medium">PKR {(item.price*item.quantity).toLocaleString()}</p></div>)}</div><div className="mt-5 pt-5 border-t border-[#B8AA91] space-y-3 text-sm"><div className="flex justify-between"><span className="text-[#B8AA91]">Subtotal</span><span>PKR {total.toLocaleString()}</span></div>{discount>0&&<div className="flex justify-between"><span className="text-[#B8AA91]">Discount {coupon&&`(${coupon.code})`}</span><span>- PKR {discount.toLocaleString()}</span></div>}<div className="flex justify-between"><span className="text-[#B8AA91]">Shipping</span><span>{shipping===0?"FREE":`PKR ${shipping.toLocaleString()}`}</span></div>{tax>0&&<div className="flex justify-between"><span className="text-[#B8AA91]">Tax</span><span>PKR {tax.toLocaleString()}</span></div>}<div className="pt-4 mt-2 border-t border-[#B8AA91] flex justify-between font-semibold"><span>Total</span><span>PKR {grandTotal.toLocaleString()}</span></div></div></div>
           <div className="bg-[#465340] border border-[#B8AA91] p-5"><label className="text-xs uppercase tracking-[0.18em] font-medium">Promo code</label><div className="mt-3 flex gap-2"><input value={couponInput} onChange={e=>setCouponInput(e.target.value.toUpperCase())} placeholder="ENTER CODE" className="flex-1 min-w-0 border border-[#B8AA91] px-3 py-2.5 text-xs tracking-wider focus:outline-none focus:border-charcoal"/><button type="button" onClick={applyCoupon} disabled={couponLoading} className="px-4 bg-[#24211c] text-xs font-medium disabled:opacity-50">{couponLoading?"…":"Apply"}</button></div>{couponMessage&&<div className="mt-2 flex items-start justify-between gap-3"><p role="status" className={`text-xs ${coupon ? "text-emerald-400" : "text-red-300"}`}>{couponMessage}</p>{coupon&&<button type="button" onClick={()=>{setCoupon(null);setCouponInput("");setCouponMessage("Coupon removed.")}} className="shrink-0 text-[10px] uppercase tracking-wider text-[#D4A07D] underline underline-offset-4">Remove</button>}</div>}</div>
           {formData.deliveryMethod==="standard"&&<div className="border border-[#B8AA91] bg-[#465340] p-5"><div className="flex items-center justify-between gap-3"><p className="text-[10px] uppercase tracking-[0.18em] text-[#B8AA91]">Free standard delivery</p><p className="text-xs font-medium text-[#D4A07D]">{freeShippingGap===0?"Unlocked":"PKR "+freeShippingGap.toLocaleString()+" to go"}</p></div><div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#B8AA91]"><div className="h-full bg-[#D4A07D] transition-all" style={{width:`${Math.min(100, settings.freeShippingThreshold > 0 ? total / settings.freeShippingThreshold * 100 : 100)}%`}}/></div><p className="mt-3 text-xs text-[#B8AA91]">{freeShippingGap===0?"Your order qualifies for free standard shipping.":"Add a little more to qualify for free standard shipping."}</p></div>}
           <div className="flex gap-3 text-xs text-[#B8AA91]"><MapPin size={15}/><span>Pakistan-wide delivery · Cash on Delivery</span></div>
