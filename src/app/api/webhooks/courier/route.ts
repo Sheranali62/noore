@@ -41,12 +41,16 @@ export async function POST(request: NextRequest) {
     const status = STATUS_MAP[providerStatus]
     if (!orderNumber || orderNumber.length > 64 || !trackingNumber || trackingNumber.length > 180 || !status) return NextResponse.json({ error: "Invalid courier event." }, { status: 400 })
 
-    const order = await prisma.order.findUnique({ where: { orderNumber }, select: { id: true, orderNumber: true, status: true, trackingNumber: true, user: { select: { name: true, email: true } } } })
+    const order = await prisma.order.findUnique({ where: { orderNumber }, select: { id: true, orderNumber: true, status: true, trackingNumber: true, courier: true, user: { select: { name: true, email: true } } } })
     if (!order) return NextResponse.json({ error: "Order not found." }, { status: 404 })
     if (order.status === "CANCELLED" || order.status === "REFUNDED" || order.status === "RETURNED") return NextResponse.json({ error: "This order is no longer active for delivery updates." }, { status: 409 })
     const deliveryRank: Record<string, number> = { PENDING: 0, CONFIRMED: 1, PROCESSING: 2, PACKED: 3, SHIPPED: 4, OUT_FOR_DELIVERY: 5, DELIVERED: 6 }
     if ((deliveryRank[order.status] ?? -1) > deliveryRank[status]) {
       return NextResponse.json({ success: true, ignored: true, message: "A newer delivery status is already recorded." })
+    }
+
+    if (order.status === status && order.trackingNumber === trackingNumber && (!courier || order.courier === courier)) {
+      return NextResponse.json({ success: true, ignored: true, message: "This courier event is already recorded." })
     }
 
     await prisma.$transaction(async tx => {
