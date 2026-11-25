@@ -21,12 +21,12 @@ function statusClass(status: string) {
   return "bg-[#EEEDE6] text-[#535F4C]"
 }
 
-export default async function OrderDetailPage({ params }: { params: { id: string } }) {
+export default async function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions)
-  if (!session?.user?.id) redirect(`/login?callbackUrl=/account/orders/${params.id}`)
+  if (!session?.user?.id) redirect(`/login?callbackUrl=/account/orders/${(await params).id}`)
 
   const order = await prisma.order.findFirst({
-    where: { id: params.id, userId: session.user.id },
+    where: { id: (await params).id, userId: session.user.id },
     include: { address: true, items: { include: { product: true, variant: true } }, orderEvents: { orderBy: { createdAt: "desc" } } },
   })
   if (!order) notFound()
