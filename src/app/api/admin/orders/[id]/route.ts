@@ -25,7 +25,7 @@ const PAYMENT_STATUSES = [
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const guard = await requireAdmin([
     "SUPER_ADMIN",
@@ -99,7 +99,7 @@ export async function PATCH(
 
     const order = await prisma.$transaction(async (tx) => {
       const current = await tx.order.findUnique({
-        where: { id: params.id },
+        where: { id: (await params).id },
         include: {
           items: true,
         },
@@ -160,7 +160,7 @@ export async function PATCH(
                 afterStock:
                   currentVariant.stock + item.quantity,
                 reason: `Order ${nextStatus.toLowerCase()}`,
-                note: `Order ${params.id}`,
+                note: `Order ${(await params).id}`,
               },
             })
           } else {
@@ -197,7 +197,7 @@ export async function PATCH(
                 afterStock:
                   currentProduct.stock + item.quantity,
                 reason: `Order ${nextStatus.toLowerCase()}`,
-                note: `Order ${params.id}`,
+                note: `Order ${(await params).id}`,
               },
             })
           }
@@ -246,7 +246,7 @@ export async function PATCH(
                 afterStock:
                   currentVariant.stock - item.quantity,
                 reason: "Order reopened",
-                note: params.id,
+                note: (await params).id,
               },
             })
           } else {
@@ -286,7 +286,7 @@ export async function PATCH(
                 afterStock:
                   currentProduct.stock - item.quantity,
                 reason: "Order reopened",
-                note: params.id,
+                note: (await params).id,
               },
             })
           }
@@ -295,7 +295,7 @@ export async function PATCH(
 
       const updatedOrder = await tx.order.update({
         where: {
-          id: params.id,
+          id: (await params).id,
         },
         data: {
           status: nextStatus,
@@ -341,7 +341,7 @@ export async function PATCH(
       if (status || paymentStatus || body.trackingNumber !== undefined || body.courier !== undefined || body.courierCompanyId !== undefined) {
         await tx.orderEvent.create({
           data: {
-            orderId: params.id,
+            orderId: (await params).id,
             actorId: guard.session?.user?.id,
             event: status ? `ORDER_${status}` : paymentStatus ? `PAYMENT_${paymentStatus}` : "ORDER_SHIPMENT_UPDATED",
             message: status ? `Order status changed to ${status}.` : paymentStatus ? `Payment status changed to ${paymentStatus}.` : "Shipment details updated.",
@@ -353,7 +353,7 @@ export async function PATCH(
             actorId: guard.session?.user?.id,
             action: "UPDATE_ORDER",
             entityType: "Order",
-            entityId: params.id,
+            entityId: (await params).id,
             details: { status: status ?? null, paymentStatus: paymentStatus ?? null, trackingNumber, courier: selectedCourierName || courier },
           },
         })
