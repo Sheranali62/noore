@@ -33,10 +33,10 @@ export async function POST(request: NextRequest) {
     const email = String(body.email ?? "").trim().toLowerCase()
     const password = String(body.password ?? "")
 
-    if (!name || name.length > 100 || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email) || email.length > 254) {
+    if (!name || name.length > 100 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
       return NextResponse.json({ error: "Enter your name and a valid email address." }, { status: 400 })
     }
-    if (password.length < 8 || password.length > 128 || !/[A-Za-z]/.test(password) || !/\\d/.test(password)) {
+    if (password.length < 8 || password.length > 128 || !/[A-Za-z]/.test(password) || !/\d/.test(password)) {
       return NextResponse.json({ error: "Password must be at least 8 characters and include a letter and a number." }, { status: 400 })
     }
 
