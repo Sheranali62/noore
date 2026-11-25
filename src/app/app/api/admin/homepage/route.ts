@@ -26,7 +26,7 @@ async function ensureSections() {
 }
 
 export async function GET() {
-  const auth = await requireAdmin()
+  const auth = await requireAdmin(["SUPER_ADMIN", "ADMIN", "CONTENT_MANAGER"])
   if (!auth.session) return auth.response
   const [sections, banners] = await Promise.all([
     ensureSections(),
