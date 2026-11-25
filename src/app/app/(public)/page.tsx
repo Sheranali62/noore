@@ -21,9 +21,9 @@ const editorial = [
   { eyebrow: "Festive 2026", title: "Moments worth dressing for.", copy: "Discover statement pieces for celebrations, evenings and everything between.", image: "https://images.unsplash.com/photo-1591369822096-ffd140ec948f?w=1600&auto=format&fit=crop", href: "/products?category=Luxury" },
 ]
 
-function readInterest(): { segment: InterestSegment | null; scores: Record<InterestSegment, number> } {
+async function readInterest(): Promise<{ segment: InterestSegment | null; scores: Record<InterestSegment, number> }> {
   try {
-    const raw = cookies().get(PERSONALIZATION_COOKIE)?.value
+    const raw = (await cookies()).get(PERSONALIZATION_COOKIE)?.value
     if (!raw) return { segment: null, scores: { women: 0, men: 0, kids: 0 } }
     const parsed = JSON.parse(decodeURIComponent(raw))
     const scores = {
@@ -43,7 +43,7 @@ function personalize<T extends { gender?: string | null; category?: string | nul
 }
 
 export default async function HomePage() {
-  const { segment: interest } = readInterest()
+  const { segment: interest } = await readInterest()
   const [featuredRaw, saleRaw, limitedRaw, popularGroups, designRow] = await Promise.all([
     prisma.product.findMany({ where: { status: "ACTIVE" }, take: 24, orderBy: { createdAt: "desc" } }),
     prisma.product.findMany({ where: { status: "ACTIVE", salePrice: { not: null } }, take: 12, orderBy: { createdAt: "desc" } }),
