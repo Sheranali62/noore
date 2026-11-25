@@ -111,6 +111,14 @@ export async function PATCH(
 
       const nextStatus = status ?? current.status
 
+      if (nextStatus !== current.status) {
+        const claimed = await tx.order.updateMany({
+          where: { id: (await params).id, status: current.status },
+          data: { status: nextStatus },
+        })
+        if (claimed.count !== 1) throw new Error("CONCURRENT_ORDER_UPDATE")
+      }
+
       const wasCancelled =
         current.status === "CANCELLED" ||
         current.status === "RETURNED" ||
@@ -226,16 +234,14 @@ export async function PATCH(
               throw new Error("INSUFFICIENT_STOCK")
             }
 
-            await tx.productVariant.update({
+            const changed = await tx.productVariant.updateMany({
               where: {
                 id: item.variantId,
+                stock: { gte: item.quantity },
               },
-              data: {
-                stock: {
-                  decrement: item.quantity,
-                },
-              },
+              data: { stock: { decrement: item.quantity } },
             })
+            if (changed.count !== 1) throw new Error("INSUFFICIENT_STOCK")
 
             await tx.inventoryMovement.create({
               data: {
@@ -267,16 +273,14 @@ export async function PATCH(
               throw new Error("INSUFFICIENT_STOCK")
             }
 
-            await tx.product.update({
+            const changed = await tx.product.updateMany({
               where: {
                 id: item.productId,
+                stock: { gte: item.quantity },
               },
-              data: {
-                stock: {
-                  decrement: item.quantity,
-                },
-              },
+              data: { stock: { decrement: item.quantity } },
             })
+            if (changed.count !== 1) throw new Error("INSUFFICIENT_STOCK")
 
             await tx.inventoryMovement.create({
               data: {
@@ -393,6 +397,13 @@ export async function PATCH(
       return NextResponse.json(
         { error: "Order not found" },
         { status: 404 }
+      )
+    }
+
+    if (error instanceof Error && error.message === "CONCURRENT_ORDER_UPDATE") {
+      return NextResponse.json(
+        { error: "This order was updated by another administrator. Refresh and try again." },
+        { status: 409 }
       )
     }
 
