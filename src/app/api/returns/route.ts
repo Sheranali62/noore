@@ -31,7 +31,7 @@ export async function GET() {
     },
   })
 
-  const returnCutoff = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000)
+  const returnCutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
   const eligibleOrders = await prisma.order.findMany({
     where: {
       userId: session.user.id,
@@ -97,8 +97,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Returns can only be requested for delivered orders." }, { status: 409 })
     }
     const deliveredAt = order.orderEvents[0]?.createdAt ?? order.updatedAt
-    if (Date.now() - deliveredAt.getTime() > 14 * 24 * 60 * 60 * 1000) {
-      return NextResponse.json({ error: "The 14-day return window for this order has ended." }, { status: 409 })
+    if (Date.now() - deliveredAt.getTime() > 7 * 24 * 60 * 60 * 1000) {
+      return NextResponse.json({ error: "The 7-day return window for this order has ended." }, { status: 409 })
     }
 
     const validEvidence = evidence.every(value => { try { const url = new URL(value); return url.protocol === "https:" && url.hostname.endsWith(".blob.vercel-storage.com") } catch { return false } })
