@@ -31,8 +31,9 @@ export async function GET() {
     },
   })
 
+  const returnCutoff = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000)
   const eligibleOrders = await prisma.order.findMany({
-    where: { userId: session.user.id, status: "DELIVERED" },
+    where: { userId: session.user.id, status: "DELIVERED", updatedAt: { gte: returnCutoff } },
     orderBy: { updatedAt: "desc" },
     select: {
       id: true,
@@ -81,11 +82,15 @@ export async function POST(request: NextRequest) {
 
     const order = await prisma.order.findFirst({
       where: { id: orderId, userId: session.user.id },
-      include: { items: { select: { id: true } } },
+      include: { items: { select: { id: true } }, orderEvents: { where: { event: "ORDER_DELIVERED" }, orderBy: { createdAt: "desc" }, take: 1, select: { createdAt: true } } },
     })
     if (!order) return NextResponse.json({ error: "Order not found." }, { status: 404 })
     if (order.status !== "DELIVERED") {
       return NextResponse.json({ error: "Returns can only be requested for delivered orders." }, { status: 409 })
+    }
+    const deliveredAt = order.orderEvents[0]?.createdAt ?? order.updatedAt
+    if (Date.now() - deliveredAt.getTime() > 14 * 24 * 60 * 60 * 1000) {
+      return NextResponse.json({ error: "The 14-day return window for this order has ended." }, { status: 409 })
     }
 
     const validIds = new Set(order.items.map(item => item.id))
