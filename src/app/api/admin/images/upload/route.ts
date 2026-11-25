@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/admin"
+import { enforceRateLimit } from "@/lib/rate-limit"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -29,14 +30,27 @@ function matchesImageSignature(bytes: Uint8Array, mimeType: string) {
   return false
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const origin = request.headers.get("origin")
+  if (
+    (origin && new URL(origin).origin !== request.nextUrl.origin) ||
+    request.headers.get("sec-fetch-site") === "cross-site"
+  ) {
+    return NextResponse.json({ error: "Cross-site image uploads are not allowed." }, { status: 403 })
+  }
   const auth = await requireAdmin(["SUPER_ADMIN", "ADMIN", "CONTENT_MANAGER"])
   if (!auth.session) return auth.response
+  const rateLimit = await enforceRateLimit(request, "admin-image-upload", 50, 60 * 60 * 1000, auth.session.user.id)
+  if (rateLimit) return rateLimit
 
   const token = process.env.BLOB_READ_WRITE_TOKEN
   if (!token) return NextResponse.json({ error: "Image storage is not configured yet." }, { status: 503 })
 
   try {
+    const contentLength = Number(request.headers.get("content-length") ?? 0)
+    if (contentLength > MAX_BYTES + 64 * 1024) {
+      return NextResponse.json({ error: "Image upload is too large." }, { status: 413 })
+    }
     const form = await request.formData()
     const file = form.get("file")
     if (!(file instanceof File)) return NextResponse.json({ error: "Choose an image to upload." }, { status: 400 })
@@ -66,7 +80,10 @@ export async function POST(request: Request) {
       console.error("NOORE image upload rejected", uploaded.status)
       return NextResponse.json({ error: "Image upload failed. Please try again." }, { status: 502 })
     }
-    return NextResponse.json({ url: result.url, pathname: result.pathname })
+    return NextResponse.json(
+      { url: result.url, pathname: result.pathname },
+      { headers: { "Cache-Control": "private, no-store, max-age=0" } }
+    )
   } catch (error) {
     console.error("NOORE image upload failed", error)
     return NextResponse.json({ error: "Unable to upload this image." }, { status: 500 })
