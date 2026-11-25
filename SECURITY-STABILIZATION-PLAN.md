@@ -73,11 +73,12 @@
 - [x] Create isolated working branch from current `main`.
 - [x] Inspect package manifest, auth implementation, admin helper, middleware, Prisma schema and connected Supabase table security metadata.
 - [x] Review a representative set of customer and admin API routes; record high-risk findings above.
-- [ ] Complete route-by-route authorization audit.
-- [ ] Restrict staff CSV report access; minimize and rate-limit order tracking responses; harden order-number entropy.
+- [ ] Complete route-by-route authorization audit (sampled public/admin handlers reviewed; remaining routes and methods still need inspection).
+- [x] Restrict staff CSV report access and customer PII endpoint; minimize order-tracking response; harden order-number entropy.
+- [ ] Add shared production rate limiting to public order tracking, coupon validation, registration, password reset and other public write endpoints.
 - [x] Make inventory decrements conditional and atomic to prevent concurrent overselling on the isolated branch.
 - [x] Increase order-number entropy from 32 to 64 cryptographically secure random bits.
-- [ ] Verify production database target and backup/restore readiness.
+- [ ] Verify production database target and backup/restore readiness. Vercel's production DATABASE_URL is configured as a sensitive variable and its target could not be safely established from metadata; the connected Supabase project has a RateLimitBucket table and recent migrations, but that alone does not prove it is the database used by production.
 - [x] Implement initial guest-checkout account-linking protection and registration/legacy-login compatibility on the isolated branch.
 - [ ] Run build, type-check and authentication/checkout regression tests.
 - [ ] Implement database least-privilege policies in a reviewed migration.
@@ -94,3 +95,13 @@ This document records an initial review, not a penetration-test certification. F
 - The checkout route on this branch already uses 64-bit random order-number entropy and conditional atomic stock decrements for both product and variant stock. These changes remain part of the review scope.
 - Remaining release gate: add a shared, production-appropriate rate limiter to public order tracking. No reliable shared rate-limit store is currently configured in the repository; do not use a process-local in-memory limiter as a production security control. Also add automated tests for concurrent stock reservation, tracking authorization/response shape, and report role matrix.
 - Validation remains pending because the Vercel preview build has been blocked by the free-plan build-rate limit. No production deployment or database schema/data change has been made.
+
+
+## Additional audit updates (2026-11-25)
+
+- Restricted `GET /api/admin/customers` to `SUPER_ADMIN` and `ADMIN`; this endpoint returns customer contact and spending information.
+- Restricted `GET /api/admin/homepage` to `SUPER_ADMIN`, `ADMIN`, and `CONTENT_MANAGER`, matching the write permission matrix for homepage content.
+- Reviewed additional sampled handlers: courier management and order notifications are restricted to order-management roles; category/product/inventory endpoints are restricted to product-management roles; coupon management is restricted to administrators; review moderation and storefront content endpoints are restricted to content-management roles. Public review submission requires a session and a delivered purchase; address and wishlist operations are scoped to the signed-in user.
+- The connected Supabase project currently exposes a `RateLimitBucket` table with `key`, `count`, `windowStart`, and `updatedAt` fields, and its bucket count is zero. However, Vercel production's database connection target is not verifiable from the available masked environment metadata. The repo's Prisma schema does not currently model this table, and the applied Supabase migration is not represented as a checked-in Prisma migration. Do not wire production rate limiting to this table until the production database target and schema parity are confirmed.
+- Password recovery remains unimplemented: the UI calls `/api/auth/forgot-password`, but there is no matching route and the current Prisma schema has no one-time reset-token model or session-revocation version. A safe implementation needs a reviewed schema migration, a verified restorable backup, rate limiting, single-use hashed tokens, expiry, Resend email delivery, and invalidation of existing sessions after password change. No database changes have been applied.
+- Vercel's production environment metadata shows `RESEND_API_KEY` and `EMAIL_FROM` are configured as production-only secrets, but their values were not read. Preview environment email delivery therefore needs its own safe test configuration before end-to-end testing.
