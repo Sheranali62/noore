@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { timingSafeEqual } from "crypto"
 import { prisma } from "@/lib/prisma"
+import { sendOrderStatusEmail } from "@/lib/notifications"
 
 export const dynamic = "force-dynamic"
 
@@ -34,7 +35,7 @@ export async function POST(request: NextRequest) {
     const status = STATUS_MAP[providerStatus]
     if (!orderNumber || !trackingNumber || !status) return NextResponse.json({ error: "Invalid courier event." }, { status: 400 })
 
-    const order = await prisma.order.findUnique({ where: { orderNumber }, select: { id: true, status: true, trackingNumber: true } })
+    const order = await prisma.order.findUnique({ where: { orderNumber }, select: { id: true, orderNumber: true, status: true, trackingNumber: true, user: { select: { name: true, email: true } } } })
     if (!order) return NextResponse.json({ error: "Order not found." }, { status: 404 })
     if (order.status === "CANCELLED" || order.status === "REFUNDED" || order.status === "RETURNED") return NextResponse.json({ error: "This order is no longer active for delivery updates." }, { status: 409 })
 
@@ -43,6 +44,16 @@ export async function POST(request: NextRequest) {
       await tx.orderEvent.create({ data: { orderId: order.id, event: `COURIER_${providerStatus}`, message: courier ? `${courier}: ${providerStatus.replaceAll("_", " ").toLowerCase()}.` : `Courier update: ${providerStatus.replaceAll("_", " ").toLowerCase()}.`, metadata: { trackingNumber, courier, providerStatus } } })
       await tx.auditLog.create({ data: { action: "COURIER_WEBHOOK", entityType: "Order", entityId: order.id, details: { trackingNumber, courier, providerStatus } } })
     })
+    if (order.user?.email && order.status !== status) {
+      void sendOrderStatusEmail({
+        to: order.user.email,
+        customerName: order.user.name,
+        orderNumber: order.orderNumber,
+        status: status as any,
+        trackingNumber,
+        courier,
+      }).catch(error => console.error("Courier status email failed:", error))
+    }
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error("Courier webhook failed:", error)
