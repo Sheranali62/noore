@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { checkRateLimit, getClientIp, enforceRateLimit } from "@/lib/rate-limit"
+import { enforceRateLimit } from "@/lib/rate-limit"
 import { prisma } from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
@@ -7,13 +7,6 @@ export const dynamic = "force-dynamic"
 export async function POST(request: NextRequest) {
   const databaseLimit = await enforceRateLimit(request, "register", 5, 3600000)
   if (databaseLimit) return databaseLimit
-  const rate = checkRateLimit(`registration:${getClientIp(request)}`, 5, 3600000)
-  if (!rate.allowed) {
-    return NextResponse.json(
-      { error: "Too many requests. Please wait before trying again." },
-      { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds), "Cache-Control": "no-store" } }
-    )
-  }
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   if (!supabaseUrl || !anonKey) {
@@ -21,6 +14,19 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    const origin = request.headers.get("origin")
+    if (origin && new URL(origin).origin !== request.nextUrl.origin) {
+      return NextResponse.json({ error: "Cross-site registration is not allowed" }, { status: 403 })
+    }
+    const contentType = request.headers.get("content-type") ?? ""
+    if (!contentType.toLowerCase().includes("application/json")) {
+      return NextResponse.json({ error: "A JSON request body is required" }, { status: 415 })
+    }
+    const contentLength = Number(request.headers.get("content-length") ?? 0)
+    if (contentLength > 16 * 1024) {
+      return NextResponse.json({ error: "Registration request is too large" }, { status: 413 })
+    }
+
     const body = await request.json().catch(() => ({}))
     const name = String(body.name ?? "").trim().slice(0, 100)
     const email = String(body.email ?? "").trim().toLowerCase()
