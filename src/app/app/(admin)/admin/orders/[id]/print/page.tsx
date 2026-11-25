@@ -38,15 +38,15 @@ function formatDateTime(date: Date) {
 }
 
 export default async function PrintOrderPage({
-  const access = await requireAdmin(["SUPER_ADMIN","ADMIN","ORDER_MANAGER"])
-  if (access.response) notFound()
-
   params,
   searchParams,
 }: {
   params: Promise<{ id: string }>
   searchParams?: { mode?: string }
 }) {
+  const access = await requireAdmin(["SUPER_ADMIN", "ADMIN", "ORDER_MANAGER"])
+  if (access.response) notFound()
+
   let order
 
   try {
