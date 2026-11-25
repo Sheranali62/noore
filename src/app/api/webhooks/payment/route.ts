@@ -30,6 +30,16 @@ export async function POST(request: NextRequest) {
     const order = await prisma.order.findUnique({ where: { orderNumber }, select: { id: true, total: true, paymentStatus: true } })
     if (!order) return NextResponse.json({ error: "Order not found." }, { status: 404 })
     if (Math.abs(order.total - amount) > 0.01) return NextResponse.json({ error: "Payment amount does not match the order total." }, { status: 409 })
+    if (order.paymentStatus === "REFUNDED" && status !== "REFUNDED") {
+      return NextResponse.json({ error: "This order has already been refunded." }, { status: 409 })
+    }
+    const existing = await prisma.paymentTransaction.findUnique({
+      where: { provider_providerReference: { provider, providerReference } },
+      select: { orderId: true, status: true },
+    })
+    if (existing && existing.orderId !== order.id) {
+      return NextResponse.json({ error: "This payment reference is already linked to another order." }, { status: 409 })
+    }
 
     const mapped = status as "PAID" | "FAILED" | "REFUNDED"
     await prisma.$transaction(async tx => {
