@@ -23,8 +23,8 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const { response } = await requireAdmin(["SUPER_ADMIN", "ADMIN", "PRODUCT_MANAGER"])
-  if (response) return response
+  const guard = await requireAdmin(["SUPER_ADMIN", "ADMIN", "PRODUCT_MANAGER"])
+  if (guard.response) return guard.response
 
   try {
     const body = await request.json()
