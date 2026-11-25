@@ -1,0 +1,42 @@
+# NOORÉ Security Release Checklist
+
+This checklist tracks the security hardening staged on `feature/complete-ecommerce-upgrade`. It is not a penetration-test certification.
+
+## Implemented in the branch
+
+- Next.js 16 / React 19 migration already present in this branch; CI validates the exact lockfile.
+- NextAuth sessions are limited to four hours, roles are re-read from Prisma, deleted users are rejected, and JWTs are tied to the Prisma account update timestamp.
+- Password recovery uses a configured HTTPS site origin; after a successful Supabase password change, the app invalidates existing NOORÉ JWT sessions and clears any legacy Prisma password hash.
+- The configured owner email can bootstrap the first `SUPER_ADMIN` only while no super administrator exists. Existing staff roles are not promoted on every login.
+- Supabase credential failures fail closed in production; the legacy bcrypt fallback is development-only when Supabase Auth is not configured.
+- Registration, checkout, tracking, search, coupon validation, newsletter, cart, wishlist, address changes, support messages, return requests, return evidence and administrative uploads have bounded input and/or shared database rate limits.
+- Checkout recalculates prices, shipping, taxes and discounts server-side; guest orders are not attached to an existing account by email alone.
+- Stock decrements use compare-and-swap checks; coupon claims are serialized; return receipt and order status transitions are protected against duplicate concurrent updates.
+- Public product, cart, wishlist and customer order responses select only fields needed by the storefront/customer. Internal product cost fields are not sent to public pages.
+- Customer/admin private API responses use no-store cache headers; order tracking hides address data and uses a generic verification failure.
+- Admin API and server-rendered pages enforce role-specific access; customer exports and financial dashboard data are restricted to administrators.
+- Image uploads validate actual file signatures and use generated storage names. CSV exports neutralize spreadsheet formula cells.
+- Payment and courier webhooks require long secrets, validate payloads and protect status updates against concurrent regressions.
+- Baseline security headers include HSTS, frame restrictions, object blocking, base-URI restrictions, content-type protection, referrer policy and a restrictive permissions policy.
+- Vercel Firewall has an active credential-login limit of 20 attempts per client IP per minute, followed by a challenge.
+- The database rate-limit cleanup is included in the daily abandoned-cart cron.
+
+## Required before production release
+
+- Identify the exact database host used by Vercel production `DATABASE_URL`; the encrypted value has not been read.
+- Create and verify a restorable backup of that production database before applying any migrations.
+- Apply the additive Supabase/Prisma migrations to the verified production database, including the shared `RateLimitBucket` table. The existing Supabase project has a matching `RateLimitBucket` table, but that alone does not prove Prisma production uses the same database.
+- Give preview deployments an isolated Supabase Auth project before testing registration, password recovery or other flows that create/modify Auth users. Current preview Auth metadata points at the production Supabase Auth project.
+- Enable Supabase leaked-password protection in Authentication settings; the connected Supabase security advisor currently reports it disabled.
+- Configure strong random secrets (at least 32 characters) for payment/courier webhooks if those integrations are enabled.
+- Verify Resend delivery, password reset, order confirmation, cron authentication, Blob uploads and webhook signatures in an isolated preview.
+- Run the GitHub validation workflow and resolve every failure. A previous preview build passed before the latest hardening; the latest code still needs a fresh full validation.
+- Vercel's free-plan API deployment quota has blocked additional preview deployments. Do not deploy production as a workaround.
+- Complete a full Content Security Policy asset review before adding script/style allowlists. The current policy is intentionally a safe baseline, not a complete strict CSP.
+- Enable and test administrator MFA where supported by the configured Supabase Auth plan and login flow.
+
+## Release guardrails
+
+- No production deployment has been performed by this work.
+- No production schema migration has been applied by this work.
+- Do not merge or deploy until the database target, restorable backup, migration status, CI results and preview regression tests are verified.
