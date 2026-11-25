@@ -27,6 +27,8 @@ export default function AccountReturnsPage() {
   const [reason, setReason] = useState("Size or fit issue")
   const [details, setDetails] = useState("")
   const [selected, setSelected] = useState<string[]>([])
+  const [evidence, setEvidence] = useState<string[]>([])
+  const [uploading, setUploading] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState("")
@@ -56,6 +58,31 @@ export default function AccountReturnsPage() {
 
   useEffect(() => { setSelected([]) }, [orderId])
 
+  async function uploadEvidence(event: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(event.target.files || []).slice(0, Math.max(0, 5 - evidence.length))
+    if (!files.length) return
+    setUploading(true)
+    setMessage("")
+    try {
+      const uploaded: string[] = []
+      for (const file of files) {
+        const form = new FormData()
+        form.append("file", file)
+        const response = await fetch("/api/returns/evidence", { method: "POST", body: form })
+        const data = await response.json()
+        if (!response.ok) throw new Error(data.error || "Could not upload evidence")
+        uploaded.push(data.url)
+      }
+      setEvidence(current => [...current, ...uploaded].slice(0, 5))
+      setMessage(`${uploaded.length} evidence image(s) uploaded.`)
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not upload evidence")
+    } finally {
+      setUploading(false)
+      event.target.value = ""
+    }
+  }
+
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setSaving(true)
@@ -64,13 +91,14 @@ export default function AccountReturnsPage() {
       const response = await fetch("/api/returns", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderId, reason, details, itemIds: selected }),
+        body: JSON.stringify({ orderId, reason, details, itemIds: selected, evidence }),
       })
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || "Could not submit request")
       setMessage("Your request has been submitted. Our team will review it.")
       setDetails("")
       setSelected([])
+      setEvidence([])
       await load()
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Could not submit request")
@@ -105,8 +133,13 @@ export default function AccountReturnsPage() {
               <label className="block text-sm font-medium">Additional details
                 <textarea value={details} onChange={event => setDetails(event.target.value)} rows={4} maxLength={1500} placeholder="Tell us what happened and what outcome you are requesting." className="mt-2 w-full rounded-lg border border-[#D8D8CB] px-3 py-3 font-normal"/>
               </label>
+              <label className="block text-sm font-medium">Photo evidence (optional, up to 5 images)
+                <input type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple disabled={uploading || evidence.length >= 5} onChange={uploadEvidence} className="mt-2 block w-full rounded-lg border border-[#D8D8CB] bg-[#F7F6F2] px-3 py-3 text-xs"/>
+                <span className="mt-1 block text-xs font-normal text-[#777967]">JPG, PNG, WebP or AVIF · maximum 8 MB each</span>
+              </label>
+              {evidence.length > 0 && <div className="flex flex-wrap gap-2">{evidence.map((url,index)=><a key={url} href={url} target="_blank" rel="noopener noreferrer" className="rounded-lg border border-[#D8D8CB] px-3 py-2 text-xs underline">View evidence {index+1}</a>)}</div>}
               {message && <p role="status" className="rounded-lg bg-[#F7F6F2] p-3 text-sm">{message}</p>}
-              <button disabled={saving || !orderId || selected.length === 0} className="rounded-xl bg-[#535F4C] px-6 py-3 text-sm font-semibold text-white disabled:opacity-50">{saving ? "Submitting…" : "Submit request"}</button>
+              <button disabled={saving || uploading || !orderId || selected.length === 0} className="rounded-xl bg-[#535F4C] px-6 py-3 text-sm font-semibold text-white disabled:opacity-50">{uploading ? "Uploading evidence…" : saving ? "Submitting…" : "Submit request"}</button>
             </form>
           )}
         </section>
