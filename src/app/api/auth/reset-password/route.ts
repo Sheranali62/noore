@@ -72,13 +72,18 @@ export async function POST(request: NextRequest) {
     if (tokenParts.length !== 3) {
       return NextResponse.json({ error: "This password reset link is invalid or has expired." }, { status: 401 })
     }
-    const tokenPayload = JSON.parse(Buffer.from(tokenParts[1], "base64url").toString("utf8"))
+    let tokenPayload: any
+    try {
+      tokenPayload = JSON.parse(Buffer.from(tokenParts[1], "base64url").toString("utf8"))
+    } catch {
+      return NextResponse.json({ error: "This password reset link is invalid or has expired." }, { status: 401 })
+    }
     const authMethods = Array.isArray(tokenPayload.amr) ? tokenPayload.amr : []
     const isRecoverySession = authMethods.some((entry: unknown) =>
       entry === "recovery" ||
       (typeof entry === "object" && entry !== null && "method" in entry && entry.method === "recovery")
     )
-    if (!isRecoverySession || tokenPayload.sub !== authUser?.id) {
+    if (!isRecoverySession || tokenPayload.aud !== "authenticated" || tokenPayload.sub !== authUser?.id) {
       return NextResponse.json({ error: "A verified password recovery link is required." }, { status: 403 })
     }
     const email = String(authUser?.email ?? "").trim().toLowerCase()
@@ -95,7 +100,7 @@ export async function POST(request: NextRequest) {
     if (!updated.ok) {
       return NextResponse.json(
         { error: "The password could not be updated. The reset link may have expired." },
-        { status: updated.status === 429 ? 429 : 400 }
+        { status: updated.status === 429 ? 429 : updated.status >= 500 ? 502 : 400 }
       )
     }
 
