@@ -34,16 +34,30 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const origin = request.headers.get("origin")
+  if (
+    (origin && new URL(origin).origin !== request.nextUrl.origin) ||
+    request.headers.get("sec-fetch-site") === "cross-site"
+  ) {
+    return NextResponse.json({ error: "Cross-site support requests are not allowed." }, { status: 403 })
+  }
   const session = await auth()
   if (!session?.user?.id) return NextResponse.json({ error: "Login required" }, { status: 401 })
   const limited = await enforceRateLimit(request, "support-ticket-create", 8, 60 * 60 * 1000, session.user.id)
   if (limited) return limited
   try {
+    const contentType = request.headers.get("content-type") ?? ""
+    if (!contentType.toLowerCase().includes("application/json")) {
+      return NextResponse.json({ error: "A JSON request body is required." }, { status: 415 })
+    }
+    const contentLength = Number(request.headers.get("content-length") ?? 0)
+    if (contentLength > 16 * 1024) return NextResponse.json({ error: "Support request is too large." }, { status: 413 })
     const body = await request.json()
     const subject = String(body.subject ?? "").trim().slice(0, 160)
     const category = String(body.category ?? "General").trim().slice(0, 60)
     const message = String(body.message ?? "").trim().slice(0, 5000)
     const orderId = String(body.orderId ?? "").trim() || null
+    if (orderId && orderId.length > 128) return NextResponse.json({ error: "The selected order is invalid." }, { status: 400 })
     if (!subject || message.length < 5) return NextResponse.json({ error: "Enter a subject and a message of at least 5 characters." }, { status: 400 })
 
     if (orderId) {
@@ -77,7 +91,7 @@ export async function POST(request: NextRequest) {
         staffReply: false,
       }).catch(error => console.error("New support ticket email failed:", error))
     }
-    return NextResponse.json({ ticket }, { status: 201 })
+    return NextResponse.json({ ticket }, { status: 201, headers: { "Cache-Control": "private, no-store, max-age=0" } })
   } catch (error) {
     console.error("Create support ticket failed:", error)
     return NextResponse.json({ error: "Unable to create your support ticket." }, { status: 500 })
