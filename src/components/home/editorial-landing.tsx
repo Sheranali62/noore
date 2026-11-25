@@ -57,7 +57,7 @@ export function EditorialLanding({
           <Link href={href} className="hidden text-[9px] font-semibold uppercase tracking-[0.16em] underline underline-offset-4 md:block">View all</Link>
         </div>
         {products.length ? (
-          <div className="noore-product-grid gap-x-3 gap-y-10 md:gap-x-6 md:gap-y-14">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 lg:grid-cols-4 md:gap-x-6 md:gap-y-14">
             {products.map((product) => <ProductCard key={product.id} {...product} image={product.images[0] || "/placeholder.jpg"} hoverImage={product.images[1]} />)}
           </div>
         ) : (
