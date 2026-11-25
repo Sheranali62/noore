@@ -15,7 +15,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>
 }) {
   const product = await prisma.product.findUnique({
-    where: { slug: (await params).slug },
+    where: { slug: (await params).slug, status: "ACTIVE" },
     select: {
       name: true,
       description: true,
@@ -77,6 +77,7 @@ export default async function ProductPage({
       slug: true,
       description: true,
       category: true,
+      subcategory: true,
       collection: true,
       gender: true,
       type: true,
