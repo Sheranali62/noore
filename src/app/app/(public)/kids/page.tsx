@@ -30,7 +30,7 @@ export default async function KidsPage() {
     where: { status: "ACTIVE", gender: { in: ["Kids", "KIDS", "kids", "Children"] } },
     orderBy: { createdAt: "desc" },
     take: 12,
-    include: { variants: { select: { color: true }, distinct: ["color"] } }
+    select: { id: true, name: true, slug: true, price: true, salePrice: true, images: true, category: true, stock: true, gender: true, variants: { select: { color: true }, distinct: ["color"] } }
   })
 
   return (
