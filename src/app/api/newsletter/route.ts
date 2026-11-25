@@ -10,6 +10,8 @@ function validEmail(value: string) {
 }
 
 export async function POST(request: NextRequest) {
+  const databaseLimit = await enforceRateLimit(request, "newsletter", 10, 3600000)
+  if (databaseLimit) return databaseLimit
   const rate = checkRateLimit(`newsletter:${getClientIp(request)}`, 5, 3600000)
   if (!rate.allowed) {
     return NextResponse.json(
