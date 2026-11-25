@@ -6,7 +6,7 @@ This checklist tracks the security hardening staged on `feature/complete-ecommer
 
 - Next.js 16 / React 19 migration already present in this branch; CI validates the exact lockfile.
 - NextAuth sessions are limited to four hours, roles are re-read from Prisma, deleted users are rejected, and JWTs are tied to the Prisma account update timestamp.
-- Password recovery uses a configured HTTPS site origin; after a successful Supabase password change, the app invalidates existing NOORÉ JWT sessions and clears any legacy Prisma password hash.
+- Registration and password recovery enforce 12–128 character passwords with uppercase, lowercase, digits and an allowed symbol. Password recovery is server-side, verifies the Supabase recovery JWT, and invalidates existing NOORÉ JWT sessions after the Supabase password changes.
 - The configured owner email can bootstrap the first `SUPER_ADMIN` only while no super administrator exists. Existing staff roles are not promoted on every login.
 - Supabase credential failures fail closed in production; the legacy bcrypt fallback is development-only when Supabase Auth is not configured.
 - Registration, checkout, tracking, search, coupon validation, newsletter, cart, wishlist, address changes, support messages, return requests, return evidence and administrative uploads have bounded input and/or shared database rate limits.
@@ -27,7 +27,7 @@ This checklist tracks the security hardening staged on `feature/complete-ecommer
 - Create and verify a restorable backup of that production database before applying any migrations.
 - Apply the additive Supabase/Prisma migrations to the verified production database, including the shared `RateLimitBucket` table. The existing Supabase project has a matching `RateLimitBucket` table, but that alone does not prove Prisma production uses the same database.
 - Give preview deployments an isolated Supabase Auth project before testing registration, password recovery or other flows that create/modify Auth users. Current preview Auth metadata points at the production Supabase Auth project.
-- Enable Supabase leaked-password protection in Authentication settings; the connected Supabase security advisor currently reports it disabled.
+- In Supabase Authentication → Sign In / Providers → Email, set minimum password length to 12 and require lowercase, uppercase, digits and symbols. The connected Supabase security advisor reports leaked-password protection disabled; Supabase documents that this HaveIBeenPwned check is available on Pro plans and above, so it cannot be enabled on Free.
 - Configure strong random secrets (at least 32 characters) for payment/courier webhooks if those integrations are enabled.
 - Verify Resend delivery, password reset, order confirmation, cron authentication, Blob uploads and webhook signatures in an isolated preview.
 - Run the GitHub validation workflow and resolve every failure. A previous preview build passed before the latest hardening; the latest code still needs a fresh full validation.
