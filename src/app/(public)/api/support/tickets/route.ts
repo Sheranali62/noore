@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { enforceRateLimit } from "@/lib/rate-limit"
 
 export const dynamic = "force-dynamic"
 
@@ -26,6 +27,8 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   const session = await auth()
   if (!session?.user?.id) return NextResponse.json({ error: "Login required" }, { status: 401 })
+  const limited = await enforceRateLimit(request, "support-ticket-create", 8, 60 * 60 * 1000, session.user.id)
+  if (limited) return limited
   try {
     const body = await request.json()
     const subject = String(body.subject ?? "").trim().slice(0, 160)
