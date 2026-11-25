@@ -85,7 +85,7 @@ export async function PUT(request: NextRequest) {
     await prisma.$transaction(async tx => {
       const cart = await tx.cart.upsert({
         where: { userId },
-        update: {},
+        update: { updatedAt: new Date() },
         create: { userId },
         select: { id: true },
       })
