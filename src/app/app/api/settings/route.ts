@@ -9,6 +9,7 @@ const defaults = {
   freeShippingThreshold: 5000,
   standardShipping: 250,
   expressShipping: 500,
+  taxRate: 0,
   currency: "PKR",
 }
 
@@ -20,7 +21,7 @@ export async function GET() {
   for (const row of rows) {
     if (row.key === "siteName" || row.key === "announcementText" || row.key === "currency") {
       settings[row.key] = row.value
-    } else if (row.key === "freeShippingThreshold" || row.key === "standardShipping" || row.key === "expressShipping") {
+    } else if (row.key === "freeShippingThreshold" || row.key === "standardShipping" || row.key === "expressShipping" || row.key === "taxRate") {
       settings[row.key] = Number(row.value)
     }
   }
