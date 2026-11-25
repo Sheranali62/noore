@@ -98,6 +98,8 @@ This document records an initial review, not a penetration-test certification. F
 
 
 ## Additional audit updates (2026-11-25)
+- Vercel Firewall is enabled for the project, and the active configuration contains a verified credential-login rate-limit rule: `POST /api/auth/callback/credentials`, 20 requests per client IP per 60 seconds, then challenge. Further rate-limit rules for registration, checkout and tracking were rejected by Vercel with a plan-level `402 payment_required`; the available Vercel CLI fallback is not installed in this execution environment. Do not claim those endpoints are rate-limited until the plan is upgraded or another shared limiter is implemented.
+
 - Added a deliberately limited CSP in both Next.js response headers and middleware: `frame-ancestors 'self'`, `object-src 'none'`, and `base-uri 'self'`. This adds clickjacking/object/base-URI protections without imposing a restrictive script/style allowlist that could break the current storefront; full CSP remains a separately tested task.
 
 - Vercel environment metadata confirms production `NEXT_PUBLIC_SUPABASE_URL` points to the connected Supabase project `jaanfteuzqdluzxpkzay`, so that project is the production Supabase Auth endpoint. This does **not** prove Prisma's production `DATABASE_URL` points to the same Supabase database; that value remains encrypted and was not read.
