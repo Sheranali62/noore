@@ -40,6 +40,7 @@ export function DepartmentCategories({
                   src={category.image}
                   alt={category.name}
                   fill
+                  unoptimized
                   sizes="(max-width: 639px) 50vw, (max-width: 1023px) 33vw, (max-width: 1279px) 25vw, 20vw"
                   className="object-cover transition duration-700 group-hover:scale-[1.06]"
                   priority={index < 4}
