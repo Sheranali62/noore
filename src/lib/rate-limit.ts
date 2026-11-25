@@ -23,7 +23,7 @@ export async function enforceRateLimit(
   const cutoff = new Date(now.getTime() - windowMs)
 
   try {
-    const rows = await prisma.$queryRaw<Array<{ count: number }>>`
+    const rows = await prisma.$queryRaw<Array<{ count: number; windowStart: Date }>>`
       INSERT INTO "RateLimitBucket" ("key", "count", "windowStart", "updatedAt")
       VALUES (${key}, 1, ${now}, ${now})
       ON CONFLICT ("key") DO UPDATE SET
@@ -36,12 +36,12 @@ export async function enforceRateLimit(
           ELSE "RateLimitBucket"."windowStart"
         END,
         "updatedAt" = ${now}
-      RETURNING "count"
+      RETURNING "count", "windowStart"
     `
     const count = Number(rows[0]?.count ?? 0)
     if (count <= limit) return null
 
-    const retryAfter = Math.max(1, Math.ceil((windowMs - (now.getTime() - (now.getTime() - windowMs))) / 1000))
+    const retryAfter = Math.max(1, Math.ceil((new Date(rows[0]?.windowStart ?? now).getTime() + windowMs - now.getTime()) / 1000))
     return NextResponse.json(
       { error: "Too many requests. Please wait a little and try again." },
       { status: 429, headers: { "Retry-After": String(retryAfter), "Cache-Control": "no-store" } }
