@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { enforceRateLimit } from "@/lib/rate-limit"
 import { prisma } from "@/lib/prisma"
+import { isStrongPassword, PASSWORD_POLICY_MESSAGE } from "@/lib/password-policy"
 
 export const dynamic = "force-dynamic"
 
@@ -35,8 +36,8 @@ export async function POST(request: NextRequest) {
     if (!name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
       return NextResponse.json({ error: "Enter your name and a valid email address." }, { status: 400 })
     }
-    if (password.length < 8 || !/[A-Za-z]/.test(password) || !/\d/.test(password)) {
-      return NextResponse.json({ error: "Password must be at least 8 characters and include a letter and a number." }, { status: 400 })
+    if (!isStrongPassword(password)) {
+      return NextResponse.json({ error: PASSWORD_POLICY_MESSAGE }, { status: 400 })
     }
 
     const response = await fetch(`${supabaseUrl.replace(/\/$/, "")}/auth/v1/signup`, {
