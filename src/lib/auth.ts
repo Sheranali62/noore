@@ -47,8 +47,9 @@ const providers: NextAuthOptions["providers"] = [
         const name =
           metadata.full_name ?? metadata.name ?? metadata.display_name ?? null
 
-        // The configured bootstrap account is promoted only after Supabase
-        // verifies its password. The database remains the source of role data.
+        // SUPER_ADMIN_EMAIL is a one-time bootstrap rule for a newly created
+        // application user. Existing database roles must never be silently
+        // re-promoted on every login after an administrator changes them.
         const superAdminEmail = process.env.SUPER_ADMIN_EMAIL?.trim().toLowerCase()
         const isConfiguredSuperAdmin = Boolean(superAdminEmail && email === superAdminEmail)
 
@@ -56,7 +57,6 @@ const providers: NextAuthOptions["providers"] = [
           where: { email },
           update: {
             ...(name ? { name } : {}),
-            ...(isConfiguredSuperAdmin ? { role: "SUPER_ADMIN" as const } : {}),
           },
           create: {
             email,
@@ -72,7 +72,7 @@ const providers: NextAuthOptions["providers"] = [
           name: user.name,
           role: user.role,
         }
-      } catch (error) {
+      } catch {
         // Do not log credentials, tokens, or provider response bodies.
         console.error("Credentials authentication failed")
         return null
