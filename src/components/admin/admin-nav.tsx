@@ -17,6 +17,7 @@ import {
   Truck,
   Users,
   RotateCcw,
+  ScrollText,
 } from "lucide-react"
 
 const items = [
@@ -25,6 +26,7 @@ const items = [
   { href: "/admin/categories", label: "Categories", icon: FolderTree },
   { href: "/admin/orders", label: "Orders", icon: ClipboardList },
   { href: "/admin/returns", label: "Returns & Exchanges", icon: RotateCcw },
+  { href: "/admin/audit-logs", label: "Audit Log", icon: ScrollText },
   { href: "/admin/couriers", label: "Couriers", icon: Truck },
   { href: "/admin/customers", label: "Customers", icon: Users },
   { href: "/admin/coupons", label: "Coupons", icon: Gift },
