@@ -104,7 +104,7 @@ export default function RegisterPage() {
             <input
               type="password"
               required
-              minLength={12}
+              minLength={12} maxLength={128} autoComplete="new-password"
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               className="w-full px-4 py-2 border border-[#D8D8CB] rounded focus:outline-none focus:border-[#535F4C]"
