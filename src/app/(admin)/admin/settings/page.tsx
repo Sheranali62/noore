@@ -9,6 +9,7 @@ const defaults = {
   freeShippingThreshold: "5000",
   standardShipping: "250",
   expressShipping: "500",
+  taxRate: "0",
   currency: "PKR",
 }
 
@@ -65,10 +66,10 @@ export default function AdminSettingsPage() {
       setError("Please choose a currency.")
       return
     }
-    for (const key of ["freeShippingThreshold", "standardShipping", "expressShipping"] as const) {
+    for (const key of ["freeShippingThreshold", "standardShipping", "expressShipping", "taxRate"] as const) {
       const amount = Number(settings[key])
-      if (!Number.isFinite(amount) || amount < 0) {
-        setError("Shipping amounts must be valid numbers and cannot be negative.")
+      if (!Number.isFinite(amount) || amount < 0 || (key === "taxRate" && amount > 100)) {
+        setError("Shipping amounts must be non-negative. Tax rate must be between 0 and 100.")
         return
       }
     }
@@ -169,7 +170,10 @@ export default function AdminSettingsPage() {
               <Field label="Standard delivery" prefix={currencySymbol(settings.currency)} type="number" min="0" value={settings.standardShipping} onChange={(value) => update("standardShipping", value)} />
               <Field label="Express delivery" prefix={currencySymbol(settings.currency)} type="number" min="0" value={settings.expressShipping} onChange={(value) => update("expressShipping", value)} />
             </div>
-            <p className="mt-4 text-xs leading-5 text-white/35">These values are saved to your existing store settings. Check your checkout implementation before changing prices shown to customers.</p>
+            <div className="mt-5 max-w-xs">
+              <Field label="Sales tax rate" suffix="%" type="number" min="0" max="100" value={settings.taxRate} onChange={(value) => update("taxRate", value)} />
+            </div>
+            <p className="mt-4 text-xs leading-5 text-white/35">Tax is calculated on the discounted merchandise subtotal, excluding delivery. Leave at 0% until your accountant confirms the applicable rate and tax treatment.</p>
           </SettingsSection>
 
           {error && <div role="alert" className="rounded-xl border border-red-400/25 bg-red-400/[0.08] px-4 py-3 text-sm text-red-200">{error}</div>}
