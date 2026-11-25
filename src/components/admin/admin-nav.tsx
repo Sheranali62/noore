@@ -16,13 +16,15 @@ import {
   Settings,
   Truck,
   Users,
+  RotateCcw,
 } from "lucide-react"
 
 const items = [
   { href: "/admin", label: "Dashboard", icon: Home },
   { href: "/admin/products", label: "Products", icon: Package },
   { href: "/admin/categories", label: "Categories", icon: FolderTree },
-  { href: "/admin/orders", label: "Orders", icon: ClipboardList },\n  { href: "/admin/returns", label: "Returns & Exchanges", icon: RotateCcw },
+  { href: "/admin/orders", label: "Orders", icon: ClipboardList },
+  { href: "/admin/returns", label: "Returns & Exchanges", icon: RotateCcw },
   { href: "/admin/couriers", label: "Couriers", icon: Truck },
   { href: "/admin/customers", label: "Customers", icon: Users },
   { href: "/admin/coupons", label: "Coupons", icon: Gift },
