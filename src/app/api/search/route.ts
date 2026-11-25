@@ -41,6 +41,8 @@ function parseSmartQuery(input: string) {
 }
 
 export async function GET(request: NextRequest) {
+  const databaseLimit = await enforceRateLimit(request, "product-search", 60, 60000)
+  if (databaseLimit) return databaseLimit
   const rate = checkRateLimit(`search:${getClientIp(request)}`, 60, 60000)
   if (!rate.allowed) {
     return NextResponse.json(
