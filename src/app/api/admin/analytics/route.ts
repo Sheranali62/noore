@@ -127,6 +127,14 @@ export async function GET() {
     }),
   ])
 
+  const searchGroups = await prisma.searchEvent.groupBy({
+    by: ["query"],
+    _count: { _all: true },
+    _avg: { resultCount: true },
+    orderBy: { _count: { _all: "desc" } },
+    take: 10,
+  })
+
   const names = await prisma.product.findMany({
     where: {
       id: {
