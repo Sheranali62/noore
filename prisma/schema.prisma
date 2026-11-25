@@ -41,6 +41,7 @@ model Address {
   orders    Order[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@index([userId])
 }
 
 model Category {
@@ -109,6 +110,7 @@ model ProductVariant {
   inventoryMovements  InventoryMovement[]
   createdAt           DateTime            @default(now())
   updatedAt           DateTime           @updatedAt
+  @@index([productId])
 }
 
 model ProductReview {
@@ -125,6 +127,8 @@ model ProductReview {
   featured   Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+  @@index([productId])
+  @@index([userId])
 }
 
 model Wishlist {
@@ -143,6 +147,7 @@ model WishlistItem {
   productId  String
   product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   createdAt  DateTime @default(now())
+  @@index([productId])
 }
 
 model Cart {
@@ -155,6 +160,7 @@ model Cart {
   abandonedReminderAt DateTime?
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
+  @@index([couponId])
 }
 
 model CartItem {
@@ -168,6 +174,9 @@ model CartItem {
   quantity   Int             @default(1)
   createdAt  DateTime        @default(now())
   updatedAt  DateTime        @updatedAt
+  @@index([cartId])
+  @@index([productId])
+  @@index([variantId])
 }
 
 model Order {
@@ -199,6 +208,9 @@ model Order {
   supportTickets   SupportTicket[]
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
+  @@index([userId])
+  @@index([addressId])
+  @@index([courierCompanyId])
 }
 
 model CourierCompany {
@@ -236,6 +248,9 @@ model OrderItem {
   total      Float
   costPrice  Float?
   createdAt  DateTime        @default(now())
+  @@index([orderId])
+  @@index([productId])
+  @@index([variantId])
 }
 
 model Coupon {
@@ -268,6 +283,8 @@ model CouponUsage {
   orderId   String?   @unique
   order     Order?    @relation(fields: [orderId], references: [id])
   usedAt    DateTime  @default(now())
+  @@index([couponId])
+  @@index([userId])
 }
 
 model SearchEvent {
@@ -298,6 +315,7 @@ model InventoryMovement {
   @@index([productId, createdAt])
   @@index([variantId, createdAt])
   @@index([createdAt])
+  @@index([userId])
 }
 
 model Store {
@@ -354,6 +372,8 @@ model ReturnRequest {
   refundAmount Float?
   createdAt    DateTime            @default(now())
   updatedAt    DateTime            @updatedAt
+  @@index([orderId])
+  @@index([userId])
 }
 
 model PaymentTransaction {
@@ -368,6 +388,7 @@ model PaymentTransaction {
   rawResponse       Json?
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
+  @@index([orderId])
 }
 
 model OrderEvent {
@@ -379,6 +400,7 @@ model OrderEvent {
   message   String?
   metadata  Json?
   createdAt DateTime @default(now())
+  @@index([orderId])
 }
 
 model AuditLog {
@@ -408,6 +430,7 @@ model SupportTicket {
 
   @@index([userId, updatedAt])
   @@index([status, priority, updatedAt])
+  @@index([orderId])
 }
 
 model SupportTicketMessage {
