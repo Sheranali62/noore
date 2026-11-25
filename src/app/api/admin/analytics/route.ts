@@ -128,6 +128,15 @@ export async function GET() {
     }),
   ])
 
+  const costItems = await prisma.orderItem.findMany({
+    where: {
+      costPrice: { not: null },
+      order: { createdAt: { gte: since }, status: { notIn: ["CANCELLED", "REFUNDED"] } },
+    },
+    select: { quantity: true, total: true, costPrice: true },
+  })
+  const grossProfit = costItems.reduce((sum, item) => sum + item.total - (item.costPrice || 0) * item.quantity, 0)
+
   const searchGroups = await prisma.searchEvent.groupBy({
     by: ["query"],
     _count: { _all: true },
@@ -167,6 +176,8 @@ export async function GET() {
     abandonedCarts: cartCount,
     couponUses: coupons,
     lowStock,
+    grossProfit,
+    costLines: costItems.length,
 
     topProducts: top.map((item) => ({
       productId: item.productId,
