@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
 
-function csv(rows: string[][]) {
+function csv(rows: unknown[][]) {
   return rows.map(row => row.map(value => {
     const raw = String(value ?? "")
     const safe = /^[\u0000-\u0020]*[=+@-]/.test(raw) ? `'${raw}` : raw
