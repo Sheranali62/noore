@@ -93,7 +93,7 @@ export default function CheckoutPage() {
     if (!code) return
     setCouponLoading(true); setCouponMessage(""); setError("")
     try {
-      const response = await fetch("/api/coupons/validate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code, subtotal: total }) })
+      const response = await fetch("/api/coupons/validate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code, items: items.map(item => ({ productId: item.productId, variantId: (item as any).variantId || undefined, quantity: item.quantity })) }) })
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || "This coupon cannot be applied")
       setCoupon({ code, type: data.coupon?.type || data.type, value: Number(data.coupon?.value ?? data.value ?? 0), discount: Number(data.discount || 0) })
