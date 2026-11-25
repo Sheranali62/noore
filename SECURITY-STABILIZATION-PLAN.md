@@ -98,6 +98,8 @@ This document records an initial review, not a penetration-test certification. F
 
 
 ## Additional audit updates (2026-11-25)
+- Validation update: Vercel successfully built and marked READY the security-branch preview for commit `007d5630a10acc0af8920648d7622390a446e70e` (the order-tracking no-store change). The later CSP header and plan-document commits are not yet represented in a preview build. A new preview deployment request for current branch commit `0f49f7bea298470864f781ee49a20a86700250a0` was blocked by Vercel's free-plan API deployment quota (`api-deployments-free-per-day`, retry after 24 hours); no local Vercel CLI is available as a fallback. No production deployment occurred.
+
 - Vercel Firewall is enabled for the project, and the active configuration contains a verified credential-login rate-limit rule: `POST /api/auth/callback/credentials`, 20 requests per client IP per 60 seconds, then challenge. Further rate-limit rules for registration, checkout and tracking were rejected by Vercel with a plan-level `402 payment_required`; the available Vercel CLI fallback is not installed in this execution environment. Do not claim those endpoints are rate-limited until the plan is upgraded or another shared limiter is implemented.
 
 - Added a deliberately limited CSP in both Next.js response headers and middleware: `frame-ancestors 'self'`, `object-src 'none'`, and `base-uri 'self'`. This adds clickjacking/object/base-URI protections without imposing a restrictive script/style allowlist that could break the current storefront; full CSP remains a separately tested task.
