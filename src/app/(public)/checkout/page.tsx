@@ -116,6 +116,7 @@ export default function CheckoutPage() {
         items: items.map(item => ({ productId: item.productId, variantId: (item as any).variantId || undefined, quantity: item.quantity, price: item.price })),
         subtotal: total,
         shipping,
+        tax,
         total: grandTotal,
       }
       const response = await fetch("/api/orders", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(orderData) })
