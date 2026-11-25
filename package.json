@@ -56,5 +56,5 @@
   "engines": {
     "node": ">=20.9.0"
   },
-  "description": "NOORÉ premium fashion ecommerce storefront"
+  "description": "NOORÉ premium fashion ecommerce storefront application"
 }
