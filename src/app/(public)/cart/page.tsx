@@ -17,13 +17,13 @@ export default function CartPage() {
       if (s) setShippingSettings({ freeShippingThreshold: Number(s.freeShippingThreshold ?? FREE_SHIPPING_THRESHOLD), standardShipping: Number(s.standardShipping ?? STANDARD_SHIPPING) })
     }).catch(() => {})
   }, [])
+  const itemCountLabel = useMemo(() => `${count} ${count === 1 ? "item" : "items"}`, [count])
+
   if (!hydrated) return null
 
   const remainingForFreeShipping = Math.max(0, shippingSettings.freeShippingThreshold - total)
   const shipping = total >= shippingSettings.freeShippingThreshold ? 0 : shippingSettings.standardShipping
   const progress = Math.min(100, (total / shippingSettings.freeShippingThreshold) * 100)
-
-  const itemCountLabel = useMemo(() => `${count} ${count === 1 ? "item" : "items"}`, [count])
 
   if (items.length === 0) {
     return (
