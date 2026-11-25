@@ -49,9 +49,21 @@ export default function ResetPasswordPage() {
         const result = await response.json().catch(() => ({}))
         throw new Error(result.msg || result.message || "This reset link has expired. Please request another.")
       }
+
+      // Revoke existing NOORÉ JWT sessions after the Supabase password change.
+      const revocation = await fetch("/api/auth/password-reset-completed", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${accessToken}` },
+        cache: "no-store",
+      }).catch(() => null)
+
       window.history.replaceState({}, document.title, window.location.pathname)
       setAccessToken("")
-      setMessage("Your password has been updated. You can now sign in with your new password.")
+      setMessage(
+        revocation?.ok
+          ? "Your password has been updated and existing NOORÉ sessions have been revoked. You can now sign in."
+          : "Your password has been updated. Please sign out of other devices and sign in again; automatic session revocation could not be confirmed."
+      )
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to update your password.")
     } finally {
