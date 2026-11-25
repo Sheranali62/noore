@@ -121,6 +121,16 @@ export async function PATCH(
         nextStatus === "RETURNED" ||
         nextStatus === "REFUNDED"
 
+      // Claim a status transition before touching stock. This prevents two
+      // concurrent requests from restoring or consuming the same order twice.
+      if (nextStatus !== current.status) {
+        const claimed = await tx.order.updateMany({
+          where: { id: params.id, status: current.status },
+          data: { status: nextStatus },
+        })
+        if (claimed.count !== 1) throw new Error("CONCURRENT_ORDER_UPDATE")
+      }
+
       // Order cancelled/returned/refunded:
       // return ordered quantity back into inventory.
       if (!wasCancelled && willBeCancelled) {
@@ -226,9 +236,10 @@ export async function PATCH(
               throw new Error("INSUFFICIENT_STOCK")
             }
 
-            await tx.productVariant.update({
+            const decremented = await tx.productVariant.updateMany({
               where: {
                 id: item.variantId,
+                stock: currentVariant.stock,
               },
               data: {
                 stock: {
@@ -236,6 +247,7 @@ export async function PATCH(
                 },
               },
             })
+            if (decremented.count !== 1) throw new Error("INSUFFICIENT_STOCK")
 
             await tx.inventoryMovement.create({
               data: {
@@ -267,9 +279,10 @@ export async function PATCH(
               throw new Error("INSUFFICIENT_STOCK")
             }
 
-            await tx.product.update({
+            const decremented = await tx.product.updateMany({
               where: {
                 id: item.productId,
+                stock: currentProduct.stock,
               },
               data: {
                 stock: {
@@ -277,6 +290,7 @@ export async function PATCH(
                 },
               },
             })
+            if (decremented.count !== 1) throw new Error("INSUFFICIENT_STOCK")
 
             await tx.inventoryMovement.create({
               data: {
@@ -368,6 +382,16 @@ export async function PATCH(
       return NextResponse.json(
         { error: "Order not found" },
         { status: 404 }
+      )
+    }
+
+    if (
+      error instanceof Error &&
+      error.message === "CONCURRENT_ORDER_UPDATE"
+    ) {
+      return NextResponse.json(
+        { error: "This order was updated by another request. Refresh and try again." },
+        { status: 409 }
       )
     }
 
