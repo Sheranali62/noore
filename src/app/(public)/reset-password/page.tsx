@@ -73,7 +73,7 @@ export default function ResetPasswordPage() {
         ) : (
           <form onSubmit={submit} className="mt-7 space-y-4">
             {error && <p role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-700">{error}</p>}
-            <label className="block text-sm font-medium">New password<input type="password" autoComplete="new-password" minLength={12} maxLength={128} required value={password} onChange={e => setPassword(e.target.value)} className="mt-1 w-full rounded border border-cream px-3 py-3 outline-none focus:border-charcoal" /></label>
+            <label className="block text-sm font-medium">New password<input type="password" autoComplete="new-password" minLength={12} maxLength={72} required value={password} onChange={e => setPassword(e.target.value)} className="mt-1 w-full rounded border border-cream px-3 py-3 outline-none focus:border-charcoal" /></label>
             <label className="block text-sm font-medium">Confirm new password<input type="password" autoComplete="new-password" minLength={12} maxLength={128} required value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="mt-1 w-full rounded border border-cream px-3 py-3 outline-none focus:border-charcoal" /></label>
             <p className="text-xs text-secondary">{PASSWORD_POLICY_MESSAGE}</p>
             <button type="submit" disabled={loading || !accessToken} className="w-full rounded-md bg-charcoal px-5 py-3 text-sm font-semibold text-white disabled:opacity-50">{loading ? "Updating…" : "Update password"}</button>
