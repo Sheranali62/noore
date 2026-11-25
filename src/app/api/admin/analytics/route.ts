@@ -185,9 +185,10 @@ export async function GET() {
 
     status,
 
-    // Search analytics is intentionally omitted
-    // because SearchEvent is not part of the
-    // current Prisma schema.
-    topSearches: [],
+    topSearches: searchGroups.map((item) => ({
+      query: item.query,
+      searches: item._count._all,
+      averageResults: Math.round(item._avg.resultCount || 0),
+    })),
   })
 }
