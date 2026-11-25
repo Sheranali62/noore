@@ -59,7 +59,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "Cart item details are invalid." }, { status: 400 })
     }
 
-    const productIds = Array.from(new Set(requested.map((item: any) => item.productId)))
+    const productIds: string[] = Array.from(new Set<string>(requested.map((item: { productId: string }) => item.productId)))
     const products = await prisma.product.findMany({
       where: { id: { in: productIds }, status: "ACTIVE" },
       include: { variants: { select: { id: true, stock: true } } },
