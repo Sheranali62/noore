@@ -63,14 +63,14 @@ export default async function ProductsPage({ searchParams }: { searchParams?: Re
       </div>
     </section>
 
-    <div className="mx-auto max-w-7xl px-3 py-5 pb-24 sm:px-4 sm:py-7 md:py-10">
+    <div className="noore-product-container mx-auto max-w-7xl px-3 py-5 pb-24 sm:px-4 sm:py-7 md:py-10">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-[#D4A07D]/30 pb-4 sm:mb-7 sm:pb-5">
         <ProductFilters categories={categoryRows.map((x) => x.category)} genders={genderRows.flatMap((x) => x.gender ? [x.gender] : [])} collections={collectionRows.flatMap((x) => x.collection ? [x.collection] : [])} />
         <p className="hidden text-[10px] uppercase tracking-[0.14em] text-secondary md:block">Showing {products.length} of {totalCount}</p>
         <ProductSort currentSort={sort} />
       </div>
 
-      {products.length === 0 ? <div className="py-24 text-center"><h2 className="font-editorial text-3xl">Nothing here yet.</h2><p className="mt-2 text-sm text-secondary">Try another category or clear your filters.</p><Link href="/products" className="mt-7 inline-block bg-charcoal px-7 py-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-white">Shop all</Link></div> : <div className="grid grid-cols-2 gap-x-2.5 gap-y-7 sm:gap-x-4 sm:gap-y-10 md:grid-cols-3 md:gap-x-6 md:gap-y-14 lg:grid-cols-4">
+      {products.length === 0 ? <div className="py-24 text-center"><h2 className="font-editorial text-3xl">Nothing here yet.</h2><p className="mt-2 text-sm text-secondary">Try another category or clear your filters.</p><Link href="/products" className="mt-7 inline-block bg-charcoal px-7 py-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-white">Shop all</Link></div> : <div className="noore-product-grid gap-x-3 gap-y-7 sm:gap-x-4 sm:gap-y-10 md:gap-y-14">
         {products.map((product) => <ProductCard key={product.id} id={product.id} name={product.name} slug={product.slug} price={product.price} salePrice={product.salePrice} image={product.images[0] || "/placeholder.jpg"} hoverImage={product.images[1]} category={product.category} stock={product.stock} gender={product.gender} colors={product.variants.map((variant) => variant.color)} />)}
       </div>}
 
