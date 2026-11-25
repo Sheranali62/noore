@@ -303,7 +303,9 @@ export async function PATCH(
             paymentStatus ??
             (nextStatus === "REFUNDED"
               ? "REFUNDED"
-              : undefined),
+              : nextStatus === "DELIVERED" && current.paymentMethod === "COD"
+                ? "PAID"
+                : undefined),
           trackingNumber:
             body.trackingNumber !== undefined
               ? trackingNumber
