@@ -31,7 +31,7 @@ This checklist tracks the security hardening staged on `feature/complete-ecommer
 - In Supabase Authentication → Sign In / Providers → Email, set minimum password length to 12 and require lowercase, uppercase, digits and symbols. The connected Supabase security advisor reports leaked-password protection disabled; Supabase documents that this HaveIBeenPwned check is available on Pro plans and above, so it cannot be enabled on Free.
 - Configure strong random secrets (at least 32 characters) for payment/courier webhooks if those integrations are enabled.
 - Verify Resend delivery, password reset, order confirmation, cron authentication, Blob uploads and webhook signatures in an isolated preview.
-- GitHub Actions validation passed on code commit `fec0c9815ee6c6f96cbbff4d691523a54453b06d`: dependency install, Prisma validation/client generation, TypeScript, production dependency audit (zero vulnerabilities), ESLint and Next.js production build all succeeded.
+- GitHub Actions validation passed on code commit `a17f039599d69a5becbb05eef50d59cd82bc72cf`: dependency install, Prisma validation/client generation, TypeScript, production dependency audit (zero vulnerabilities), ESLint and Next.js production build all succeeded.
 - A fresh Vercel preview deployment is still required for runtime/browser regression tests. Vercel currently blocks new deployments on the Free-plan daily API deployment quota; do not deploy production as a workaround.
 - Vercel's free-plan API deployment quota has blocked additional preview deployments. Do not deploy production as a workaround.
 - Complete a full Content Security Policy asset review before adding script/style allowlists. The current policy is intentionally a safe baseline, not a complete strict CSP.
