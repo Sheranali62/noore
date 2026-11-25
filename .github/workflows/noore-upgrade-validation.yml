@@ -1,5 +1,5 @@
 name: NOORE upgrade validation
-# Re-run the full validation suite after security hardening and privacy/RBAC review.
+# Re-run validation after correcting the admin route guard signatures.
 
 on:
   push:
