@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { enforceRateLimit } from "@/lib/rate-limit"
 
 export async function registerCustomer(request: NextRequest) {
   try {
@@ -14,6 +15,9 @@ export async function registerCustomer(request: NextRequest) {
     if (password.length < 8 || password.length > 128) {
       return NextResponse.json({ error: "Password must contain at least 8 characters." }, { status: 400 })
     }
+
+    const limited = await enforceRateLimit(request, "register", 5, 60 * 60 * 1000, email)
+    if (limited) return limited
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
