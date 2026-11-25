@@ -23,10 +23,15 @@ export async function POST(request: NextRequest) {
 
   try {
     const origin = request.headers.get("origin")
-    if (
-      (origin && new URL(origin).origin !== request.nextUrl.origin) ||
-      request.headers.get("sec-fetch-site") === "cross-site"
-    ) {
+    let crossSite = request.headers.get("sec-fetch-site") === "cross-site"
+    if (origin) {
+      try {
+        crossSite = crossSite || new URL(origin).origin !== request.nextUrl.origin
+      } catch {
+        crossSite = true
+      }
+    }
+    if (crossSite) {
       return NextResponse.json({ error: "Cross-site password recovery requests are not allowed." }, { status: 403 })
     }
     const contentType = request.headers.get("content-type") ?? ""
@@ -37,7 +42,10 @@ export async function POST(request: NextRequest) {
     if (contentLength > 8 * 1024) {
       return NextResponse.json({ error: "Password recovery request is too large." }, { status: 413 })
     }
-    const body = await request.json().catch(() => ({}))
+    const body = await request.json().catch(() => null)
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return NextResponse.json({ error: "Invalid password recovery request." }, { status: 400 })
+    }
     const email = String(body.email ?? "").trim().toLowerCase()
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
       return NextResponse.json({ error: "Enter a valid email address." }, { status: 400 })
