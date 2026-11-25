@@ -12,10 +12,10 @@ export const revalidate = 0
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }) {
   const product = await prisma.product.findUnique({
-    where: { slug: params.slug },
+    where: { slug: (await params).slug },
     select: {
       name: true,
       description: true,
@@ -38,7 +38,7 @@ export async function generateMetadata({
       product.description ||
       `Shop ${product.name} from NOORÉ.`,
     alternates: {
-      canonical: `/product/${params.slug}`,
+      canonical: `/product/${(await params).slug}`,
     },
     openGraph: {
       title: product.seoTitle || product.name,
@@ -65,11 +65,11 @@ export async function generateMetadata({
 export default async function ProductPage({
   params,
 }: {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }) {
   const product = await prisma.product.findUnique({
     where: {
-      slug: params.slug,
+      slug: (await params).slug,
     },
     include: {
       variants: true,
