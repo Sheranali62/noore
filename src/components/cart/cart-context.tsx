@@ -86,7 +86,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         if (!active) return
         const nextItems = Array.from(merged.values()).filter(item => item.quantity > 0)
         setItems(nextItems)
-        setSyncedUserId(userId)
+        setSyncedUserId(userId ?? null)
       } catch (error) {
         console.error("Could not restore the saved NOORÉ cart:", error)
       }
