@@ -47,8 +47,7 @@ export async function POST(request: NextRequest) {
     })
     const result = await response.json().catch(() => ({}))
     if (!response.ok || !result.user?.id || !result.user?.email) {
-      const detail = String(result.msg || result.message || result.error_description || "")
-      console.error("Supabase registration failed:", response.status, detail.slice(0, 300))
+      console.error("Supabase registration failed:", response.status)
       return NextResponse.json({ error: response.status === 429 ? "Too many registration attempts. Please try again later." : "We could not create your account. Check the details or try signing in." }, { status: response.status === 429 ? 429 : 400 })
     }
 
