@@ -147,7 +147,7 @@ export function AuthForm({ type }: AuthFormProps) {
             type="password"
             required
             minLength={type === "register" ? 12 : 1}
-            maxLength={type === "register" ? 128 : undefined}
+            maxLength={type === "register" ? 72 : undefined}
             autoComplete={type === "register" ? "new-password" : "current-password"}
             value={formData.password}
             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
