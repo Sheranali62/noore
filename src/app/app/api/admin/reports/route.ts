@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic"
 function csv(rows: string[][]) {
   return rows.map(row => row.map(value => {
     const raw = String(value ?? "")
-    const safe = /^[\\u0000-\\u0020]*[=+@-]/.test(raw) ? `'${raw}` : raw
+    const safe = /^[\u0000-\u0020]*[=+@-]/.test(raw) ? `'${raw}` : raw
     return `"${safe.replace(/"/g, '""')}"`
   }).join(",")).join("\n")
 }
