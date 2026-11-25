@@ -19,8 +19,8 @@ const providers: NextAuthOptions["providers"] = [
 
       const emailInput = credentials.email.trim().toLowerCase()
       const authenticateLegacyPrismaUser = async () => {
-        const legacyUser = await prisma.user.findUnique({
-          where: { email: emailInput },
+        const legacyUser = await prisma.user.findFirst({
+          where: { email: { equals: emailInput, mode: "insensitive" } },
         })
 
         if (!legacyUser?.password) return null
