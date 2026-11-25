@@ -119,7 +119,29 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const origin = request.headers.get("origin")
+    const fetchSite = request.headers.get("sec-fetch-site")
+    if (
+      (origin && new URL(origin).origin !== request.nextUrl.origin) ||
+      fetchSite === "cross-site"
+    ) {
+      return NextResponse.json({ error: "Cross-site order requests are not allowed" }, { status: 403 })
+    }
+
+    const contentType = request.headers.get("content-type") ?? ""
+    if (!contentType.toLowerCase().includes("application/json")) {
+      return NextResponse.json({ error: "A JSON request body is required" }, { status: 415 })
+    }
+
+    const contentLength = Number(request.headers.get("content-length") ?? 0)
+    if (contentLength > 64 * 1024) {
+      return NextResponse.json({ error: "Order request is too large" }, { status: 413 })
+    }
+
     const body = await request.json()
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return NextResponse.json({ error: "Invalid order request" }, { status: 400 })
+    }
 
     const customer = body.customer ?? {}
     const address = body.address ?? {}
@@ -145,14 +167,23 @@ export async function POST(request: NextRequest) {
 
     if (
       !name ||
+      name.length > 120 ||
       !email ||
-      !email.includes("@") ||
+      email.length > 254 ||
+      !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email) ||
       !phone ||
+      phone.length > 32 ||
       !addressLine ||
+      addressLine.length > 300 ||
       !city ||
+      city.length > 100 ||
       !province ||
+      province.length > 100 ||
       !postal ||
-      !items.length
+      postal.length > 24 ||
+      !items.length ||
+      items.length > 50 ||
+      (couponCode !== null && couponCode.length > 64)
     ) {
       return NextResponse.json(
         {
@@ -199,7 +230,9 @@ export async function POST(request: NextRequest) {
 
     if (
       !Number.isFinite(subtotalInput) ||
-      !Number.isFinite(shippingInput)
+      subtotalInput < 0 ||
+      !Number.isFinite(shippingInput) ||
+      shippingInput < 0
     ) {
       return NextResponse.json(
         { error: "Invalid totals" },
@@ -219,12 +252,25 @@ export async function POST(request: NextRequest) {
       requested.some(
         (item: any) =>
           !item.productId ||
+          item.productId.length > 128 ||
+          (item.variantId !== null && item.variantId.length > 128) ||
           !Number.isInteger(item.quantity) ||
-          item.quantity < 1
+          item.quantity < 1 ||
+          item.quantity > 99
       )
     ) {
       return NextResponse.json(
         { error: "Invalid cart items" },
+        { status: 400 }
+      )
+    }
+
+    const cartLineKeys = requested.map(
+      (item: any) => `${item.productId}:${item.variantId ?? "no-variant"}`
+    )
+    if (new Set(cartLineKeys).size !== cartLineKeys.length) {
+      return NextResponse.json(
+        { error: "Remove duplicate items from your cart and try again" },
         { status: 400 }
       )
     }
