@@ -63,3 +63,8 @@ CREATE TABLE "AuditLog" (
 );
 CREATE INDEX "AuditLog_actorId_createdAt_idx" ON "AuditLog"("actorId","createdAt");
 CREATE INDEX "AuditLog_entityType_entityId_idx" ON "AuditLog"("entityType","entityId");
+
+ALTER TABLE "ReturnRequest" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "PaymentTransaction" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "OrderEvent" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "AuditLog" ENABLE ROW LEVEL SECURITY;
