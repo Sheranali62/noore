@@ -9,15 +9,23 @@ export async function GET() {
   const session = await auth()
   if (!session?.user?.id) return NextResponse.json({ error: "Login required" }, { status: 401 })
   try {
-    const tickets = await prisma.supportTicket.findMany({
-      where: { userId: session.user.id },
-      orderBy: { updatedAt: "desc" },
-      include: {
-        order: { select: { orderNumber: true } },
-        messages: { orderBy: { createdAt: "asc" } },
-      },
-    })
-    return NextResponse.json({ tickets }, { headers: { "Cache-Control": "private, no-store" } })
+    const [tickets, orders] = await Promise.all([
+      prisma.supportTicket.findMany({
+        where: { userId: session.user.id },
+        orderBy: { updatedAt: "desc" },
+        include: {
+          order: { select: { orderNumber: true } },
+          messages: { orderBy: { createdAt: "asc" } },
+        },
+      }),
+      prisma.order.findMany({
+        where: { userId: session.user.id },
+        orderBy: { createdAt: "desc" },
+        take: 20,
+        select: { id: true, orderNumber: true },
+      }),
+    ])
+    return NextResponse.json({ tickets, orders }, { headers: { "Cache-Control": "private, no-store" } })
   } catch (error) {
     console.error("Customer support tickets load failed:", error)
     return NextResponse.json({ error: "Unable to load support tickets." }, { status: 500 })
