@@ -88,6 +88,15 @@ export async function sendNewOrderAdminEmail(input: {
   return sendEmail({ to: recipient, subject, html, text })
 }
 
+export async function sendNewsletterWelcomeEmail(input: { to: string; unsubscribeToken: string }) {
+  const { site } = emailConfig()
+  const unsubscribeUrl = `${site}/newsletter/unsubscribe?token=${encodeURIComponent(input.unsubscribeToken)}`
+  const subject = "NOORÉ · Welcome to our world"
+  const html = `<div style="background:#f5f1e9;padding:32px 12px;font-family:Arial,sans-serif;color:#24211c"><div style="max-width:580px;margin:auto;background:#fff;padding:36px;border:1px solid #e7dfd2"><p style="font-family:Georgia,serif;font-size:30px;letter-spacing:5px;margin:0 0 28px">NOORÉ</p><h1 style="font-family:Georgia,serif;font-weight:400;font-size:28px">A little more you. A little more NOORÉ.</h1><p>Thank you for joining our world. Look out for considered collections, new arrivals and occasional private offers.</p><p style="margin-top:28px"><a href="${site}/products" style="display:inline-block;background:#535F4C;color:#fff;padding:14px 22px;text-decoration:none;font-size:12px;font-weight:bold">DISCOVER NOORÉ</a></p><p style="margin-top:28px;font-size:11px;color:#786f63">You received this because you subscribed to NOORÉ updates. <a href="${unsubscribeUrl}">Unsubscribe</a>.</p></div></div>`
+  const text = `Thank you for joining NOORÉ. Discover the collection at ${site}/products. Unsubscribe: ${unsubscribeUrl}`
+  return sendEmail({ to: input.to, subject, html, text })
+}
+
 export async function sendAbandonedCartEmail(input: {
   to: string
   customerName?: string | null
