@@ -12,6 +12,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (!session) redirect("/login?callbackUrl=/admin")
 
   const email = session.user.email ?? "Admin"
+  const role = session.user.role ?? "CUSTOMER"
   const displayName = session.user.name || email.split("@")[0] || "Admin"
   const initials = displayName.slice(0, 2).toUpperCase()
 
@@ -23,7 +24,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <div className="mt-2 text-[9px] font-semibold uppercase tracking-[0.34em] text-[#d6ae72]/70">Fashion · Style · You</div>
           <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-[#d6ae72]/25 bg-[#d6ae72]/10 px-3 py-1.5 text-[9px] font-semibold uppercase tracking-[0.18em] text-[#e4c28e]"><ShieldCheck className="h-3 w-3" /> Admin studio</div>
         </Link>
-        <div className="mt-6 min-h-0 flex-1 overflow-y-auto pr-1"><AdminNav /></div>
+        <div className="mt-6 min-h-0 flex-1 overflow-y-auto pr-1"><AdminNav role={role} /></div>
         <div className="mt-5 rounded-xl border border-white/10 bg-white/[0.035] p-4">
           <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-white/35">Signed in as</p>
           <p className="mt-2 truncate text-xs font-medium text-white/80">{email}</p>
@@ -35,7 +36,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <header className="sticky top-0 z-30 border-b border-[#d6ae72]/20 bg-[#0c0c0b]/95 px-4 shadow-[0_8px_30px_rgba(0,0,0,.2)] backdrop-blur-xl sm:px-6 lg:px-8">
           <div className="flex min-h-[72px] items-center justify-between gap-4">
             <div className="flex min-w-0 flex-1 items-center gap-3 lg:max-w-[520px]">
-              <div className="lg:hidden"><MobileAdminNav email={email} /></div>
+              <div className="lg:hidden"><MobileAdminNav email={email} role={role} /></div>
               <div className="hidden h-11 w-full items-center gap-3 rounded-full border border-white/10 bg-white/[0.055] px-4 text-sm text-white/35 sm:flex"><Search className="h-4 w-4" /><span>NOORÉ administration</span></div>
             </div>
             <div className="flex items-center gap-3">
