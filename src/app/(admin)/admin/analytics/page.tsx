@@ -31,7 +31,7 @@ export default async function AnalyticsPage() {
     prisma.order.findMany({ where: { createdAt: { gte: since }, status: { notIn: ["CANCELLED", "REFUNDED"] } }, select: { createdAt: true, total: true } }),
     prisma.orderItem.groupBy({ by: ["productId"], where: { order: { createdAt: { gte: since }, status: { notIn: ["CANCELLED", "REFUNDED"] } } }, _sum: { quantity: true, total: true } }),
     prisma.searchEvent.groupBy({ by: ["query"], where: { createdAt: { gte: since } }, _count: { _all: true }, _avg: { resultCount: true }, orderBy: { _count: { query: "desc" } }, take: 10 }),
-    prisma.orderItem.findMany({ where: { costPrice: { not: null }, order: { createdAt: { gte: since }, status: { notIn: ["CANCELLED", "REFUNDED"] } } }, select: { quantity: true, total: true, costPrice: true } }),
+    prisma.orderItem.findMany({ where: { costPrice: { not: null }, order: { createdAt: { gte: since }, status: { notIn: ["CANCELLED", "REFUNDED"] } } }, select: { quantity: true, total: true, costPrice: true, order: { select: { subtotal: true, discount: true } } } }),
   ])
 
   const productIds = Array.from(new Set([...top.map(item => item.productId), ...categoryGroups.map(item => item.productId)]))
@@ -58,7 +58,7 @@ export default async function AnalyticsPage() {
   })
   const maxRevenue = Math.max(...days.map(day => day.revenue), 1)
   const currentRevenue = revenue._sum.total || 0
-  const grossProfit = costItems.reduce((sum, item) => sum + item.total - (item.costPrice || 0) * item.quantity, 0)
+  const grossProfit = costItems.reduce((sum, item) => sum + (item.total - (item.order.subtotal > 0 ? item.order.discount * item.total / item.order.subtotal : 0)) - (item.costPrice || 0) * item.quantity, 0)
   const costCoverage = costItems.length
   const oldRevenue = previousRevenue._sum.total || 0
   const growth = oldRevenue > 0 ? ((currentRevenue - oldRevenue) / oldRevenue) * 100 : null
