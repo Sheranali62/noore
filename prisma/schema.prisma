@@ -41,6 +41,7 @@ model Address {
   orders    Order[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@index([userId])
 }
 
 model Category {
@@ -109,6 +110,7 @@ model ProductVariant {
   inventoryMovements  InventoryMovement[]
   createdAt           DateTime            @default(now())
   updatedAt           DateTime           @updatedAt
+  @@index([productId])
 }
 
 model ProductReview {
@@ -125,6 +127,8 @@ model ProductReview {
   featured   Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+  @@index([productId])
+  @@index([userId])
 }
 
 model Wishlist {
@@ -143,6 +147,8 @@ model WishlistItem {
   productId  String
   product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   createdAt  DateTime @default(now())
+  @@index([productId])
+  @@index([wishlistId])
 }
 
 model Cart {
@@ -157,6 +163,7 @@ model Cart {
   updatedAt DateTime   @updatedAt
 
   @@index([updatedAt, abandonedReminderAt])
+  @@index([couponId])
 }
 
 model CartItem {
@@ -170,6 +177,9 @@ model CartItem {
   quantity   Int             @default(1)
   createdAt  DateTime        @default(now())
   updatedAt  DateTime        @updatedAt
+  @@index([cartId])
+  @@index([productId])
+  @@index([variantId])
 }
 
 model Order {
@@ -201,6 +211,9 @@ model Order {
   supportTickets   SupportTicket[]
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
+  @@index([userId])
+  @@index([addressId])
+  @@index([courierCompanyId])
 }
 
 model CourierCompany {
@@ -238,6 +251,9 @@ model OrderItem {
   costPrice  Float?
   total      Float
   createdAt  DateTime        @default(now())
+  @@index([orderId])
+  @@index([productId])
+  @@index([variantId])
 }
 
 model Coupon {
@@ -270,6 +286,8 @@ model CouponUsage {
   orderId   String?   @unique
   order     Order?    @relation(fields: [orderId], references: [id])
   usedAt    DateTime  @default(now())
+  @@index([couponId])
+  @@index([userId])
 }
 
 model SearchEvent {
@@ -300,6 +318,7 @@ model InventoryMovement {
   @@index([productId, createdAt])
   @@index([variantId, createdAt])
   @@index([createdAt])
+  @@index([userId])
 }
 
 model Store {
