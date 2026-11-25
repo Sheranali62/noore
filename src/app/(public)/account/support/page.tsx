@@ -4,6 +4,8 @@ import Link from "next/link"
 import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 
+type OrderOption = { id: string; orderNumber: string }
+
 type Ticket = {
   id: string
   subject: string
@@ -18,6 +20,7 @@ type Ticket = {
 export default function AccountSupportPage() {
   const { status: authStatus } = useSession()
   const [tickets, setTickets] = useState<Ticket[]>([])
+  const [orders, setOrders] = useState<OrderOption[]>([])
   const [activeId, setActiveId] = useState("")
   const [subject, setSubject] = useState("")
   const [category, setCategory] = useState("General")
@@ -34,6 +37,7 @@ export default function AccountSupportPage() {
     const data = await response.json()
     if (!response.ok) throw new Error(data.error || "Unable to load support tickets")
     setTickets(data.tickets || [])
+    setOrders(data.orders || [])
     if (!activeId && data.tickets?.[0]) setActiveId(data.tickets[0].id)
   }
 
@@ -79,7 +83,7 @@ export default function AccountSupportPage() {
       <section className="rounded-2xl border border-[#D8D8CB] bg-white p-5"><h2 className="font-editorial text-2xl">New support request</h2><form onSubmit={createTicket} className="mt-5 space-y-4">
         <label className="block text-sm font-medium">Subject<input required maxLength={160} value={subject} onChange={e=>setSubject(e.target.value)} className="mt-2 w-full rounded-lg border border-[#D8D8CB] px-3 py-3"/></label>
         <label className="block text-sm font-medium">Category<select value={category} onChange={e=>setCategory(e.target.value)} className="mt-2 w-full rounded-lg border border-[#D8D8CB] bg-white px-3 py-3">{["General","Order status","Delivery","Product quality","Payment","Exchange or return","Website issue"].map(x=><option key={x}>{x}</option>)}</select></label>
-        <label className="block text-sm font-medium">Order reference (optional)<input value={orderId} onChange={e=>setOrderId(e.target.value)} placeholder="Paste your order ID" className="mt-2 w-full rounded-lg border border-[#D8D8CB] px-3 py-3"/></label>
+        <label className="block text-sm font-medium">Related order (optional)<select value={orderId} onChange={e=>setOrderId(e.target.value)} className="mt-2 w-full rounded-lg border border-[#D8D8CB] bg-white px-3 py-3"><option value="">No specific order</option>{orders.map(order=><option key={order.id} value={order.id}>#{order.orderNumber}</option>)}</select></label>
         <label className="block text-sm font-medium">Message<textarea required minLength={5} maxLength={5000} rows={5} value={message} onChange={e=>setMessage(e.target.value)} className="mt-2 w-full rounded-lg border border-[#D8D8CB] px-3 py-3 font-normal"/></label>
         <button disabled={saving} className="w-full rounded-xl bg-[#535F4C] px-5 py-3 text-sm font-semibold text-white disabled:opacity-50">{saving?"Sending…":"Create support ticket"}</button>
       </form></section>
