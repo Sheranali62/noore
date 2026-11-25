@@ -11,6 +11,19 @@ function normalizeEmail(value: unknown) {
   return String(value ?? "").trim().toLowerCase()
 }
 
+function trackingResponse(
+  body: unknown,
+  options?: { status?: number }
+) {
+  return NextResponse.json(body, {
+    ...options,
+    headers: {
+      "Cache-Control": "private, no-store, max-age=0",
+      Pragma: "no-cache",
+    },
+  })
+}
+
 async function makeOrderNumber() {
   for (let attempt = 0; attempt < 5; attempt++) {
     const value = `NO-${new Date().getFullYear()}-${randomBytes(8)
@@ -35,7 +48,7 @@ export async function GET(request: NextRequest) {
     const email = normalizeEmail(searchParams.get("email"))
 
     if (!orderNumber || !email) {
-      return NextResponse.json(
+      return trackingResponse(
         { error: "Order number and email are required" },
         { status: 400 }
       )
@@ -80,24 +93,24 @@ export async function GET(request: NextRequest) {
     })
 
     if (!order) {
-      return NextResponse.json(
+      return trackingResponse(
         { error: "Order not found" },
         { status: 404 }
       )
     }
 
     if (normalizeEmail(order.user?.email) !== email) {
-      return NextResponse.json(
+      return trackingResponse(
         { error: "Unauthorized" },
         { status: 401 }
       )
     }
 
-    return NextResponse.json({ order })
+    return trackingResponse({ order })
   } catch (error) {
     console.error("Error tracking order:", error)
 
-    return NextResponse.json(
+    return trackingResponse(
       { error: "Failed to track order" },
       { status: 500 }
     )
