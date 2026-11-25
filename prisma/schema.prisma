@@ -21,6 +21,7 @@ model User {
   cart               Cart?
   couponUsage        CouponUsage[]
   inventoryMovements InventoryMovement[]
+  returnRequests     ReturnRequest[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -190,6 +191,9 @@ model Order {
   notes            String?
   couponCode       String?
   couponUsage      CouponUsage?
+  returnRequests   ReturnRequest[]
+  paymentTransactions PaymentTransaction[]
+  orderEvents      OrderEvent[]
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
 }
@@ -323,9 +327,77 @@ model BlogPost {
 }
 
 model NewsletterSubscriber {
+  id              String   @id @default(cuid())
+  email           String   @unique
+  active          Boolean  @default(true)
+  unsubscribeToken String? @unique
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model ReturnRequest {
+  id           String              @id @default(cuid())
+  orderId      String
+  order        Order               @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reason       String
+  details      String?
+  itemIds      String[]            @default([])
+  evidence     String[]            @default([])
+  status       ReturnRequestStatus @default(REQUESTED)
+  adminNote    String?
+  refundAmount Float?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([orderId])
+  @@index([status, createdAt])
+}
+
+model PaymentTransaction {
+  id                String        @id @default(cuid())
+  orderId           String
+  order             Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  provider          String
+  providerReference String?
+  amount            Float
+  currency          String        @default("PKR")
+  status            PaymentStatus @default(UNPAID)
+  rawResponse       Json?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@unique([provider, providerReference])
+  @@index([orderId, createdAt])
+}
+
+model OrderEvent {
   id        String   @id @default(cuid())
-  email     String   @unique
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  actorId   String?
+  event     String
+  message   String?
+  metadata  Json?
   createdAt DateTime @default(now())
+
+  @@index([orderId, createdAt])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  action     String
+  entityType String
+  entityId   String?
+  details    Json?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  @@index([actorId, createdAt])
+  @@index([entityType, entityId])
 }
 
 model HomepageSection {
@@ -407,6 +479,16 @@ enum PaymentStatus {
   PAID
   FAILED
   REFUNDED
+}
+
+enum ReturnRequestStatus {
+  REQUESTED
+  APPROVED
+  REJECTED
+  PICKUP_SCHEDULED
+  RECEIVED
+  REFUNDED
+  EXCHANGED
 }
 
 enum CouponType {
