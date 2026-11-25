@@ -3,9 +3,9 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import { format } from "date-fns"
 
-export default async function BlogDetailPage({ params }: { params: { slug: string } }) {
+export default async function BlogDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const post = await prisma.blogPost.findUnique({
-    where: { slug: params.slug, published: true },
+    where: { slug: (await params).slug, published: true },
   })
 
   if (!post) notFound()
