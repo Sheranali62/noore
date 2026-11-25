@@ -40,14 +40,14 @@ export default async function PrintOrderPage({
   params,
   searchParams,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
   searchParams?: { mode?: string }
 }) {
   let order
 
   try {
     order = await prisma.order.findUnique({
-      where: { id: params.id },
+      where: { id: (await params).id },
       include: {
         user: {
           select: {
