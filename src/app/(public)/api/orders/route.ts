@@ -30,6 +30,13 @@ async function makeOrderNumber() {
 }
 
 export async function GET(request: NextRequest) {
+  const rate = checkRateLimit(`order-tracking:${getClientIp(request)}`, 20, 60000)
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: "Too many tracking attempts. Please wait a minute and try again." },
+      { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds), "Cache-Control": "no-store" } }
+    )
+  }
   try {
     const searchParams = request.nextUrl.searchParams
     const orderNumber = searchParams.get("orderNumber")?.trim()
