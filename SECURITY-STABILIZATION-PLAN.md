@@ -98,6 +98,9 @@ This document records an initial review, not a penetration-test certification. F
 
 
 ## Additional audit updates (2026-11-25)
+- Vercel environment metadata confirms production `NEXT_PUBLIC_SUPABASE_URL` points to the connected Supabase project `jaanfteuzqdluzxpkzay`, so that project is the production Supabase Auth endpoint. This does **not** prove Prisma's production `DATABASE_URL` points to the same Supabase database; that value remains encrypted and was not read.
+- The security branch currently has a preview-specific Neon `DATABASE_URL`, but the preview Supabase Auth URL/key metadata is scoped to a different feature branch. Do not use the security preview for live-auth tests until an isolated preview Auth configuration is supplied; avoid testing registration against production Auth.
+
 
 - The order-tracking GET handler now adds `Cache-Control: private, no-store, max-age=0` and `Pragma: no-cache` to every response, preventing intermediary/browser caching of private tracking results.
 - Critical framework lifecycle finding: the app is pinned to Next.js `14.1.0`, while the official Next.js support policy lists all 14.x releases as unsupported. Plan a tested migration to a supported 16.x Active LTS release (or 15.x Maintenance LTS only as a short transition); do not perform a blind dependency bump because this codebase is on React 18 and Next 16 requires React 19 and has breaking changes.
