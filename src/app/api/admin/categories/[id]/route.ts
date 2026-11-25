@@ -125,7 +125,7 @@ export async function PATCH(
   }
 
   try {
-    const categoryId = params.id
+    const categoryId = (await params).id
 
     if (!categoryId) {
       return NextResponse.json(
@@ -492,7 +492,7 @@ export async function DELETE(
   }
 
   try {
-    const categoryId = params.id
+    const categoryId = (await params).id
 
     if (!categoryId) {
       return NextResponse.json(
