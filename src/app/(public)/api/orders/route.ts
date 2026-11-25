@@ -151,10 +151,14 @@ export async function POST(request: NextRequest) {
 
     const subtotalInput = Number(body.subtotal)
     const shippingInput = Number(body.shipping)
+    const taxInput = Number(body.tax ?? 0)
+    const totalInput = Number(body.total)
 
     if (
       !Number.isFinite(subtotalInput) ||
-      !Number.isFinite(shippingInput)
+      !Number.isFinite(shippingInput) ||
+      !Number.isFinite(taxInput) ||
+      !Number.isFinite(totalInput)
     ) {
       return NextResponse.json(
         { error: "Invalid totals" },
@@ -311,6 +315,7 @@ export async function POST(request: NextRequest) {
               "freeShippingThreshold",
               "standardShipping",
               "expressShipping",
+              "taxRate",
             ],
           },
         },
@@ -323,6 +328,7 @@ export async function POST(request: NextRequest) {
       freeShippingThreshold: 5000,
       standardShipping: 250,
       expressShipping: 500,
+      taxRate: 0,
     }
 
     for (const setting of shippingSettings) {
@@ -626,12 +632,13 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        const total = Math.max(
-          0,
-          subtotal -
-            discount +
-            shipping
-        )
+        const taxRate = Math.min(100, Math.max(0, shippingValues.taxRate || 0))
+        const tax = Math.round(Math.max(0, subtotal - discount) * taxRate) / 100
+        const total = Math.max(0, subtotal - discount + shipping + tax)
+
+        if (Math.abs(tax - taxInput) > 0.01 || Math.abs(total - totalInput) > 0.01) {
+          throw new Error("Cart total changed. Please review your order and try again.")
+        }
 
         const createdOrder =
           await tx.order.create({
@@ -643,6 +650,7 @@ export async function POST(request: NextRequest) {
               subtotal,
               discount,
               shipping,
+              tax,
               total,
               couponCode:
                 appliedCoupon?.code ??
