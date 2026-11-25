@@ -8,6 +8,7 @@ type RequestItem = {
   reason: string
   details: string | null
   itemIds: string[]
+  evidence: string[]
   status: string
   adminNote: string | null
   refundAmount: number | null
@@ -84,6 +85,7 @@ export default function AdminReturnsPage() {
                 <span className="rounded-full border border-[#d6ae72]/30 bg-[#d6ae72]/10 px-3 py-1 text-xs font-semibold text-[#e4c28e]">{item.status.replaceAll("_", " ")}</span>
               </div>
               {item.details && <p className="mt-4 rounded-xl bg-white/[.04] p-4 text-sm leading-6 text-white/75">{item.details}</p>}
+              {item.evidence?.length > 0 && <div className="mt-3 flex flex-wrap gap-2">{item.evidence.map((url,index)=><a key={url} href={url} target="_blank" rel="noopener noreferrer" className="rounded-lg border border-white/15 px-3 py-2 text-xs text-[#e4c28e] underline">View evidence {index+1}</a>)}</div>}
               <div className="mt-3 space-y-1 text-xs text-white/55"><p className="font-semibold uppercase tracking-wider text-white/35">Requested items</p>{item.itemIds.length ? item.itemIds.map(id => { const productItem = item.order.items.find(entry => entry.id === id); return <p key={id}>• {productItem ? productItem.product.name + (productItem.variant ? ` · ${productItem.variant.color} / ${productItem.variant.size}` : "") : "Item no longer available"}</p> }) : <p>All items</p>}</div>
               <div className="mt-5 grid gap-4 lg:grid-cols-[1fr_1fr_180px_auto]">
                 <label className="text-xs text-white/50">Admin note
