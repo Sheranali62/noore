@@ -4,6 +4,8 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
+export const dynamic = "force-dynamic"
+
 const statusClass = (status: string) => {
   if (status === "DELIVERED") return "bg-green-100 text-green-800"
   if (status === "CANCELLED" || status === "REFUNDED") return "bg-red-100 text-red-800"
@@ -18,7 +20,22 @@ export default async function OrdersPage() {
   const orders = await prisma.order.findMany({
     where: { userId: session.user.id },
     orderBy: { createdAt: "desc" },
-    include: { items: { include: { product: true, variant: true } } },
+    select: {
+      id: true,
+      orderNumber: true,
+      status: true,
+      total: true,
+      createdAt: true,
+      paymentStatus: true,
+      items: {
+        select: {
+          id: true,
+          quantity: true,
+          product: { select: { name: true, images: true } },
+          variant: { select: { color: true, size: true } },
+        },
+      },
+    },
   })
 
   return (
