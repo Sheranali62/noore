@@ -16,7 +16,15 @@ export async function POST(request: NextRequest) {
 
   try {
     const origin = request.headers.get("origin")
-    if (origin && new URL(origin).origin !== request.nextUrl.origin) {
+    let crossSite = request.headers.get("sec-fetch-site") === "cross-site"
+    if (origin) {
+      try {
+        crossSite = crossSite || new URL(origin).origin !== request.nextUrl.origin
+      } catch {
+        crossSite = true
+      }
+    }
+    if (crossSite) {
       return NextResponse.json({ error: "Cross-site registration is not allowed" }, { status: 403 })
     }
     const contentType = request.headers.get("content-type") ?? ""
@@ -28,7 +36,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Registration request is too large" }, { status: 413 })
     }
 
-    const body = await request.json().catch(() => ({}))
+    const body = await request.json().catch(() => null)
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return NextResponse.json({ error: "Invalid registration request." }, { status: 400 })
+    }
     const name = String(body.name ?? "").trim().slice(0, 100)
     const email = String(body.email ?? "").trim().toLowerCase()
     const password = String(body.password ?? "")
