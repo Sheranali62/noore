@@ -107,6 +107,7 @@ export const authOptions: NextAuthOptions = {
         const userId = typeof token.id === "string" ? token.id : null
 
         if (!userId) {
+          session.user.id = ""
           session.user.role = "CUSTOMER"
           return session
         }
@@ -119,7 +120,9 @@ export const authOptions: NextAuthOptions = {
           select: { id: true, role: true },
         })
 
-        session.user.id = currentUser?.id ?? userId
+        // A deleted account must no longer retain an authenticated identity.
+        // Empty ID makes existing session guards reject the session.
+        session.user.id = currentUser?.id ?? ""
         session.user.role = currentUser?.role ?? "CUSTOMER"
       }
       return session
