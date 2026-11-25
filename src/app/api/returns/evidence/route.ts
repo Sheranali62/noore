@@ -31,6 +31,13 @@ function matchesImageSignature(bytes: Uint8Array, mimeType: string) {
 }
 
 export async function POST(request: NextRequest) {
+  const origin = request.headers.get("origin")
+  if (
+    (origin && new URL(origin).origin !== request.nextUrl.origin) ||
+    request.headers.get("sec-fetch-site") === "cross-site"
+  ) {
+    return NextResponse.json({ error: "Cross-site evidence uploads are not allowed." }, { status: 403 })
+  }
   const session = await auth()
   if (!session?.user?.id) return NextResponse.json({ error: "Sign in to upload return evidence." }, { status: 401 })
   const rateLimit = await enforceRateLimit(request, "return-evidence", 10, 60 * 60 * 1000, session.user.id)
@@ -67,7 +74,7 @@ export async function POST(request: NextRequest) {
       console.error("NOORE return evidence upload rejected:", uploaded.status)
       return NextResponse.json({ error: "Image upload failed. Please try again." }, { status: 502 })
     }
-    return NextResponse.json({ url: result.url })
+    return NextResponse.json({ url: result.url }, { headers: { "Cache-Control": "private, no-store, max-age=0" } })
   } catch (error) {
     console.error("NOORE return evidence upload failed:", error)
     return NextResponse.json({ error: "Unable to upload this image." }, { status: 500 })
