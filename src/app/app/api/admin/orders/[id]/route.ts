@@ -302,7 +302,7 @@ export async function PATCH(
           id: (await params).id,
         },
         data: {
-          status: nextStatus,
+          status: status ? nextStatus : undefined,
           paymentStatus:
             paymentStatus ??
             (nextStatus === "REFUNDED"
