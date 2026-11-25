@@ -1,0 +1,1 @@
+ALTER TABLE "NewsletterSubscriber" ADD COLUMN IF NOT EXISTS "updatedAt" timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
