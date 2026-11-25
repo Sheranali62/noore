@@ -20,7 +20,7 @@ export async function PUT(request: Request) {
   const body = await request.json()
   if (!body?.media || typeof body.media !== "object" || Array.isArray(body.media)) return NextResponse.json({ error: "Invalid media settings" }, { status: 400 })
   const entries = Object.entries(body.media as Record<string, unknown>)
-  if (entries.length > 150 || entries.some(([key, value]) => !/^[a-zA-Z0-9:_-]{1,100}$/.test(key) || typeof value !== "string" || value.length > 2048)) return NextResponse.json({ error: "Invalid image settings" }, { status: 400 })
+  if (entries.length > 150 || entries.some(([key, value]) => !/^[a-zA-Z0-9:_ -]{1,120}$/.test(key) || typeof value !== "string" || value.length > 2048)) return NextResponse.json({ error: "Invalid image settings" }, { status: 400 })
   const media = Object.fromEntries(entries.map(([key, value]) => [key, (value as string).trim()])) as Record<string, string>
   await prisma.setting.upsert({ where: { key: KEY }, create: { key: KEY, value: JSON.stringify(media) }, update: { value: JSON.stringify(media) } })
   return NextResponse.json({ media, message: "Storefront images saved." })
