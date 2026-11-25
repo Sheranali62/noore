@@ -5,7 +5,8 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
 const cards = [
-  { href: "/account/orders", icon: "□", title: "Orders", text: "View purchases and follow delivery" },\n  { href: "/account/returns", icon: "↺", title: "Returns", text: "Request a return or exchange" },
+  { href: "/account/orders", icon: "□", title: "Orders", text: "View purchases and follow delivery" },
+  { href: "/account/returns", icon: "↺", title: "Returns", text: "Request a return or exchange" },
   { href: "/account/profile", icon: "○", title: "Profile", text: "Update your name and email" },
   { href: "/account/addresses", icon: "⌂", title: "Addresses", text: "Manage your COD delivery details" },
   { href: "/wishlist", icon: "♡", title: "Wishlist", text: "Return to pieces you love" },
