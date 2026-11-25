@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
   if (!session?.user?.id) return NextResponse.json({ error: "Login required" }, { status: 401 })
   try {
@@ -11,7 +11,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     if (message.length < 2) return NextResponse.json({ error: "Enter a message." }, { status: 400 })
 
     const ticket = await prisma.supportTicket.findFirst({
-      where: { id: params.id, userId: session.user.id },
+      where: { id: (await params).id, userId: session.user.id },
       select: { id: true, status: true },
     })
     if (!ticket) return NextResponse.json({ error: "Ticket not found." }, { status: 404 })
