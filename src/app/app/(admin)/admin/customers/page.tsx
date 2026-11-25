@@ -1,6 +1,11 @@
 import { prisma } from "@/lib/prisma"
+import { requireAdmin } from "@/lib/admin"
+import { notFound } from "next/navigation"
 
 export default async function AdminCustomersPage() {
+  const access = await requireAdmin(["SUPER_ADMIN", "ADMIN"])
+  if (access.response) notFound()
+
   const customers = await prisma.user.findMany({
     orderBy: { createdAt: "desc" },
     take: 50,
