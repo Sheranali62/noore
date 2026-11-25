@@ -7,6 +7,7 @@ This checklist tracks the security hardening staged on `feature/complete-ecommer
 - Next.js 16 / React 19 migration already present in this branch; CI validates the exact lockfile.
 - NextAuth sessions are limited to four hours, roles are re-read from Prisma, deleted users are rejected, and JWTs are tied to the Prisma account update timestamp.
 - Registration and password recovery enforce 12–128 character passwords with uppercase, lowercase, digits and an allowed symbol. Password recovery is server-side, verifies the Supabase recovery JWT, and invalidates existing NOORÉ JWT sessions after the Supabase password changes.
+- Password reset accepts only a Supabase recovery-session JWT (not an ordinary signed-in access token), updates the password server-side, and revokes existing NOORÉ JWT sessions.
 - The configured owner email can bootstrap the first `SUPER_ADMIN` only while no super administrator exists. Existing staff roles are not promoted on every login.
 - Supabase credential failures fail closed in production; the legacy bcrypt fallback is development-only when Supabase Auth is not configured.
 - Registration, checkout, tracking, search, coupon validation, newsletter, cart, wishlist, address changes, support messages, return requests, return evidence and administrative uploads have bounded input and/or shared database rate limits.
