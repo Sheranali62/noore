@@ -4,6 +4,8 @@ import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
 export const dynamic = "force-dynamic"
 
 export async function POST(request: NextRequest) {
+  const databaseLimit = await enforceRateLimit(request, "password-recovery", 5, 900000)
+  if (databaseLimit) return databaseLimit
   const rate = checkRateLimit(`password-recovery:${getClientIp(request)}`, 3, 3600000)
   if (!rate.allowed) {
     return NextResponse.json(
