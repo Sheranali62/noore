@@ -31,6 +31,7 @@ export async function GET() {
     lowStock,
     searchTerms,
     costRows,
+    taxTotals,
   ] = await Promise.all([
     prisma.order.count({
       where: {
@@ -140,6 +141,11 @@ export async function GET() {
       where: { order: { createdAt: { gte: since }, status: { notIn: ["CANCELLED", "REFUNDED"] } } },
       select: { quantity: true, total: true, costPrice: true },
     }),
+
+    prisma.order.aggregate({
+      where: { createdAt: { gte: since }, status: { notIn: ["CANCELLED", "REFUNDED"] } },
+      _sum: { tax: true },
+    }),
   ])
 
   const names = await prisma.product.findMany({
@@ -169,6 +175,7 @@ export async function GET() {
   return NextResponse.json({
     periodDays: 30,
     grossProfit,
+    taxRecorded: taxTotals._sum.tax || 0,
     costCoveragePercent: costRows.length ? Math.round((costedItems.length / costRows.length) * 100) : 0,
     orders,
     revenue: revenue._sum.total || 0,
