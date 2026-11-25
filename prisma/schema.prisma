@@ -151,8 +151,11 @@ model Cart {
   items     CartItem[]
   coupon    Coupon?    @relation(fields: [couponId], references: [id])
   couponId  String?
+  abandonedReminderAt DateTime?
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
+
+  @@index([updatedAt, abandonedReminderAt])
 }
 
 model CartItem {
