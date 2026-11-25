@@ -4,7 +4,7 @@ import CredentialsProvider from "next-auth/providers/credentials"
 import GoogleProvider from "next-auth/providers/google"
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import { prisma } from "./prisma"
-import NextAuth from "next-auth"
+import NextAuth from "next-auth"\nimport bcrypt from "bcryptjs"
 
 const providers: NextAuthOptions["providers"] = [
   CredentialsProvider({
@@ -37,7 +37,21 @@ const providers: NextAuthOptions["providers"] = [
           }
         )
 
-        if (!authResponse.ok) return null
+        if (!authResponse.ok) {
+          // Keep legacy accounts created before Supabase Auth was connected usable.
+          const legacyUser = await prisma.user.findUnique({
+            where: { email: credentials.email.trim().toLowerCase() },
+          })
+          if (!legacyUser?.password) return null
+          const matches = await bcrypt.compare(credentials.password, legacyUser.password)
+          if (!matches) return null
+          return {
+            id: legacyUser.id,
+            email: legacyUser.email,
+            name: legacyUser.name,
+            role: legacyUser.role,
+          }
+        }
 
         const authResult = await authResponse.json()
         const email = authResult.user?.email?.toLowerCase()
