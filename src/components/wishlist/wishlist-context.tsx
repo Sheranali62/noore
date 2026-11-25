@@ -17,7 +17,6 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   const { data: session, status } = useSession()
   const [items, setItems] = useState<string[]>([])
   const [hydrated, setHydrated] = useState(false)
-  const [syncedUserId, setSyncedUserId] = useState<string | null>(null)
 
   useEffect(() => {
     try {
@@ -41,7 +40,6 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     if (!hydrated || status === "loading") return
     const userId = session?.user?.id
     if (!userId) {
-      setSyncedUserId(null)
       return
     }
 
@@ -58,7 +56,6 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
         const merged = Array.from(new Set([...savedItems, ...guestItems]))
         if (!active) return
         setItems(merged)
-        setSyncedUserId(userId)
 
         const missing = guestItems.filter(id => !savedItems.includes(id))
         await Promise.all(missing.map(productId =>
