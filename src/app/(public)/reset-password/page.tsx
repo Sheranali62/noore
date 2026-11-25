@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react"
 import Link from "next/link"
+import { isStrongPassword, PASSWORD_POLICY_MESSAGE } from "@/lib/password-policy"
 
 export default function ResetPasswordPage() {
   const [accessToken, setAccessToken] = useState("")
@@ -16,7 +17,7 @@ export default function ResetPasswordPage() {
     const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""))
     const token = hash.get("access_token") || ""
     const type = hash.get("type")
-    if (token && (!type || type === "recovery")) setAccessToken(token)
+    if (token && type === "recovery") setAccessToken(token)
     else setError("This reset link is invalid or has expired. Please request a new one.")
     setReady(true)
   }, [])
@@ -26,41 +27,31 @@ export default function ResetPasswordPage() {
     setError("")
     setMessage("")
     if (!accessToken) return setError("Please request a new password reset link.")
-    if (password.length < 8) return setError("Your password must contain at least 8 characters.")
-    if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) return setError("Use at least one letter and one number.")
+    if (!isStrongPassword(password)) return setError(PASSWORD_POLICY_MESSAGE)
     if (password !== confirmPassword) return setError("The passwords do not match.")
-
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    if (!url || !key) return setError("Password reset is temporarily unavailable.")
 
     setLoading(true)
     try {
-      const response = await fetch(`${url.replace(/\/$/, "")}/auth/v1/user`, {
-        method: "PUT",
+      const response = await fetch("/api/auth/reset-password", {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
-          apikey: key,
           Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({ password }),
-      })
-      if (!response.ok) {
-        const result = await response.json().catch(() => ({}))
-        throw new Error(result.msg || result.message || "This reset link has expired. Please request another.")
-      }
-
-      // Revoke existing NOORÉ JWT sessions after the Supabase password change.
-      const revocation = await fetch("/api/auth/password-reset-completed", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${accessToken}` },
         cache: "no-store",
-      }).catch(() => null)
+      })
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        throw new Error(result.error || "This reset link has expired. Please request another.")
+      }
 
       window.history.replaceState({}, document.title, window.location.pathname)
       setAccessToken("")
+      setPassword("")
+      setConfirmPassword("")
       setMessage(
-        revocation?.ok
+        result.sessionsRevoked
           ? "Your password has been updated and existing NOORÉ sessions have been revoked. You can now sign in."
           : "Your password has been updated. Please sign out of other devices and sign in again; automatic session revocation could not be confirmed."
       )
@@ -76,15 +67,15 @@ export default function ResetPasswordPage() {
       <section className="mx-auto max-w-md rounded-lg border border-cream bg-white p-8">
         <p className="text-center text-[10px] font-semibold uppercase tracking-[0.28em] text-secondary">NOORÉ Account</p>
         <h1 className="mt-3 text-center font-editorial text-3xl font-semibold">Create a new password</h1>
-        <p className="mt-2 text-center text-sm text-secondary">Choose a secure password for your account.</p>
+        <p className="mt-2 text-center text-sm text-secondary">Choose a strong password for your account.</p>
         {!ready ? <p className="mt-8 text-center text-sm text-secondary">Checking your reset link…</p> : message ? (
           <div className="mt-6 rounded-md bg-green-50 p-4 text-sm text-green-800">{message}<Link href="/login" className="mt-4 block font-semibold underline">Continue to sign in</Link></div>
         ) : (
           <form onSubmit={submit} className="mt-7 space-y-4">
             {error && <p role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-700">{error}</p>}
-            <label className="block text-sm font-medium">New password<input type="password" autoComplete="new-password" minLength={8} required value={password} onChange={e => setPassword(e.target.value)} className="mt-1 w-full rounded border border-cream px-3 py-3 outline-none focus:border-charcoal" /></label>
-            <label className="block text-sm font-medium">Confirm new password<input type="password" autoComplete="new-password" minLength={8} required value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="mt-1 w-full rounded border border-cream px-3 py-3 outline-none focus:border-charcoal" /></label>
-            <p className="text-xs text-secondary">Use at least 8 characters, including a letter and a number.</p>
+            <label className="block text-sm font-medium">New password<input type="password" autoComplete="new-password" minLength={12} maxLength={128} required value={password} onChange={e => setPassword(e.target.value)} className="mt-1 w-full rounded border border-cream px-3 py-3 outline-none focus:border-charcoal" /></label>
+            <label className="block text-sm font-medium">Confirm new password<input type="password" autoComplete="new-password" minLength={12} maxLength={128} required value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="mt-1 w-full rounded border border-cream px-3 py-3 outline-none focus:border-charcoal" /></label>
+            <p className="text-xs text-secondary">{PASSWORD_POLICY_MESSAGE}</p>
             <button type="submit" disabled={loading || !accessToken} className="w-full rounded-md bg-charcoal px-5 py-3 text-sm font-semibold text-white disabled:opacity-50">{loading ? "Updating…" : "Update password"}</button>
           </form>
         )}
