@@ -21,14 +21,14 @@ export function DepartmentCategories({
 }) {
   return (
     <section className="bg-[#171513] text-[#f5f0e7]">
-      <div className="mx-auto max-w-[1600px] px-4 py-10 sm:px-6 sm:py-14 lg:px-8 lg:py-20">
+      <div className="noore-department-container mx-auto max-w-[1600px] px-4 py-10 sm:px-6 sm:py-14 lg:px-8 lg:py-20">
         <div className="mb-8 max-w-3xl border-b border-[#c9a66b]/25 pb-7 sm:mb-10 sm:pb-9">
           <p className="text-[9px] font-semibold uppercase tracking-[0.32em] text-[#d6b77c]">{eyebrow}</p>
           <h1 className="mt-3 font-editorial text-4xl font-medium leading-[.98] tracking-[-.025em] sm:text-5xl lg:text-6xl">{title}</h1>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-[#c9c0b4] sm:text-base">{description}</p>
         </div>
 
-        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
+        <div className="noore-category-grid gap-2.5 sm:gap-3">
           {categories.map((category, index) => (
             <Link
               key={category.name}
