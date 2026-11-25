@@ -72,12 +72,16 @@ export async function POST(request: NextRequest) {
     if (tokenParts.length !== 3) {
       return NextResponse.json({ error: "This password reset link is invalid or has expired." }, { status: 401 })
     }
-    let tokenPayload: any
+    let parsedPayload: unknown
     try {
-      tokenPayload = JSON.parse(Buffer.from(tokenParts[1], "base64url").toString("utf8"))
+      parsedPayload = JSON.parse(Buffer.from(tokenParts[1], "base64url").toString("utf8"))
     } catch {
       return NextResponse.json({ error: "This password reset link is invalid or has expired." }, { status: 401 })
     }
+    if (!parsedPayload || typeof parsedPayload !== "object" || Array.isArray(parsedPayload)) {
+      return NextResponse.json({ error: "This password reset link is invalid or has expired." }, { status: 401 })
+    }
+    const tokenPayload = parsedPayload as { aud?: unknown; sub?: unknown; amr?: unknown[] }
     const authMethods = Array.isArray(tokenPayload.amr) ? tokenPayload.amr : []
     const isRecoverySession = authMethods.some((entry: unknown) =>
       entry === "recovery" ||
