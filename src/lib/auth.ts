@@ -129,8 +129,13 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.role = user.role
-        token.id = user.id
+        const currentUser = await prisma.user.findUnique({
+          where: { id: user.id },
+          select: { id: true, role: true, updatedAt: true },
+        })
+        token.role = currentUser?.role ?? "CUSTOMER"
+        token.id = currentUser?.id ?? ""
+        token.userUpdatedAt = currentUser?.updatedAt.getTime() ?? 0
       }
       return token
     },
@@ -147,10 +152,17 @@ export const authOptions: NextAuthOptions = {
         // Deleted users and stale staff-role claims must never remain authorized.
         const currentUser = await prisma.user.findUnique({
           where: { id: userId },
-          select: { id: true, role: true },
+          select: { id: true, role: true, updatedAt: true },
         })
-        session.user.id = currentUser?.id ?? ""
-        session.user.role = currentUser?.role ?? "CUSTOMER"
+        const tokenUpdatedAt = typeof token.userUpdatedAt === "number" ? token.userUpdatedAt : 0
+        if (!currentUser || !tokenUpdatedAt || currentUser.updatedAt.getTime() !== tokenUpdatedAt) {
+          // Invalidate sessions after password changes and other account updates.
+          session.user.id = ""
+          session.user.role = "CUSTOMER"
+          return session
+        }
+        session.user.id = currentUser.id
+        session.user.role = currentUser.role
       }
       return session
     },
