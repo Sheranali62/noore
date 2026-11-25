@@ -85,7 +85,7 @@ const providers: NextAuthOptions["providers"] = [
           where: { email: { equals: email, mode: "insensitive" } },
           select: { id: true, role: true },
         })
-        let user
+        let user: Awaited<ReturnType<typeof prisma.user.create>>
         if (existingUser) {
           // One-time bootstrap: the configured owner email may become the
           // first SUPER_ADMIN only while no SUPER_ADMIN exists. This does not
