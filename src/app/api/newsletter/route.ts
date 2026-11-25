@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { randomBytes } from "crypto"
 import { prisma } from "@/lib/prisma"
 import { sendNewsletterWelcomeEmail } from "@/lib/notifications"
+import { enforceRateLimit } from "@/lib/rate-limit"
 
 export const dynamic = "force-dynamic"
 
@@ -17,6 +18,9 @@ export async function POST(request: NextRequest) {
     if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return NextResponse.json({ error: "Enter a valid email address." }, { status: 400 })
     }
+
+    const limited = await enforceRateLimit(request, "newsletter", 10, 60 * 60 * 1000, email)
+    if (limited) return limited
 
     const unsubscribeToken = randomBytes(32).toString("hex")
     await prisma.newsletterSubscriber.upsert({
