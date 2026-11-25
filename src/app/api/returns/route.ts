@@ -33,7 +33,14 @@ export async function GET() {
 
   const returnCutoff = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000)
   const eligibleOrders = await prisma.order.findMany({
-    where: { userId: session.user.id, status: "DELIVERED", updatedAt: { gte: returnCutoff } },
+    where: {
+      userId: session.user.id,
+      status: "DELIVERED",
+      OR: [
+        { orderEvents: { some: { event: "ORDER_DELIVERED", createdAt: { gte: returnCutoff } } } },
+        { orderEvents: { none: { event: "ORDER_DELIVERED" } }, updatedAt: { gte: returnCutoff } },
+      ],
+    },
     orderBy: { updatedAt: "desc" },
     select: {
       id: true,
