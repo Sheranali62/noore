@@ -4,6 +4,8 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
+export const dynamic = "force-dynamic"
+
 const steps = [
   ["PENDING", "Order placed", "We received your order."],
   ["CONFIRMED", "Confirmed", "Your order has been confirmed."],
