@@ -141,7 +141,7 @@ export async function GET() {
     by: ["query"],
     _count: { _all: true },
     _avg: { resultCount: true },
-    orderBy: { _count: { _all: "desc" } },
+    orderBy: { _count: { query: "desc" } },
     take: 10,
   })
 
