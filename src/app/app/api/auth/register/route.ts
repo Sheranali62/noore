@@ -1,68 +1,67 @@
-﻿import { NextRequest, NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
+import { checkRateLimit, getClientIp, enforceRateLimit } from "@/lib/rate-limit"
 import { prisma } from "@/lib/prisma"
-import bcrypt from "bcryptjs"
+
+export const dynamic = "force-dynamic"
 
 export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json()
-    const { name, email, password } = body
-
-    // Validate
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: "Email and password are required" },
-        { status: 400 }
-      )
-    }
-
-    if (password.length < 6) {
-      return NextResponse.json(
-        { error: "Password must be at least 6 characters" },
-        { status: 400 }
-      )
-    }
-
-    // Check if user exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    })
-
-    if (existingUser) {
-      return NextResponse.json(
-        { error: "User already exists" },
-        { status: 400 }
-      )
-    }
-
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10)
-
-    // Create user
-    const user = await prisma.user.create({
-      data: {
-        name: name || null,
-        email,
-        password: hashedPassword,
-        role: "CUSTOMER",
-      },
-    })
-
+  const databaseLimit = await enforceRateLimit(request, "register", 5, 3600000)
+  if (databaseLimit) return databaseLimit
+  const rate = checkRateLimit(`registration:${getClientIp(request)}`, 5, 3600000)
+  if (!rate.allowed) {
     return NextResponse.json(
-      { 
-        message: "User created successfully", 
-        user: { 
-          id: user.id, 
-          email: user.email, 
-          name: user.name 
-        } 
-      },
-      { status: 201 }
+      { error: "Too many requests. Please wait before trying again." },
+      { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds), "Cache-Control": "no-store" } }
     )
+  }
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  if (!supabaseUrl || !anonKey) {
+    return NextResponse.json({ error: "Registration is temporarily unavailable." }, { status: 503 })
+  }
+
+  try {
+    const body = await request.json().catch(() => ({}))
+    const name = String(body.name ?? "").trim().slice(0, 100)
+    const email = String(body.email ?? "").trim().toLowerCase()
+    const password = String(body.password ?? "")
+
+    if (!name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
+      return NextResponse.json({ error: "Enter your name and a valid email address." }, { status: 400 })
+    }
+    if (password.length < 8 || !/[A-Za-z]/.test(password) || !/\d/.test(password)) {
+      return NextResponse.json({ error: "Password must be at least 8 characters and include a letter and a number." }, { status: 400 })
+    }
+
+    const response = await fetch(`${supabaseUrl.replace(/\/$/, "")}/auth/v1/signup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", apikey: anonKey },
+      body: JSON.stringify({ email, password, data: { full_name: name, name } }),
+      cache: "no-store",
+    })
+    const result = await response.json().catch(() => ({}))
+    if (!response.ok || !result.user?.id || !result.user?.email) {
+      const detail = String(result.msg || result.message || result.error_description || "")
+      console.error("Supabase registration failed:", response.status, detail.slice(0, 300))
+      return NextResponse.json({ error: response.status === 429 ? "Too many registration attempts. Please try again later." : "We could not create your account. Check the details or try signing in." }, { status: response.status === 429 ? 429 : 400 })
+    }
+
+    const user = await prisma.user.upsert({
+      where: { email },
+      update: { name },
+      create: { email, name, role: "CUSTOMER", password: null },
+      select: { id: true, email: true, name: true },
+    })
+
+    return NextResponse.json({
+      message: result.session
+        ? "Your NOORÉ account is ready. You can sign in now."
+        : "Your account has been created. Please verify your email using the link we sent you.",
+      requiresEmailConfirmation: !result.session,
+      user,
+    }, { status: 201 })
   } catch (error) {
     console.error("Registration error:", error)
-    return NextResponse.json(
-      { error: "Failed to create user" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Failed to create your account. Please try again." }, { status: 500 })
   }
 }
