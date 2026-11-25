@@ -1,4 +1,5 @@
 name: Refresh patched Next.js dependency
+# Upgrade to patched Next.js 15.x first to preserve the existing React 18 application.
 
 on:
   push:
