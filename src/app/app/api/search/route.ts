@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { checkRateLimit, getClientIp, enforceRateLimit } from "@/lib/rate-limit"
 import { prisma } from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
@@ -40,6 +41,15 @@ function parseSmartQuery(input: string) {
 }
 
 export async function GET(request: NextRequest) {
+  const databaseLimit = await enforceRateLimit(request, "product-search", 60, 60000)
+  if (databaseLimit) return databaseLimit
+  const rate = checkRateLimit(`search:${getClientIp(request)}`, 60, 60000)
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Please wait before trying again." },
+      { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds), "Cache-Control": "no-store" } }
+    )
+  }
   const params = request.nextUrl.searchParams
   const q = params.get("q")?.trim() || ""
   const category = params.get("category")?.trim() || ""
@@ -49,8 +59,10 @@ export async function GET(request: NextRequest) {
   const color = params.get("color")?.trim() || ""
   const sale = params.get("sale") === "true"
   const inStock = params.get("inStock") === "true"
-  const min = Number(params.get("min"))
-  const max = Number(params.get("max"))
+  const minParam = params.get("min")
+  const maxParam = params.get("max")
+  const min = minParam === null || minParam === "" ? undefined : Number(minParam)
+  const max = maxParam === null || maxParam === "" ? undefined : Number(maxParam)
   const sort = params.get("sort") || "newest"
   const page = Math.max(1, Number(params.get("page") || 1))
   const take = Math.min(48, Math.max(12, Number(params.get("take") || 24)))
@@ -61,8 +73,8 @@ export async function GET(request: NextRequest) {
   const effectiveColor = color || smart.detected.color || ""
   const effectiveSale = sale || !!smart.detected.sale
   const effectiveStock = inStock || !!smart.detected.inStock
-  const effectiveMin = Number.isFinite(min) ? min : smart.detected.min
-  const effectiveMax = Number.isFinite(max) ? max : smart.detected.max
+  const effectiveMin = min !== undefined && Number.isFinite(min) ? min : smart.detected.min
+  const effectiveMax = max !== undefined && Number.isFinite(max) ? max : smart.detected.max
 
   const where: any = { status: "ACTIVE" }
   if (smart.textTokens.length) {
@@ -135,6 +147,17 @@ export async function GET(request: NextRequest) {
     prisma.product.findMany({ where: { status: "ACTIVE", gender: { not: null } }, select: { gender: true }, distinct: ["gender"], orderBy: { gender: "asc" } }),
     prisma.product.findMany({ where: { status: "ACTIVE", collection: { not: null } }, select: { collection: true }, distinct: ["collection"], orderBy: { collection: "asc" } }),
   ])
+
+  if (q) {
+    try {
+      await prisma.searchEvent.create({
+        data: { query: q.slice(0, 120), resultCount: total },
+      })
+    } catch (error) {
+      // Search should remain available even if analytics storage is temporarily unavailable.
+      console.error("Search analytics event could not be saved:", error)
+    }
+  }
 
   const facetValues = {
     categories: categories.map((x) => x.category),
