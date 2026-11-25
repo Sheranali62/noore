@@ -5,6 +5,7 @@ import GoogleProvider from "next-auth/providers/google"
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import { prisma } from "./prisma"
 import NextAuth from "next-auth"
+import bcrypt from "bcryptjs"
 
 const providers: NextAuthOptions["providers"] = [
   CredentialsProvider({
@@ -16,9 +17,38 @@ const providers: NextAuthOptions["providers"] = [
     async authorize(credentials) {
       if (!credentials?.email || !credentials?.password) return null
 
+      const emailInput = credentials.email.trim().toLowerCase()
+      const authenticateLegacyPrismaUser = async () => {
+        const legacyUser = await prisma.user.findUnique({
+          where: { email: emailInput },
+        })
+
+        if (!legacyUser?.password) return null
+
+        const passwordMatches = await bcrypt.compare(
+          credentials.password,
+          legacyUser.password
+        )
+        if (!passwordMatches) return null
+
+        return {
+          id: legacyUser.id,
+          email: legacyUser.email,
+          name: legacyUser.name,
+          role: legacyUser.role,
+        }
+      }
+
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
       const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-      if (!supabaseUrl || !supabaseAnonKey) return null
+      if (!supabaseUrl || !supabaseAnonKey) {
+        try {
+          return await authenticateLegacyPrismaUser()
+        } catch {
+          console.error("Legacy credentials authentication failed")
+          return null
+        }
+      }
 
       try {
         const authResponse = await fetch(
@@ -30,14 +60,14 @@ const providers: NextAuthOptions["providers"] = [
               apikey: supabaseAnonKey,
             },
             body: JSON.stringify({
-              email: credentials.email.trim().toLowerCase(),
+              email: emailInput,
               password: credentials.password,
             }),
             cache: "no-store",
           }
         )
 
-        if (!authResponse.ok) return null
+        if (!authResponse.ok) return await authenticateLegacyPrismaUser()
 
         const authResult = await authResponse.json()
         const email = authResult.user?.email?.toLowerCase()
