@@ -88,6 +88,21 @@ export async function sendNewOrderAdminEmail(input: {
   return sendEmail({ to: recipient, subject, html, text })
 }
 
+export async function sendAbandonedCartEmail(input: {
+  to: string
+  customerName?: string | null
+  itemCount: number
+}) {
+  const { site } = emailConfig()
+  const name = escapeHtml(input.customerName?.trim() || "Customer")
+  const count = Math.max(1, Math.floor(input.itemCount))
+  const subject = "NOORÉ · Your saved pieces are waiting"
+  const cartUrl = `${site}/cart`
+  const html = `<div style="background:#f5f1e9;padding:32px 12px;font-family:Arial,sans-serif;color:#24211c"><div style="max-width:580px;margin:auto;background:#fff;padding:36px;border:1px solid #e7dfd2"><p style="font-family:Georgia,serif;font-size:30px;letter-spacing:5px;margin:0 0 28px;color:#171615">NOORÉ</p><p style="font-size:12px;letter-spacing:2px;color:#927345">A LITTLE REMINDER</p><h1 style="font-family:Georgia,serif;font-weight:400;font-size:28px">Your saved pieces are waiting.</h1><p>Dear ${name},</p><p>You still have ${count} item(s) in your NOORÉ cart. Your selection may change as availability changes, so you can return whenever you are ready.</p><p style="margin:28px 0"><a href="${cartUrl}" style="display:inline-block;background:#535F4C;color:#fff;padding:14px 22px;text-decoration:none;font-size:12px;font-weight:bold;letter-spacing:1px">RETURN TO YOUR CART</a></p><p style="font-size:12px;color:#786f63;line-height:1.7">If you have already placed your order, please disregard this message.</p></div></div>`
+  const text = `Dear ${input.customerName || "Customer"}, you still have ${count} item(s) in your NOORÉ cart. Return to your cart: ${cartUrl}`
+  return sendEmail({ to: input.to, subject, html, text })
+}
+
 export async function sendNooreEmailConnectionTest(to: string) {
   const { site } = emailConfig()
   const subject = "NOORÉ · Email connection test"
