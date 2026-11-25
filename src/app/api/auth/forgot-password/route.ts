@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from "next/server"
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
 
 export const dynamic = "force-dynamic"
 
 export async function POST(request: NextRequest) {
+  const rate = checkRateLimit(`password-recovery:${getClientIp(request)}`, 3, 3600000)
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Please wait before trying again." },
+      { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds), "Cache-Control": "no-store" } }
+    )
+  }
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
