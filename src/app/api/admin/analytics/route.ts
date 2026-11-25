@@ -133,9 +133,9 @@ export async function GET() {
       costPrice: { not: null },
       order: { createdAt: { gte: since }, status: { notIn: ["CANCELLED", "REFUNDED"] } },
     },
-    select: { quantity: true, total: true, costPrice: true },
+    select: { quantity: true, total: true, costPrice: true, order: { select: { subtotal: true, discount: true } } },
   })
-  const grossProfit = costItems.reduce((sum, item) => sum + item.total - (item.costPrice || 0) * item.quantity, 0)
+  const grossProfit = costItems.reduce((sum, item) => sum + (item.total - (item.order.subtotal > 0 ? item.order.discount * item.total / item.order.subtotal : 0)) - (item.costPrice || 0) * item.quantity, 0)
 
   const searchGroups = await prisma.searchEvent.groupBy({
     by: ["query"],
