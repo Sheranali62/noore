@@ -15,7 +15,7 @@ export default async function AnalyticsPage() {
   const previousSince = new Date(since)
   previousSince.setDate(previousSince.getDate() - 30)
 
-  const [orders, validOrders, revenue, previousRevenue, customers, active, units, top, statuses, abandoned, wishlists, couponUses, dailyOrders, categoryGroups, searchTerms] = await Promise.all([
+  const [orders, validOrders, revenue, previousRevenue, customers, active, units, top, statuses, abandoned, wishlists, couponUses, dailyOrders, categoryGroups, searchTerms, costRows] = await Promise.all([
     prisma.order.count({ where: { createdAt: { gte: since } } }),
     prisma.order.count({ where: { createdAt: { gte: since }, status: { notIn: ["CANCELLED", "REFUNDED"] } } }),
     prisma.order.aggregate({ where: { createdAt: { gte: since }, status: { notIn: ["CANCELLED", "REFUNDED"] } }, _sum: { total: true } }),
@@ -31,6 +31,7 @@ export default async function AnalyticsPage() {
     prisma.order.findMany({ where: { createdAt: { gte: since }, status: { notIn: ["CANCELLED", "REFUNDED"] } }, select: { createdAt: true, total: true } }),
     prisma.orderItem.groupBy({ by: ["productId"], where: { order: { createdAt: { gte: since }, status: { notIn: ["CANCELLED", "REFUNDED"] } } }, _sum: { quantity: true, total: true } }),
     prisma.searchEvent.groupBy({ by: ["query"], where: { createdAt: { gte: since } }, _count: { query: true }, orderBy: { _count: { query: "desc" } }, take: 10 }),
+    prisma.orderItem.findMany({ where: { order: { createdAt: { gte: since }, status: { notIn: ["CANCELLED", "REFUNDED"] } } }, select: { quantity: true, total: true, costPrice: true } }),
   ])
 
   const productIds = Array.from(new Set([...top.map(item => item.productId), ...categoryGroups.map(item => item.productId)]))
@@ -58,9 +59,12 @@ export default async function AnalyticsPage() {
   const maxRevenue = Math.max(...days.map(day => day.revenue), 1)
   const currentRevenue = revenue._sum.total || 0
   const oldRevenue = previousRevenue._sum.total || 0
+  const costedItems = costRows.filter(item => item.costPrice !== null)
+  const grossProfit = costedItems.reduce((sum, item) => sum + item.total - (item.costPrice || 0) * item.quantity, 0)
   const growth = oldRevenue > 0 ? ((currentRevenue - oldRevenue) / oldRevenue) * 100 : null
   const cards = [
     ["Revenue", money(currentRevenue), "Last 30 days"],
+    ["Gross profit", money(grossProfit), `Cost captured for ${costedItems.length} order lines`],
     ["Orders", orders.toLocaleString("en-PK"), "All order statuses"],
     ["Units sold", (units._sum.quantity || 0).toLocaleString("en-PK"), "Completed and active sales"],
     ["New customers", customers.toLocaleString("en-PK"), "Joined in the last 30 days"],
