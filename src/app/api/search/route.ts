@@ -51,21 +51,31 @@ export async function GET(request: NextRequest) {
     )
   }
   const params = request.nextUrl.searchParams
-  const q = params.get("q")?.trim() || ""
-  const category = params.get("category")?.trim() || ""
-  const gender = params.get("gender")?.trim() || ""
-  const collection = params.get("collection")?.trim() || ""
-  const size = params.get("size")?.trim() || ""
-  const color = params.get("color")?.trim() || ""
+  const q = (params.get("q")?.trim() || "").slice(0, 120)
+  const category = (params.get("category")?.trim() || "").slice(0, 100)
+  const gender = (params.get("gender")?.trim() || "").slice(0, 40)
+  const collection = (params.get("collection")?.trim() || "").slice(0, 100)
+  const size = (params.get("size")?.trim() || "").slice(0, 40)
+  const color = (params.get("color")?.trim() || "").slice(0, 40)
   const sale = params.get("sale") === "true"
   const inStock = params.get("inStock") === "true"
   const minParam = params.get("min")
   const maxParam = params.get("max")
   const min = minParam === null || minParam === "" ? undefined : Number(minParam)
   const max = maxParam === null || maxParam === "" ? undefined : Number(maxParam)
-  const sort = params.get("sort") || "newest"
-  const page = Math.max(1, Number(params.get("page") || 1))
-  const take = Math.min(48, Math.max(12, Number(params.get("take") || 24)))
+  if (
+    (min !== undefined && (!Number.isFinite(min) || min < 0 || min > 10000000)) ||
+    (max !== undefined && (!Number.isFinite(max) || max < 0 || max > 10000000)) ||
+    (min !== undefined && max !== undefined && min > max)
+  ) {
+    return NextResponse.json({ error: "Invalid price filter." }, { status: 400 })
+  }
+  const requestedPage = Number(params.get("page") || 1)
+  const requestedTake = Number(params.get("take") || 24)
+  const page = Number.isFinite(requestedPage) ? Math.min(10000, Math.max(1, Math.floor(requestedPage))) : 1
+  const take = Number.isFinite(requestedTake) ? Math.min(48, Math.max(12, Math.floor(requestedTake))) : 24
+  const requestedSort = params.get("sort") || "newest"
+  const sort = ["newest", "price-low", "price-high", "popular", "rating"].includes(requestedSort) ? requestedSort : "newest"
 
   const smart = parseSmartQuery(q)
   const effectiveGender = gender || smart.detected.gender || ""
