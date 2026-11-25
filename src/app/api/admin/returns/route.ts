@@ -13,7 +13,12 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
       take: 500,
       include: {
-        order: { select: { id: true, orderNumber: true, total: true, status: true } },
+        order: {
+          select: {
+            id: true, orderNumber: true, total: true, status: true,
+            items: { select: { id: true, product: { select: { name: true } }, variant: { select: { color: true, size: true } } } },
+          },
+        },
         user: { select: { id: true, name: true, email: true } },
       },
     })
