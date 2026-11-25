@@ -1152,3 +1152,31 @@ html.dark .noore-sage-theme select {
 
 .noore-global-design main .bg-white { background-color: var(--noore-site-surface); }
 .noore-global-design main .text-black { color: var(--noore-site-text); }
+
+
+/* NOORE wide-viewport layout:
+   Browser zooming out increases the CSS viewport width. Expand storefront
+   content containers at wide viewport sizes so the site does not collapse
+   into a narrow column with oversized empty gutters. Normal desktop and
+   mobile breakpoints retain their existing dimensions. */
+@media (min-width: 1600px) {
+  .noore-sage-theme .max-w-7xl {
+    max-width: min(94vw, 180rem) !important;
+  }
+
+  .noore-sage-theme .max-w-6xl {
+    max-width: min(90vw, 160rem) !important;
+  }
+
+  .noore-sage-theme .max-w-5xl {
+    max-width: min(86vw, 140rem) !important;
+  }
+
+  .noore-sage-theme .max-w-4xl {
+    max-width: min(82vw, 120rem) !important;
+  }
+
+  .noore-sage-theme .max-w-3xl {
+    max-width: min(78vw, 110rem) !important;
+  }
+}
