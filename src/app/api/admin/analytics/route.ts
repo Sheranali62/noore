@@ -101,6 +101,7 @@ export async function GET() {
         items: {
           some: {},
         },
+        abandonedReminderAt: null,
         updatedAt: {
           lt: new Date(
             Date.now() - 2 * 60 * 60 * 1000
