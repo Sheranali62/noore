@@ -148,6 +148,17 @@ export async function POST(request: NextRequest) {
     }
 
     const session = await auth()
+    const sessionUserId = session?.user?.id
+    const sessionEmail = normalizeEmail(session?.user?.email)
+
+    // A signed-in customer may only place an order using the email attached
+    // to their authenticated account. This prevents mismatched order identity.
+    if (sessionUserId && sessionEmail && sessionEmail !== email) {
+      return NextResponse.json(
+        { error: "Please use the email address on your signed-in NOORÉ account" },
+        { status: 403 }
+      )
+    }
 
     const subtotalInput = Number(body.subtotal)
     const shippingInput = Number(body.shipping)
@@ -372,7 +383,7 @@ export async function POST(request: NextRequest) {
             })
 
           if (!current) {
-            userId = undefined
+            throw new Error("Your session is no longer valid. Please sign in again.")
           }
         }
 
@@ -387,9 +398,13 @@ export async function POST(request: NextRequest) {
               },
             })
 
+          // Never attach a guest order to an existing account based only on
+          // knowledge of its email address. The customer must authenticate.
           if (existing) {
-            userId = existing.id
-          } else {
+            throw new Error("An account already uses this email. Please sign in before placing this order.")
+          }
+
+          {
             const created =
               await tx.user.create({
                 data: {
