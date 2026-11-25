@@ -47,8 +47,8 @@ const providers: NextAuthOptions["providers"] = [
         const name =
           metadata.full_name ?? metadata.name ?? metadata.display_name ?? null
 
-        // Only the explicitly configured account can be promoted automatically.
-        // Supabase still verifies the password before this code is reached.
+        // The configured bootstrap account is promoted only after Supabase
+        // verifies its password. The database remains the source of role data.
         const superAdminEmail = process.env.SUPER_ADMIN_EMAIL?.trim().toLowerCase()
         const isConfiguredSuperAdmin = Boolean(superAdminEmail && email === superAdminEmail)
 
@@ -73,7 +73,8 @@ const providers: NextAuthOptions["providers"] = [
           role: user.role,
         }
       } catch (error) {
-        console.error("Credentials authentication failed:", error)
+        // Do not log credentials, tokens, or provider response bodies.
+        console.error("Credentials authentication failed")
         return null
       }
     },
@@ -103,14 +104,31 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.role = token.role as string
-        session.user.id = token.id as string
+        const userId = typeof token.id === "string" ? token.id : null
+
+        if (!userId) {
+          session.user.role = "CUSTOMER"
+          return session
+        }
+
+        // Never authorize staff from a role claim that may have gone stale
+        // inside a long-lived JWT. Re-read the canonical role for every
+        // server-side session resolution; database errors fail closed.
+        const currentUser = await prisma.user.findUnique({
+          where: { id: userId },
+          select: { id: true, role: true },
+        })
+
+        session.user.id = currentUser?.id ?? userId
+        session.user.role = currentUser?.role ?? "CUSTOMER"
       }
       return session
     },
   },
   session: {
     strategy: "jwt",
+    // Shorter session lifetime limits the exposure window for a stolen token.
+    maxAge: 4 * 60 * 60,
   },
   pages: {
     signIn: "/login",
