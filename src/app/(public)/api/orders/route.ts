@@ -234,6 +234,7 @@ export async function POST(request: NextRequest) {
       variantId: string | null
       quantity: number
       price: number
+      costPrice: number | null
       total: number
     }[] = []
 
@@ -297,6 +298,7 @@ export async function POST(request: NextRequest) {
         variantId: variant?.id ?? null,
         quantity: item.quantity,
         price,
+        costPrice: product.costPrice ?? null,
         total,
       })
     }
