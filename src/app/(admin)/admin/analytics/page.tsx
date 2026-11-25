@@ -25,7 +25,7 @@ export default async function AnalyticsPage() {
     prisma.orderItem.aggregate({ where: { order: { createdAt: { gte: since }, status: { notIn: ["CANCELLED", "REFUNDED"] } } }, _sum: { quantity: true } }),
     prisma.orderItem.groupBy({ by: ["productId"], where: { order: { createdAt: { gte: since }, status: { notIn: ["CANCELLED", "REFUNDED"] } } }, _sum: { quantity: true, total: true }, orderBy: { _sum: { quantity: "desc" } }, take: 8 }),
     prisma.order.groupBy({ by: ["status"], _count: { _all: true }, orderBy: { _count: { status: "desc" } } }),
-    prisma.cart.count({ where: { updatedAt: { lt: new Date(Date.now() - 2 * 60 * 60 * 1000) }, items: { some: {} } } }),
+    prisma.cart.count({ where: { updatedAt: { lt: new Date(Date.now() - 2 * 60 * 60 * 1000) }, items: { some: {} }, abandonedReminderAt: null } }),
     prisma.wishlistItem.count({ where: { createdAt: { gte: since } } }),
     prisma.couponUsage.count({ where: { usedAt: { gte: since } } }),
     prisma.order.findMany({ where: { createdAt: { gte: since }, status: { notIn: ["CANCELLED", "REFUNDED"] } }, select: { createdAt: true, total: true } }),
