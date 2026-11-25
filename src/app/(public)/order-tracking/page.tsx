@@ -55,7 +55,7 @@ export default function OrderTrackingPage() {
     setError("")
     setOrder(null)
     try {
-      const response = await fetch(`/api/orders/track?orderNumber=${encodeURIComponent(orderNumber.trim())}&email=${encodeURIComponent(email.trim())}`)
+      const response = await fetch(`/api/orders?orderNumber=${encodeURIComponent(orderNumber.trim())}&email=${encodeURIComponent(email.trim())}`)
       const data = await response.json()
       if (!response.ok) {
         setError(data.error || "We could not find an order with those details. Please check and try again.")
