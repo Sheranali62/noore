@@ -30,6 +30,7 @@ export async function GET() {
     coupons,
     lowStock,
     searchTerms,
+    costRows,
   ] = await Promise.all([
     prisma.order.count({
       where: {
@@ -134,6 +135,11 @@ export async function GET() {
       orderBy: { _count: { query: "desc" } },
       take: 10,
     }),
+
+    prisma.orderItem.findMany({
+      where: { order: { createdAt: { gte: since }, status: { notIn: ["CANCELLED", "REFUNDED"] } } },
+      select: { quantity: true, total: true, costPrice: true },
+    }),
   ])
 
   const names = await prisma.product.findMany({
@@ -157,8 +163,13 @@ export async function GET() {
     ])
   )
 
+  const costedItems = costRows.filter((item) => item.costPrice !== null)
+  const grossProfit = costedItems.reduce((sum, item) => sum + item.total - (item.costPrice || 0) * item.quantity, 0)
+
   return NextResponse.json({
     periodDays: 30,
+    grossProfit,
+    costCoveragePercent: costRows.length ? Math.round((costedItems.length / costRows.length) * 100) : 0,
     orders,
     revenue: revenue._sum.total || 0,
     customers,
