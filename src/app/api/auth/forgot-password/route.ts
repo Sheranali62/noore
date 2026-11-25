@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { enforceRateLimit } from "@/lib/rate-limit"
 
 export const dynamic = "force-dynamic"
 
@@ -9,6 +10,9 @@ export async function POST(request: NextRequest) {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
       return NextResponse.json({ error: "Enter a valid email address." }, { status: 400 })
     }
+
+    const limited = await enforceRateLimit(request, "password-recovery", 5, 15 * 60 * 1000, email)
+    if (limited) return limited
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
