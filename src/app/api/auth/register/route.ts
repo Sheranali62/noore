@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma"
 export const dynamic = "force-dynamic"
 
 export async function POST(request: NextRequest) {
+  const databaseLimit = await enforceRateLimit(request, "register", 5, 3600000)
+  if (databaseLimit) return databaseLimit
   const rate = checkRateLimit(`registration:${getClientIp(request)}`, 5, 3600000)
   if (!rate.allowed) {
     return NextResponse.json(
