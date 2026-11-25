@@ -18,6 +18,7 @@ export async function PATCH(request: NextRequest) {
   const body = await request.json()
   if (!body.id) return NextResponse.json({ error: "id is required" }, { status: 400 })
   const review = await prisma.productReview.update({ where: { id: body.id }, data: { ...(typeof body.approved === "boolean" ? { approved: body.approved } : {}), ...(typeof body.featured === "boolean" ? { featured: body.featured } : {}) } })
+  await prisma.auditLog.create({ data: { actorId: guard.session?.user?.id, action: "MODERATE_PRODUCT_REVIEW", entityType: "ProductReview", entityId: review.id, details: { approved: review.approved, featured: review.featured } } })
   return NextResponse.json(review)
 }
 
@@ -27,5 +28,6 @@ export async function DELETE(request: NextRequest) {
   const id = request.nextUrl.searchParams.get("id")
   if (!id) return NextResponse.json({ error: "id is required" }, { status: 400 })
   await prisma.productReview.delete({ where: { id } })
+  await prisma.auditLog.create({ data: { actorId: guard.session?.user?.id, action: "DELETE_PRODUCT_REVIEW", entityType: "ProductReview", entityId: id } })
   return NextResponse.json({ success: true })
 }
