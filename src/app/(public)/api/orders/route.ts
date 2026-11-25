@@ -541,17 +541,18 @@ export async function POST(request: NextRequest) {
               )
             }
 
-            await tx.productVariant.update({
+            const changed = await tx.productVariant.updateMany({
               where: {
                 id: item.variantId,
+                stock: { gte: item.quantity },
               },
               data: {
-                stock: {
-                  decrement:
-                    item.quantity,
-                },
+                stock: { decrement: item.quantity },
               },
             })
+            if (changed.count !== 1) {
+              throw new Error("Stock changed while placing the order")
+            }
 
             await tx.inventoryMovement.create(
               {
@@ -593,17 +594,18 @@ export async function POST(request: NextRequest) {
               )
             }
 
-            await tx.product.update({
+            const changed = await tx.product.updateMany({
               where: {
                 id: item.productId,
+                stock: { gte: item.quantity },
               },
               data: {
-                stock: {
-                  decrement:
-                    item.quantity,
-                },
+                stock: { decrement: item.quantity },
               },
             })
+            if (changed.count !== 1) {
+              throw new Error("Stock changed while placing the order")
+            }
 
             await tx.inventoryMovement.create(
               {
