@@ -666,6 +666,26 @@ export async function POST(request: NextRequest) {
             },
           })
 
+        await tx.orderEvent.create({
+          data: {
+            orderId: createdOrder.id,
+            actorId: userId,
+            event: "ORDER_CREATED",
+            message: "Customer placed a new Cash on Delivery order.",
+            metadata: { orderNumber, paymentMethod: "COD", total },
+          },
+        })
+
+        await tx.auditLog.create({
+          data: {
+            actorId: userId,
+            action: "CREATE_ORDER",
+            entityType: "Order",
+            entityId: createdOrder.id,
+            details: { orderNumber, total, itemCount: orderItems.length },
+          },
+        })
+
         if (appliedCoupon) {
           await tx.couponUsage.create({
             data: {
