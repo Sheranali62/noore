@@ -4,9 +4,9 @@ import ProductForm, { ProductFormData } from "@/components/admin/product-form"
 
 export const dynamic = "force-dynamic"
 
-export default async function EditProductPage({ params }: { params: { id: string } }) {
+export default async function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const product = await prisma.product.findUnique({
-    where: { id: params.id },
+    where: { id: (await params).id },
     include: { variants: true },
   })
 
