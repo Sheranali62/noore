@@ -7,8 +7,8 @@ export const dynamic = "force-dynamic"
 const cleanImages = (value: unknown) => Array.isArray(value) ? value.filter((v): v is string => typeof v === "string" && v.trim() !== "" && (v.startsWith("data:image/") || /^https?:\/\//i.test(v.trim()))) : []
 
 export async function GET() {
-  const { response } = await requireAdmin(["SUPER_ADMIN", "ADMIN", "PRODUCT_MANAGER"])
-  if (response) return response
+  const guard = await requireAdmin(["SUPER_ADMIN", "ADMIN", "PRODUCT_MANAGER"])
+  if (guard.response) return guard.response
 
   try {
     const products = await prisma.product.findMany({
@@ -112,6 +112,15 @@ export async function POST(request: NextRequest) {
       include: { variants: true },
     })
 
+    await prisma.auditLog.create({
+      data: {
+        actorId: guard.session?.user?.id,
+        action: "CREATE_PRODUCT",
+        entityType: "Product",
+        entityId: product.id,
+        details: { name: product.name, sku: product.sku, category: product.category, price: product.price },
+      },
+    })
     return NextResponse.json(product, { status: 201 })
   } catch (error) {
     console.error("Error creating product:", error)
