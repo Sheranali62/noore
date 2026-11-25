@@ -127,6 +127,7 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                 <div className="flex justify-between"><span className="text-[#777967]">Subtotal</span><span>PKR {order.subtotal.toLocaleString()}</span></div>
                 {order.discount > 0 && <div className="flex justify-between"><span className="text-[#777967]">Discount</span><span>- PKR {order.discount.toLocaleString()}</span></div>}
                 <div className="flex justify-between"><span className="text-[#777967]">Shipping</span><span>{order.shipping === 0 ? "FREE" : `PKR ${order.shipping.toLocaleString()}`}</span></div>
+                {order.tax > 0 && <div className="flex justify-between"><span className="text-[#777967]">Tax</span><span>PKR {order.tax.toLocaleString()}</span></div>}
                 <div className="border-t border-[#D8D8CB] pt-3 mt-3 flex justify-between font-semibold"><span>Total</span><span>PKR {order.total.toLocaleString()}</span></div>
               </div>
               <div className="mt-5 rounded-2xl bg-[#EEEDE6] p-4">
