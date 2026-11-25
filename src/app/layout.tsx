@@ -88,6 +88,7 @@ export const metadata: Metadata = {
     yandex: process.env.YANDEX_VERIFICATION || "",
   },
   category: "fashion",
+  alternates: { canonical: SITE_URL },
 }
 
 export default function RootLayout({
