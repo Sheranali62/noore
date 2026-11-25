@@ -72,8 +72,8 @@ export async function POST(request: NextRequest) {
     const orderId = String(body.orderId ?? "")
     const reason = String(body.reason ?? "").trim()
     const details = String(body.details ?? "").trim().slice(0, 2000)
-    const itemIds = Array.isArray(body.itemIds)
-      ? Array.from(new Set(body.itemIds.map((id: unknown) => String(id))))
+    const itemIds: string[] = Array.isArray(body.itemIds)
+      ? Array.from(new Set<string>(body.itemIds.map((id: unknown) => String(id))))
       : []
     const evidence: string[] = Array.isArray(body.evidence) ? body.evidence.map((value: unknown) => String(value)) : []
     const allowedReasons = [
