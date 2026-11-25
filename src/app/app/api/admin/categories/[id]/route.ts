@@ -111,9 +111,7 @@ export async function PATCH(
   {
     params,
   }: {
-    params: {
-      id: string
-    }
+    params: Promise<{ id: string }>
   }
 ) {
   const { response } = await requireAdmin(
@@ -478,9 +476,7 @@ export async function DELETE(
   {
     params,
   }: {
-    params: {
-      id: string
-    }
+    params: Promise<{ id: string }>
   }
 ) {
   const { response } = await requireAdmin(
