@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/admin"
 
@@ -7,8 +8,8 @@ export const dynamic = "force-dynamic"
 const money = (value: number) => `PKR ${Math.round(value).toLocaleString("en-PK")}`
 
 export default async function AnalyticsPage() {
-  const guard = await requireAdmin(["SUPER_ADMIN", "ADMIN", "ORDER_MANAGER"])
-  if (guard.response) return null
+  const guard = await requireAdmin(["SUPER_ADMIN", "ADMIN"])
+  if (guard.response) notFound()
 
   const since = new Date()
   since.setDate(since.getDate() - 30)
