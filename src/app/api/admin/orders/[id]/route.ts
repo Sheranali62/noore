@@ -237,7 +237,7 @@ export async function PATCH(
             const changed = await tx.productVariant.updateMany({
               where: {
                 id: item.variantId,
-                stock: { gte: item.quantity },
+                stock: currentVariant.stock,
               },
               data: { stock: { decrement: item.quantity } },
             })
@@ -276,7 +276,7 @@ export async function PATCH(
             const changed = await tx.product.updateMany({
               where: {
                 id: item.productId,
-                stock: { gte: item.quantity },
+                stock: currentProduct.stock,
               },
               data: { stock: { decrement: item.quantity } },
             })
