@@ -235,6 +235,7 @@ export async function POST(request: NextRequest) {
       quantity: number
       price: number
       total: number
+      costPrice: number | null
     }[] = []
 
     for (const item of requested) {
@@ -298,6 +299,7 @@ export async function POST(request: NextRequest) {
         quantity: item.quantity,
         price,
         total,
+        costPrice: product.costPrice ?? null,
       })
     }
 
@@ -677,6 +679,16 @@ export async function POST(request: NextRequest) {
             },
           })
         }
+
+        await tx.orderEvent.create({
+          data: {
+            orderId: createdOrder.id,
+            actorId: userId,
+            event: "ORDER_PLACED",
+            message: "Customer placed an order.",
+            metadata: { orderNumber: createdOrder.orderNumber, total: createdOrder.total },
+          },
+        })
 
         return createdOrder
       }
