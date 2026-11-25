@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { calculateCouponDiscount } from "@/lib/coupons"
@@ -84,6 +85,13 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const rate = checkRateLimit(`order-creation:${getClientIp(request)}`, 10, 3600000)
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Please wait before trying again." },
+      { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds), "Cache-Control": "no-store" } }
+    )
+  }
   try {
     const body = await request.json()
 
