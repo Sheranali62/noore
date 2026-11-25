@@ -62,8 +62,9 @@ const providers: NextAuthOptions["providers"] = [
         )
 
         if (!authResponse.ok) {
-          // Keep legacy accounts created before Supabase Auth was connected usable.
-          return await authenticateLegacyPrismaUser()
+          // Do not fall back to an old bcrypt hash after a Supabase password
+          // failure; that could bypass a password reset or a changed password.
+          return null
         }
 
         const authResult = await authResponse.json()
@@ -79,18 +80,23 @@ const providers: NextAuthOptions["providers"] = [
         const superAdminEmail = process.env.SUPER_ADMIN_EMAIL?.trim().toLowerCase()
         const isConfiguredSuperAdmin = Boolean(superAdminEmail && email === superAdminEmail)
 
-        const user = await prisma.user.upsert({
-          where: { email },
-          update: {
-            ...(name ? { name } : {}),
-          },
-          create: {
-            email,
-            name,
-            password: null,
-            role: isConfiguredSuperAdmin ? "SUPER_ADMIN" : "CUSTOMER",
-          },
+        const existingUser = await prisma.user.findFirst({
+          where: { email: { equals: email, mode: "insensitive" } },
+          select: { id: true },
         })
+        const user = existingUser
+          ? await prisma.user.update({
+              where: { id: existingUser.id },
+              data: { ...(name ? { name } : {}) },
+            })
+          : await prisma.user.create({
+              data: {
+                email,
+                name,
+                password: null,
+                role: isConfiguredSuperAdmin ? "SUPER_ADMIN" : "CUSTOMER",
+              },
+            })
 
         return {
           id: user.id,
