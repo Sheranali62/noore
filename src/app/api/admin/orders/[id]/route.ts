@@ -293,7 +293,7 @@ export async function PATCH(
         }
       }
 
-      return tx.order.update({
+      const updatedOrder = await tx.order.update({
         where: {
           id: params.id,
         },
@@ -335,6 +335,29 @@ export async function PATCH(
           },
         },
       })
+
+      if (status || paymentStatus || body.trackingNumber !== undefined || body.courier !== undefined || body.courierCompanyId !== undefined) {
+        await tx.orderEvent.create({
+          data: {
+            orderId: params.id,
+            actorId: guard.session?.user?.id,
+            event: status ? `ORDER_${status}` : paymentStatus ? `PAYMENT_${paymentStatus}` : "ORDER_SHIPMENT_UPDATED",
+            message: status ? `Order status changed to ${status}.` : paymentStatus ? `Payment status changed to ${paymentStatus}.` : "Shipment details updated.",
+            metadata: { status: status ?? null, paymentStatus: paymentStatus ?? null, trackingNumber, courier: selectedCourierName || courier },
+          },
+        })
+        await tx.auditLog.create({
+          data: {
+            actorId: guard.session?.user?.id,
+            action: "UPDATE_ORDER",
+            entityType: "Order",
+            entityId: params.id,
+            details: { status: status ?? null, paymentStatus: paymentStatus ?? null, trackingNumber, courier: selectedCourierName || courier },
+          },
+        })
+      }
+
+      return updatedOrder
     })
 
     if (
