@@ -9,10 +9,16 @@ function csv(rows: string[][]) {
 }
 
 export async function GET(request: NextRequest) {
-  const guard = await requireAdmin()
+  const type = request.nextUrl.searchParams.get("type") || "sales"
+  if (!["sales", "customers", "inventory"].includes(type)) {
+    return NextResponse.json({ error: "Invalid report type" }, { status: 400 })
+  }
+  const allowedRoles = type === "inventory"
+    ? ["SUPER_ADMIN", "ADMIN", "PRODUCT_MANAGER"]
+    : ["SUPER_ADMIN", "ADMIN"]
+  const guard = await requireAdmin(allowedRoles)
   if (guard.response) return guard.response
 
-  const type = request.nextUrl.searchParams.get("type") || "sales"
   const since = new Date()
   since.setDate(since.getDate() - 30)
   let rows: string[][] = []
