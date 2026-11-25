@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
+import { checkRateLimit, getClientIp, enforceRateLimit } from "@/lib/rate-limit"
 import { randomBytes } from "crypto"
 import { prisma } from "@/lib/prisma"
 
