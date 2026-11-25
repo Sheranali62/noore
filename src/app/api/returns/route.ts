@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
     const itemIds = Array.isArray(body.itemIds)
       ? Array.from(new Set(body.itemIds.map((id: unknown) => String(id))))
       : []
-    const evidence = Array.isArray(body.evidence) ? body.evidence.map((value: unknown) => String(value)) : []
+    const evidence: string[] = Array.isArray(body.evidence) ? body.evidence.map((value: unknown) => String(value)) : []
     const allowedReasons = [
       "Wrong item received",
       "Damaged or defective",
