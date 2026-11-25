@@ -19,8 +19,8 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
 }
 
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
-  const { response } = await requireAdmin(["SUPER_ADMIN", "ADMIN", "PRODUCT_MANAGER"])
-  if (response) return response
+  const guard = await requireAdmin(["SUPER_ADMIN", "ADMIN", "PRODUCT_MANAGER"])
+  if (guard.response) return guard.response
 
   try {
     const body = await request.json()
@@ -145,8 +145,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 }
 
 export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {
-  const { response } = await requireAdmin(["SUPER_ADMIN", "ADMIN", "PRODUCT_MANAGER"])
-  if (response) return response
+  const guard = await requireAdmin(["SUPER_ADMIN", "ADMIN", "PRODUCT_MANAGER"])
+  if (guard.response) return guard.response
 
   try {
     const product = await prisma.product.findUnique({ where: { id: params.id }, select: { id: true, orderItems: { select: { id: true }, take: 1 } } })
