@@ -31,7 +31,7 @@ export default async function ProductsPage({ searchParams }: { searchParams?: Re
 
   const [totalCount, products, categoryRows, genderRows, collectionRows] = await Promise.all([
     prisma.product.count({ where }),
-    prisma.product.findMany({ where, orderBy, skip: (page - 1) * perPage, take: perPage, include: { variants: { select: { color: true }, distinct: ["color"] } } }),
+    prisma.product.findMany({ where, orderBy, skip: (page - 1) * perPage, take: perPage, select: { id: true, name: true, slug: true, price: true, salePrice: true, images: true, category: true, stock: true, gender: true, variants: { select: { color: true }, distinct: ["color"] } } }),
     prisma.product.findMany({ where: { status: "ACTIVE" }, select: { category: true }, distinct: ["category"], orderBy: { category: "asc" } }),
     prisma.product.findMany({ where: { status: "ACTIVE", gender: { not: null } }, select: { gender: true }, distinct: ["gender"], orderBy: { gender: "asc" } }),
     prisma.product.findMany({ where: { status: "ACTIVE", collection: { not: null } }, select: { collection: true }, distinct: ["collection"], orderBy: { collection: "asc" } }),
