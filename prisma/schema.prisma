@@ -233,6 +233,7 @@ model OrderItem {
   variant    ProductVariant? @relation(fields: [variantId], references: [id])
   quantity   Int
   price      Float
+  costPrice  Float?
   total      Float
   createdAt  DateTime        @default(now())
 }
