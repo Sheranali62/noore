@@ -1,8 +1,9 @@
 const buckets = new Map<string, { count: number; resetAt: number }>()
 
 export function getClientIp(request: Request) {
-  const forwarded = request.headers.get("x-forwarded-for")
-  const candidate = forwarded?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "unknown"
+  const candidate = request.headers.get("x-real-ip") ||
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    "unknown"
   return candidate.slice(0, 100)
 }
 
@@ -39,8 +40,8 @@ export async function enforceRateLimit(
   windowMs: number,
   identifier = ""
 ): Promise<NextResponse | null> {
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
-    || request.headers.get("x-real-ip")
+  const ip = request.headers.get("x-real-ip")
+    || request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
     || "unknown"
   const secret = process.env.NEXTAUTH_SECRET
   if (!secret) {
