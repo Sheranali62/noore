@@ -7,10 +7,12 @@ import AdminNav from "@/components/admin/admin-nav"
 
 type MobileAdminNavProps = {
   email: string
+  role: string
 }
 
 export default function MobileAdminNav({
   email,
+  role,
 }: MobileAdminNavProps) {
   const [open, setOpen] = useState(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
@@ -141,7 +143,7 @@ export default function MobileAdminNav({
           </div>
 
           <div className="max-h-[65vh] overflow-y-auto">
-            <AdminNav mobile />
+            <AdminNav mobile role={role} />
           </div>
 
           <div className="mt-3 border-t border-white/10 pt-3">
