@@ -44,8 +44,17 @@ export async function PATCH(request: NextRequest) {
     })
     if (!current) return NextResponse.json({ error: "Return request not found." }, { status: 404 })
 
-    if (["REFUNDED", "EXCHANGED"].includes(status) && current.status !== "RECEIVED" && current.status !== status) {
-      return NextResponse.json({ error: "Mark the returned items as received before completing a refund or exchange." }, { status: 409 })
+    const nextStatus: Record<string, string[]> = {
+      REQUESTED: ["APPROVED", "REJECTED"],
+      APPROVED: ["PICKUP_SCHEDULED", "RECEIVED", "REJECTED"],
+      PICKUP_SCHEDULED: ["RECEIVED", "REJECTED"],
+      RECEIVED: ["REFUNDED", "EXCHANGED"],
+      REJECTED: [],
+      REFUNDED: [],
+      EXCHANGED: [],
+    }
+    if (status !== current.status && !nextStatus[current.status]?.includes(status)) {
+      return NextResponse.json({ error: "This return request cannot move from its current status to the selected status." }, { status: 409 })
     }
 
     const result = await prisma.$transaction(async tx => {
