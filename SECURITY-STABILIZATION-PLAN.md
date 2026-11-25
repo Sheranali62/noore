@@ -99,6 +99,10 @@ This document records an initial review, not a penetration-test certification. F
 
 ## Additional audit updates (2026-11-25)
 
+- The order-tracking GET handler now adds `Cache-Control: private, no-store, max-age=0` and `Pragma: no-cache` to every response, preventing intermediary/browser caching of private tracking results.
+- Critical framework lifecycle finding: the app is pinned to Next.js `14.1.0`, while the official Next.js support policy lists all 14.x releases as unsupported. Plan a tested migration to a supported 16.x Active LTS release (or 15.x Maintenance LTS only as a short transition); do not perform a blind dependency bump because this codebase is on React 18 and Next 16 requires React 19 and has breaking changes.
+
+
 - Restricted `GET /api/admin/customers` to `SUPER_ADMIN` and `ADMIN`; this endpoint returns customer contact and spending information.
 - Restricted `GET /api/admin/homepage` to `SUPER_ADMIN`, `ADMIN`, and `CONTENT_MANAGER`, matching the write permission matrix for homepage content.
 - Reviewed additional sampled handlers: courier management and order notifications are restricted to order-management roles; category/product/inventory endpoints are restricted to product-management roles; coupon management is restricted to administrators; review moderation and storefront content endpoints are restricted to content-management roles. Public review submission requires a session and a delivered purchase; address and wishlist operations are scoped to the signed-in user.
