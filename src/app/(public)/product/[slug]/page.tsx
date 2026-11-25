@@ -71,8 +71,27 @@ export default async function ProductPage({
     where: {
       slug: (await params).slug,
     },
-    include: {
-      variants: true,
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      description: true,
+      category: true,
+      collection: true,
+      gender: true,
+      type: true,
+      fabric: true,
+      pieces: true,
+      price: true,
+      salePrice: true,
+      stock: true,
+      images: true,
+      sku: true,
+      tags: true,
+      status: true,
+      variants: {
+        select: { id: true, color: true, size: true, sku: true, price: true, stock: true, images: true },
+      },
       reviews: {
         where: {
           approved: true,
@@ -86,6 +105,7 @@ export default async function ProductPage({
           rating: true,
           comment: true,
           verified: true,
+          approved: true,
           createdAt: true,
           user: { select: { name: true } },
         },
@@ -109,17 +129,7 @@ export default async function ProductPage({
     orderBy: {
       createdAt: "desc",
     },
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      price: true,
-      salePrice: true,
-      images: true,
-      category: true,
-      stock: true,
-      gender: true,
-    },
+    select: { id: true },
   })
 
   const jsonLd = productJsonLd({
@@ -134,6 +144,7 @@ export default async function ProductPage({
    */
   const productForDetail = {
     ...product,
+    lowStock: 5,
     reviews: product.reviews.map((review) => ({
       ...review,
       author: review.user?.name || "NOORÉ customer",
