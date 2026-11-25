@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation"
+import { requireAdmin } from "@/lib/admin"
 import { prisma } from "@/lib/prisma"
 import { OrderAdminForm } from "@/components/admin/order-admin-form"
 
@@ -29,6 +30,9 @@ function safeString(value: unknown, fallback = "—") {
 }
 
 export default async function AdminOrderDetailPage({
+  const access = await requireAdmin(["SUPER_ADMIN","ADMIN","ORDER_MANAGER"])
+  if (access.response) notFound()
+
   params,
 }: {
   params: Promise<{ id: string }>
