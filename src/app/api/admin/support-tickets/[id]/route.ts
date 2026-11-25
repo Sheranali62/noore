@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma"
 const STATUSES = ["OPEN", "IN_PROGRESS", "WAITING_CUSTOMER", "RESOLVED", "CLOSED"] as const
 const PRIORITIES = ["LOW", "NORMAL", "HIGH", "URGENT"] as const
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const guard = await requireAdmin(["SUPER_ADMIN", "ADMIN", "ORDER_MANAGER"])
   if (guard.response) return guard.response
   try {
@@ -17,11 +17,11 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     }
     if (!status && !priority) return NextResponse.json({ error: "No ticket changes supplied." }, { status: 400 })
     const ticket = await prisma.supportTicket.update({
-      where: { id: params.id },
+      where: { id: (await params).id },
       data: { ...(status ? { status } : {}), ...(priority ? { priority } : {}) },
     })
     await prisma.auditLog.create({
-      data: { actorId: guard.session?.user?.id || null, action: "SUPPORT_TICKET_UPDATED", entityType: "SupportTicket", entityId: params.id, details: { status, priority } },
+      data: { actorId: guard.session?.user?.id || null, action: "SUPPORT_TICKET_UPDATED", entityType: "SupportTicket", entityId: (await params).id, details: { status, priority } },
     })
     return NextResponse.json({ ticket })
   } catch (error) {
