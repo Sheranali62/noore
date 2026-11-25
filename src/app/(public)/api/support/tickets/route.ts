@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { enforceRateLimit } from "@/lib/rate-limit"
+import { sendSupportTicketEmail } from "@/lib/notifications"
 
 export const dynamic = "force-dynamic"
 
@@ -66,6 +67,16 @@ export async function POST(request: NextRequest) {
       })
       return created
     })
+    const supportRecipient = process.env.ADMIN_ORDER_EMAIL || process.env.EMAIL_FROM
+    if (supportRecipient) {
+      void sendSupportTicketEmail({
+        to: supportRecipient,
+        ticketId: ticket.id,
+        subject: ticket.subject,
+        message,
+        staffReply: false,
+      }).catch(error => console.error("New support ticket email failed:", error))
+    }
     return NextResponse.json({ ticket }, { status: 201 })
   } catch (error) {
     console.error("Create support ticket failed:", error)
