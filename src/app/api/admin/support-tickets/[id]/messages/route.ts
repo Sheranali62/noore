@@ -3,14 +3,14 @@ import { requireAdmin } from "@/lib/admin"
 import { prisma } from "@/lib/prisma"
 import { sendSupportTicketEmail } from "@/lib/notifications"
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const guard = await requireAdmin(["SUPER_ADMIN", "ADMIN", "ORDER_MANAGER"])
   if (guard.response) return guard.response
   try {
     const body = await request.json()
     const message = String(body.message ?? "").trim().slice(0, 5000)
     if (message.length < 2) return NextResponse.json({ error: "Enter a reply." }, { status: 400 })
-    const ticket = await prisma.supportTicket.findUnique({ where: { id: params.id }, select: { id: true, subject: true, user: { select: { email: true } } } })
+    const ticket = await prisma.supportTicket.findUnique({ where: { id: (await params).id }, select: { id: true, subject: true, user: { select: { email: true } } } })
     if (!ticket) return NextResponse.json({ error: "Ticket not found." }, { status: 404 })
     const saved = await prisma.$transaction(async tx => {
       const result = await tx.supportTicketMessage.create({ data: { ticketId: ticket.id, senderId: guard.session?.user?.id || null, isStaff: true, message } })
