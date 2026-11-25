@@ -1,4 +1,5 @@
 name: NOORE upgrade validation
+# Re-run the full validation suite after security hardening.
 
 on:
   push:
