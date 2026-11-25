@@ -59,7 +59,7 @@ export async function GET() {
     take: 50,
   })
 
-  return NextResponse.json({ requests, eligibleOrders })
+  return NextResponse.json({ requests, eligibleOrders }, { headers: { "Cache-Control": "private, no-store, max-age=0" } })
 }
 
 export async function POST(request: NextRequest) {
@@ -71,6 +71,21 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    const origin = request.headers.get("origin")
+    if (
+      (origin && new URL(origin).origin !== request.nextUrl.origin) ||
+      request.headers.get("sec-fetch-site") === "cross-site"
+    ) {
+      return NextResponse.json({ error: "Cross-site return requests are not allowed." }, { status: 403 })
+    }
+    const contentType = request.headers.get("content-type") ?? ""
+    if (!contentType.toLowerCase().includes("application/json")) {
+      return NextResponse.json({ error: "A JSON request body is required." }, { status: 415 })
+    }
+    const contentLength = Number(request.headers.get("content-length") ?? 0)
+    if (contentLength > 32 * 1024) {
+      return NextResponse.json({ error: "Return request is too large." }, { status: 413 })
+    }
     const body = await request.json().catch(() => ({}))
     const orderId = String(body.orderId ?? "")
     const reason = String(body.reason ?? "").trim()
@@ -87,7 +102,7 @@ export async function POST(request: NextRequest) {
       "Other",
     ]
 
-    if (!orderId || !allowedReasons.includes(reason) || !itemIds.length || evidence.length > 5) {
+    if (!orderId || orderId.length > 128 || !allowedReasons.includes(reason) || !itemIds.length || evidence.length > 5) {
       return NextResponse.json({ error: "Select an order, return reason and at least one item." }, { status: 400 })
     }
 
@@ -104,7 +119,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "The 7-day return window for this order has ended." }, { status: 409 })
     }
 
-    const validEvidence = evidence.every(value => { try { const url = new URL(value); return url.protocol === "https:" && url.hostname.endsWith(".blob.vercel-storage.com") } catch { return false } })
+    const validEvidence = evidence.every(value => {
+      try {
+        const url = new URL(value)
+        return url.protocol === "https:" &&
+          url.hostname.endsWith(".blob.vercel-storage.com") &&
+          url.pathname.startsWith(`/noore/returns/${session.user.id}/`)
+      } catch {
+        return false
+      }
+    })
     if (!validEvidence) return NextResponse.json({ error: "Return evidence must be uploaded using the provided image uploader." }, { status: 400 })
 
     const validIds = new Set(order.items.map(item => item.id))
@@ -180,7 +204,10 @@ export async function POST(request: NextRequest) {
       })
       return created
     })
-    return NextResponse.json({ request: result, message: "Your return request has been submitted." }, { status: 201 })
+    return NextResponse.json(
+      { request: result, message: "Your return request has been submitted." },
+      { status: 201, headers: { "Cache-Control": "private, no-store, max-age=0" } }
+    )
   } catch (error) {
     if (error instanceof Error) {
       if (error.message === "RETURN_ALREADY_OPEN") {
