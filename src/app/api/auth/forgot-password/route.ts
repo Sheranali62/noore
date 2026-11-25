@@ -28,9 +28,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Enter a valid email address." }, { status: 400 })
     }
 
-    const origin = new URL(request.url).origin
+    const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXTAUTH_URL
+    if (!configuredSiteUrl) {
+      console.error("Password recovery requires NEXT_PUBLIC_SITE_URL or NEXTAUTH_URL.")
+      return NextResponse.json({ error: "Password recovery is temporarily unavailable." }, { status: 503 })
+    }
+    const siteUrl = new URL(configuredSiteUrl)
+    if (process.env.NODE_ENV === "production" && siteUrl.protocol !== "https:") {
+      console.error("Password recovery site URL must use HTTPS in production.")
+      return NextResponse.json({ error: "Password recovery is temporarily unavailable." }, { status: 503 })
+    }
     const response = await fetch(
-      `${supabaseUrl.replace(/\/$/, "")}/auth/v1/recover?redirect_to=${encodeURIComponent(`${origin}/reset-password`)}`,
+      `${supabaseUrl.replace(/\/$/, "")}/auth/v1/recover?redirect_to=${encodeURIComponent(new URL("/reset-password", siteUrl).toString())}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json", apikey: anonKey },
