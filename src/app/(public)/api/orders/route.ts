@@ -30,6 +30,8 @@ async function makeOrderNumber() {
 }
 
 export async function GET(request: NextRequest) {
+  const databaseLimit = await enforceRateLimit(request, "order-tracking", 20, 60000)
+  if (databaseLimit) return databaseLimit
   const rate = checkRateLimit(`order-tracking:${getClientIp(request)}`, 20, 60000)
   if (!rate.allowed) {
     return NextResponse.json(
@@ -92,6 +94,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const databaseLimit = await enforceRateLimit(request, "order-creation", 10, 3600000)
+  if (databaseLimit) return databaseLimit
   const rate = checkRateLimit(`order-creation:${getClientIp(request)}`, 10, 3600000)
   if (!rate.allowed) {
     return NextResponse.json(
