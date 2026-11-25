@@ -23,30 +23,24 @@ export async function GET(request: NextRequest) {
   }
 
   const products = await prisma.product.findMany({
-    where: {
-      status: "ACTIVE",
-      OR: [
-        { stock: { lte: prisma.product.fields.lowStock } },
-        { variants: { some: { stock: { lte: 5 } } } },
-      ],
-    },
+    where: { status: "ACTIVE" },
     select: {
       id: true,
       name: true,
       sku: true,
       stock: true,
       lowStock: true,
-      variants: { where: { stock: { lte: 5 } }, select: { color: true, size: true, sku: true, stock: true } },
+      variants: { select: { color: true, size: true, sku: true, stock: true } },
     },
     orderBy: { stock: "asc" },
-    take: 200,
+    take: 1000,
   })
 
-  const lowProducts = products.filter(product => product.stock <= product.lowStock || product.variants.length > 0)
+  const lowProducts = products.filter(product => product.stock <= product.lowStock || product.variants.some(variant => variant.stock <= product.lowStock))
   if (!lowProducts.length) return NextResponse.json({ checked: 0, sent: false, message: "No low-stock products." })
 
   const rows = lowProducts.map(product => {
-    const variants = product.variants.map(variant => `<li>${variant.color} / ${variant.size} · SKU ${variant.sku} · ${variant.stock} left</li>`).join("")
+    const variants = product.variants.filter(variant => variant.stock <= product.lowStock).map(variant => `<li>${variant.color} / ${variant.size} · SKU ${variant.sku} · ${variant.stock} left</li>`).join("")
     return `<tr><td style="padding:10px;border-bottom:1px solid #eee">${product.name}<br><small>${product.sku}</small>${variants ? `<ul>${variants}</ul>` : ""}</td><td style="padding:10px;border-bottom:1px solid #eee">${product.stock}</td><td style="padding:10px;border-bottom:1px solid #eee">${product.lowStock}</td></tr>`
   }).join("")
   const site = (process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXTAUTH_URL || "https://noore-nine.vercel.app").replace(/\/$/, "")
