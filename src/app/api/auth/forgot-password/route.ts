@@ -64,8 +64,7 @@ export async function POST(request: NextRequest) {
     )
 
     if (!response.ok) {
-      const detail = await response.text().catch(() => "")
-      console.error("Supabase password recovery request failed:", response.status, detail.slice(0, 500))
+      console.error("Supabase password recovery request failed:", response.status)
       return NextResponse.json({ error: "We could not send the reset email. Please try again or contact support." }, { status: 502 })
     }
 
