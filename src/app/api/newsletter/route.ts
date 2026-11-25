@@ -10,6 +10,19 @@ function validEmail(value: string) {
 }
 
 export async function POST(request: NextRequest) {
+  const originHeader = request.headers.get("origin")
+  if (
+    (originHeader && new URL(originHeader).origin !== request.nextUrl.origin) ||
+    request.headers.get("sec-fetch-site") === "cross-site"
+  ) {
+    return NextResponse.json({ error: "Cross-site newsletter requests are not allowed." }, { status: 403 })
+  }
+  const contentType = request.headers.get("content-type") ?? ""
+  if (!contentType.toLowerCase().includes("application/json")) {
+    return NextResponse.json({ error: "A JSON request body is required." }, { status: 415 })
+  }
+  const contentLength = Number(request.headers.get("content-length") ?? 0)
+  if (contentLength > 8 * 1024) return NextResponse.json({ error: "Newsletter request is too large." }, { status: 413 })
   const databaseLimit = await enforceRateLimit(request, "newsletter", 10, 3600000)
   if (databaseLimit) return databaseLimit
   const rate = checkRateLimit(`newsletter:${getClientIp(request)}`, 5, 3600000)
@@ -35,8 +48,13 @@ export async function POST(request: NextRequest) {
     const apiKey = process.env.RESEND_API_KEY
     const from = process.env.EMAIL_FROM
     if (apiKey && from) {
-      const origin = process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin
-      const unsubscribeUrl = `${origin.replace(/\/$/, "")}/newsletter/unsubscribe?token=${token}`
+      const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXTAUTH_URL
+      if (!configuredSiteUrl) throw new Error("Trusted site URL is not configured.")
+      const siteUrl = new URL(configuredSiteUrl)
+      if (process.env.NODE_ENV === "production" && siteUrl.protocol !== "https:") {
+        throw new Error("Trusted site URL must use HTTPS in production.")
+      }
+      const unsubscribeUrl = new URL(`/newsletter/unsubscribe?token=${token}`, siteUrl).toString()
       try {
         const response = await fetch("https://api.resend.com/emails", {
           method: "POST",
@@ -48,13 +66,13 @@ export async function POST(request: NextRequest) {
             html: `<div style="font-family:Arial,sans-serif;color:#343a30;max-width:560px;margin:auto;padding:32px"><h1 style="letter-spacing:5px">NOORÉ</h1><p>Thank you for joining our world.</p><p>You'll hear about new collections, considered style and exclusive offers.</p><p style="font-size:12px;color:#777">If you no longer wish to receive these emails, <a href="${unsubscribeUrl}">unsubscribe here</a>.</p></div>`,
           }),
         })
-        if (!response.ok) console.error("Newsletter welcome email failed:", response.status, (await response.text()).slice(0, 300))
+        if (!response.ok) console.error("Newsletter welcome email failed:", response.status)
       } catch (error) {
         console.error("Newsletter welcome email could not be sent:", error)
       }
     }
 
-    return NextResponse.json({ success: true, message: "Thank you for subscribing to NOORÉ." })
+    return NextResponse.json({ success: true, message: "Thank you for subscribing to NOORÉ." }, { headers: { "Cache-Control": "private, no-store, max-age=0" } })
   } catch (error) {
     console.error("Newsletter subscription failed:", error)
     return NextResponse.json({ error: "We could not complete your subscription. Please try again." }, { status: 500 })
