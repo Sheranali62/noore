@@ -128,10 +128,9 @@ export const authOptions: NextAuthOptions = {
   providers,
   callbacks: {
     async jwt({ token, user, trigger }) {
-      const userId = user?.id ?? (trigger === "update" && typeof token.id === "string" ? token.id : null)
-      if (userId) {
+      if (user) {
         const currentUser = await prisma.user.findUnique({
-          where: { id: userId },
+          where: { id: user.id },
           select: { id: true, role: true, name: true, email: true, updatedAt: true },
         })
         token.role = currentUser?.role ?? "CUSTOMER"
@@ -139,6 +138,25 @@ export const authOptions: NextAuthOptions = {
         token.name = currentUser?.name ?? null
         token.email = currentUser?.email ?? null
         token.userUpdatedAt = currentUser?.updatedAt.getTime() ?? 0
+      } else if (trigger === "update" && typeof token.id === "string") {
+        const currentUser = await prisma.user.findUnique({
+          where: { id: token.id },
+          select: { id: true, role: true, name: true, email: true, updatedAt: true },
+        })
+        const tokenUpdatedAt = typeof token.userUpdatedAt === "number" ? token.userUpdatedAt : 0
+        if (!currentUser || !tokenUpdatedAt || currentUser.updatedAt.getTime() !== tokenUpdatedAt) {
+          token.id = ""
+          token.role = "CUSTOMER"
+          token.name = null
+          token.email = null
+          token.userUpdatedAt = 0
+        } else {
+          // Refresh profile fields only; never refresh the auth-version timestamp
+          // from a client-triggered session update.
+          token.name = currentUser.name
+          token.email = currentUser.email
+          token.role = currentUser.role
+        }
       }
       return token
     },
