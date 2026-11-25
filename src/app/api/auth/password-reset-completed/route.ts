@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { enforceRateLimit } from "@/lib/rate-limit"
 
 export const dynamic = "force-dynamic"
 
@@ -40,9 +39,6 @@ export async function POST(request: NextRequest) {
     if (!email || email.length > 254) {
       return NextResponse.json({ error: "The password recovery session is invalid." }, { status: 401 })
     }
-
-    const rateLimit = await enforceRateLimit(request, "password-reset-completed", 5, 60 * 60 * 1000, email)
-    if (rateLimit) return rateLimit
 
     const appUser = await prisma.user.findFirst({
       where: { email: { equals: email, mode: "insensitive" } },
