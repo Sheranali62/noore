@@ -25,7 +25,7 @@ export async function GET() {
     if (item.product.status !== "ACTIVE") return []
     const price = item.variant?.price ?? item.product.salePrice ?? item.product.price
     return [{
-      id: item.variantId ? `${item.productId}:${item.variantId}` : item.productId,
+      id: item.variantId ?? item.productId,
       productId: item.productId,
       variantId: item.variantId ?? undefined,
       name: item.product.name,
