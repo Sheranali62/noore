@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { checkRateLimit, getClientIp, enforceRateLimit } from "@/lib/rate-limit"
+import { enforceRateLimit } from "@/lib/rate-limit"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { calculateCouponDiscount } from "@/lib/coupons"
@@ -12,9 +12,19 @@ function normalizeEmail(value: unknown) {
   return String(value ?? "").trim().toLowerCase()
 }
 
+function trackingResponse(body: unknown, options?: { status?: number }) {
+  return NextResponse.json(body, {
+    ...options,
+    headers: {
+      "Cache-Control": "private, no-store, max-age=0",
+      Pragma: "no-cache",
+    },
+  })
+}
+
 async function makeOrderNumber() {
   for (let attempt = 0; attempt < 5; attempt++) {
-    const value = `NO-${new Date().getFullYear()}-${randomBytes(4)
+    const value = `NO-${new Date().getFullYear()}-${randomBytes(8)
       .toString("hex")
       .toUpperCase()}`
 
@@ -32,61 +42,67 @@ async function makeOrderNumber() {
 export async function GET(request: NextRequest) {
   const databaseLimit = await enforceRateLimit(request, "order-tracking", 20, 60000)
   if (databaseLimit) return databaseLimit
-  const rate = checkRateLimit(`order-tracking:${getClientIp(request)}`, 20, 60000)
-  if (!rate.allowed) {
-    return NextResponse.json(
-      { error: "Too many tracking attempts. Please wait a minute and try again." },
-      { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds), "Cache-Control": "no-store" } }
-    )
-  }
   try {
     const searchParams = request.nextUrl.searchParams
     const orderNumber = searchParams.get("orderNumber")?.trim()
     const email = normalizeEmail(searchParams.get("email"))
 
-    if (!orderNumber || !email) {
-      return NextResponse.json(
-        { error: "Order number and email are required" },
+    if (
+      !orderNumber ||
+      orderNumber.length > 64 ||
+      !email ||
+      email.length > 254 ||
+      !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)
+    ) {
+      return trackingResponse(
+        { error: "A valid order number and email are required" },
         { status: 400 }
       )
     }
 
     const order = await prisma.order.findUnique({
       where: { orderNumber },
-      include: {
+      select: {
+        orderNumber: true,
+        status: true,
+        total: true,
+        createdAt: true,
+        paymentMethod: true,
+        trackingNumber: true,
+        courier: true,
+        user: { select: { email: true } },
         items: {
-          include: {
-            product: true,
-          },
-        },
-        user: {
           select: {
-            email: true,
+            id: true,
+            quantity: true,
+            price: true,
+            total: true,
+            product: { select: { name: true, images: true } },
+            variant: { select: { color: true, size: true } },
           },
         },
-        address: true,
       },
     })
 
     if (!order) {
-      return NextResponse.json(
+      return trackingResponse(
         { error: "Order not found" },
         { status: 404 }
       )
     }
 
     if (normalizeEmail(order.user?.email) !== email) {
-      return NextResponse.json(
+      return trackingResponse(
         { error: "Unauthorized" },
         { status: 401 }
       )
     }
 
-    return NextResponse.json({ order })
+    return trackingResponse({ order })
   } catch (error) {
     console.error("Error tracking order:", error)
 
-    return NextResponse.json(
+    return trackingResponse(
       { error: "Failed to track order" },
       { status: 500 }
     )
@@ -96,15 +112,30 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const databaseLimit = await enforceRateLimit(request, "order-creation", 10, 3600000)
   if (databaseLimit) return databaseLimit
-  const rate = checkRateLimit(`order-creation:${getClientIp(request)}`, 10, 3600000)
-  if (!rate.allowed) {
-    return NextResponse.json(
-      { error: "Too many requests. Please wait before trying again." },
-      { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds), "Cache-Control": "no-store" } }
-    )
-  }
   try {
+    const origin = request.headers.get("origin")
+    const fetchSite = request.headers.get("sec-fetch-site")
+    if (
+      (origin && new URL(origin).origin !== request.nextUrl.origin) ||
+      fetchSite === "cross-site"
+    ) {
+      return NextResponse.json({ error: "Cross-site order requests are not allowed" }, { status: 403 })
+    }
+
+    const contentType = request.headers.get("content-type") ?? ""
+    if (!contentType.toLowerCase().includes("application/json")) {
+      return NextResponse.json({ error: "A JSON request body is required" }, { status: 415 })
+    }
+
+    const contentLength = Number(request.headers.get("content-length") ?? 0)
+    if (contentLength > 64 * 1024) {
+      return NextResponse.json({ error: "Order request is too large" }, { status: 413 })
+    }
+
     const body = await request.json()
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return NextResponse.json({ error: "Invalid order request" }, { status: 400 })
+    }
 
     const customer = body.customer ?? {}
     const address = body.address ?? {}
@@ -130,14 +161,23 @@ export async function POST(request: NextRequest) {
 
     if (
       !name ||
+      name.length > 120 ||
       !email ||
-      !email.includes("@") ||
+      email.length > 254 ||
+      !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email) ||
       !phone ||
+      phone.length > 32 ||
       !addressLine ||
+      addressLine.length > 300 ||
       !city ||
+      city.length > 100 ||
       !province ||
+      province.length > 100 ||
       !postal ||
-      !items.length
+      postal.length > 24 ||
+      !items.length ||
+      items.length > 50 ||
+      (couponCode !== null && couponCode.length > 64)
     ) {
       return NextResponse.json(
         {
@@ -167,6 +207,14 @@ export async function POST(request: NextRequest) {
     }
 
     const session = await auth()
+    const sessionUserId = session?.user?.id
+    const sessionEmail = normalizeEmail(session?.user?.email)
+    if (sessionUserId && sessionEmail !== email) {
+      return NextResponse.json(
+        { error: "Please use the email address on your signed-in NOORÉ account" },
+        { status: 403 }
+      )
+    }
 
     const subtotalInput = Number(body.subtotal)
     const shippingInput = Number(body.shipping)
@@ -197,12 +245,22 @@ export async function POST(request: NextRequest) {
       requested.some(
         (item: any) =>
           !item.productId ||
+          item.productId.length > 128 ||
+          (item.variantId !== null && item.variantId.length > 128) ||
           !Number.isInteger(item.quantity) ||
-          item.quantity < 1
+          item.quantity < 1 ||
+          item.quantity > 99
       )
     ) {
       return NextResponse.json(
         { error: "Invalid cart items" },
+        { status: 400 }
+      )
+    }
+
+    if (new Set(requested.map((item: any) => `${item.productId}:${item.variantId ?? "no-variant"}`)).size !== requested.length) {
+      return NextResponse.json(
+        { error: "Remove duplicate items from your cart and try again" },
         { status: 400 }
       )
     }
@@ -385,52 +443,29 @@ export async function POST(request: NextRequest) {
 
     const order = await prisma.$transaction(
       async (tx) => {
-        let userId = session?.user?.id
+        let userId = sessionUserId
 
         if (userId) {
-          const current =
-            await tx.user.findUnique({
-              where: {
-                id: userId,
-              },
-              select: {
-                id: true,
-              },
-            })
-
+          const current = await tx.user.findUnique({
+            where: { id: userId },
+            select: { id: true },
+          })
           if (!current) {
-            userId = undefined
+            throw new Error("Your session is no longer valid. Please sign in again.")
           }
-        }
-
-        if (!userId) {
-          const existing =
-            await tx.user.findUnique({
-              where: {
-                email,
-              },
-              select: {
-                id: true,
-              },
-            })
-
+        } else {
+          const existing = await tx.user.findFirst({
+            where: { email: { equals: email, mode: "insensitive" } },
+            select: { id: true },
+          })
           if (existing) {
-            userId = existing.id
-          } else {
-            const created =
-              await tx.user.create({
-                data: {
-                  email,
-                  name,
-                  role: "CUSTOMER",
-                },
-                select: {
-                  id: true,
-                },
-              })
-
-            userId = created.id
+            throw new Error("An account already uses this email. Please sign in before placing this order.")
           }
+          const created = await tx.user.create({
+            data: { email, name, role: "CUSTOMER" },
+            select: { id: true },
+          })
+          userId = created.id
         }
 
         let discount = 0
@@ -753,14 +788,23 @@ export async function POST(request: NextRequest) {
       error
     )
 
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Failed to place order. Please try again."
-
+    const message = error instanceof Error ? error.message : ""
+    const safeMessages = new Set([
+      "Invalid coupon code",
+      "This coupon is inactive",
+      "This coupon is not active yet",
+      "This coupon has expired",
+      "This coupon has reached its usage limit",
+      "This coupon has just reached its usage limit",
+      "You have reached the usage limit for this coupon",
+      "Stock changed while placing the order",
+      "Your session is no longer valid. Please sign in again.",
+      "An account already uses this email. Please sign in before placing this order.",
+      "Cart total changed. Please review your order and try again.",
+    ])
     return NextResponse.json(
-      { error: message },
-      { status: 400 }
+      { error: safeMessages.has(message) ? message : "Failed to place order. Please try again." },
+      { status: message === "Stock changed while placing the order" ? 409 : 400 }
     )
   }
 }
