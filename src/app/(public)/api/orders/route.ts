@@ -727,31 +727,29 @@ export async function POST(request: NextRequest) {
       }
     )
 
-    void sendOrderStatusEmail({
-      to: email,
-      customerName: name,
-      orderNumber:
-        order.orderNumber,
-      status: "PENDING",
-    }).catch((err) =>
-      console.error(
-        "Order confirmation email failed",
-        err
-      )
-    )
-
-    void sendNewOrderAdminEmail({
-      customerName: name,
-      customerEmail: email,
-      customerPhone: phone,
-      orderNumber: order.orderNumber,
-      total: order.total,
-      address: addressLine,
-      city,
-      province,
-    }).catch((err) =>
-      console.error("New order store notification failed", err)
-    )
+    const notificationResults = await Promise.allSettled([
+      sendOrderStatusEmail({
+        to: email,
+        customerName: name,
+        orderNumber: order.orderNumber,
+        status: "PENDING",
+      }),
+      sendNewOrderAdminEmail({
+        customerName: name,
+        customerEmail: email,
+        customerPhone: phone,
+        orderNumber: order.orderNumber,
+        total: order.total,
+        address: addressLine,
+        city,
+        province,
+      }),
+    ])
+    notificationResults.forEach((result, index) => {
+      if (result.status === "rejected") {
+        console.error(index === 0 ? "Customer order email failed" : "Admin order notification failed", result.reason)
+      }
+    })
 
     return NextResponse.json(
       order,
