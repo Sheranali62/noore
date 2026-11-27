@@ -42,7 +42,7 @@ async function StudioSection({ block }: { block: StudioBlock }) {
     {hero && block.image && <><img src={block.image} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover" /><div className="absolute inset-0 bg-black/35" /></>}
     <div className={`relative mx-auto max-w-5xl ${hero ? "py-12 text-white md:py-20" : ""}`}>
       {block.eyebrow && <p className="text-[10px] font-semibold uppercase tracking-[.28em] opacity-65">{block.eyebrow}</p>}
-      {block.title && <h1 className="mt-4 font-editorial text-4xl leading-[1.05] md:text-7xl">{block.title}</h1>}
+      {block.title && (hero ? <h1 className="mt-4 font-editorial text-4xl leading-[1.05] md:text-7xl">{block.title}</h1> : <h2 className="mt-4 font-editorial text-3xl leading-[1.1] md:text-5xl">{block.title}</h2>)}
       {block.body && <p className="mx-auto mt-5 max-w-3xl whitespace-pre-line text-sm leading-7 opacity-75">{block.body}</p>}
       {block.buttonText && block.buttonUrl && <Link href={block.buttonUrl} className="mt-8 inline-flex bg-[#535f4c] px-8 py-4 text-[10px] font-semibold uppercase tracking-[.18em] text-white">{block.buttonText}</Link>}
     </div>
