@@ -18,7 +18,7 @@ export default async function StudioPageRenderer({ page }: { page: StudioPageVer
   </main>
 }
 
-function StudioSection({ block, products }: { block: StudioBlock; products: Array<{ id: string; name: string; slug: string; price: number; salePrice: number | null; images: string[]; category: string; stock: number; gender: string }> }) {
+function StudioSection({ block, products }: { block: StudioBlock; products: Array<{ id: string; name: string; slug: string; price: number; salePrice: number | null; images: string[]; category: string; stock: number; gender: string | null }> }) {
   const style = { backgroundColor: safeStyle(block.backgroundColor, "#f7f6f2"), color: safeStyle(block.textColor, "#30352e") }
   const align = block.align === "center" ? "text-center" : block.align === "right" ? "text-right" : "text-left"
 async function StudioSection({ block }: { block: StudioBlock }) {
