@@ -9,6 +9,7 @@ type Params = { params: Promise<{ id: string }> }
 export async function PUT(request: Request, { params }: Params) {
   const auth = await requireAdmin(["SUPER_ADMIN", "ADMIN", "CONTENT_MANAGER"])
   if (!auth.session) return auth.response
+  if (process.env.VERCEL_ENV === "preview") return NextResponse.json({ error: "Banner changes are disabled in preview because it shares production data." }, { status: 409 })
   try {
     const body = await request.json()
     if (!body.heading || !body.image) return NextResponse.json({ error: "Heading and desktop image are required" }, { status: 400 })
@@ -35,6 +36,7 @@ export async function PUT(request: Request, { params }: Params) {
 export async function DELETE(_request: Request, { params }: Params) {
   const auth = await requireAdmin(["SUPER_ADMIN", "ADMIN", "CONTENT_MANAGER"])
   if (!auth.session) return auth.response
+  if (process.env.VERCEL_ENV === "preview") return NextResponse.json({ error: "Banner changes are disabled in preview because it shares production data." }, { status: 409 })
   try {
     await prisma.heroBanner.delete({ where: { id: (await params).id } })
     return NextResponse.json({ message: "Banner deleted" })
