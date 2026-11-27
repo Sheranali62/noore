@@ -17,6 +17,7 @@ export async function GET() {
 export async function PUT(request: Request) {
   const auth = await requireAdmin(["SUPER_ADMIN", "ADMIN", "CONTENT_MANAGER"])
   if (!auth.session) return auth.response
+  if (process.env.VERCEL_ENV === "preview") return NextResponse.json({ error: "Storefront image publishing is disabled in preview because it shares production data." }, { status: 409 })
   const body = await request.json()
   if (!body?.media || typeof body.media !== "object" || Array.isArray(body.media)) return NextResponse.json({ error: "Invalid media settings" }, { status: 400 })
   const entries = Object.entries(body.media as Record<string, unknown>)
