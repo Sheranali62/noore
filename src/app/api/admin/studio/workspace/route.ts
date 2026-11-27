@@ -99,6 +99,11 @@ export async function POST(request: Request) {
     const incoming = body.workspace
     if (!incoming || typeof incoming !== "object") return NextResponse.json({ error: "Workspace settings are required." }, { status: 400 })
     const next = normalizeStudioWorkspace({ ...workspace, ...(incoming as Record<string, unknown>), pages: workspace.pages })
+    const sources = new Set(next.redirects.map(rule => rule.from))
+    if (sources.size !== next.redirects.length) return NextResponse.json({ error: "Each redirect source must be unique." }, { status: 400 })
+    for (const rule of next.redirects) {
+      if (rule.to === rule.from || sources.has(rule.to)) return NextResponse.json({ error: "Redirect loops are not allowed. Check the source and destination paths." }, { status: 400 })
+    }
     await writeStudioWorkspace(next)
     await audit(actorId, "STUDIO_SETTINGS_SAVED", null, { navigationItems: next.navigation.length, mediaAssets: next.media.length, redirects: next.redirects.length })
     return NextResponse.json({ workspace: next, message: "Studio settings saved." })
