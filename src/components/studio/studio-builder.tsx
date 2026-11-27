@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import ImageUploadField from "@/components/admin/image-upload-field"
-import { ArrowDown, ArrowUp, Check, ChevronRight, Copy, ExternalLink, Eye, FilePlus2, Globe2, ImagePlus, Loader2, Plus, Save, Trash2, Undo2, UploadCloud } from "lucide-react"
+import { ArrowDown, ArrowUp, Check, ChevronRight, Copy, ExternalLink, Eye, FilePlus2, Globe2, GripVertical, ImagePlus, Loader2, Plus, Save, Trash2, Undo2, UploadCloud } from "lucide-react"
 import type { StudioBlock, StudioBlockType, StudioMediaAsset, StudioNavigationItem, StudioPage, StudioPageHistory, StudioPageVersion, StudioRedirect, StudioWorkspace } from "@/lib/studio-workspace"
 
 type Tab = "pages" | "navigation" | "media" | "redirects" | "history" | "seo"
@@ -32,6 +32,7 @@ export default function StudioBuilder() {
   const [history, setHistory] = useState<StudioPageHistory[]>([])
   const [role, setRole] = useState("")
   const [selectedId, setSelectedId] = useState("")
+  const [draggedBlockId, setDraggedBlockId] = useState("")
   const [draft, setDraft] = useState<StudioPageVersion>(blankVersion())
   const [slug, setSlug] = useState("")
   const [isNew, setIsNew] = useState(false)
@@ -83,6 +84,18 @@ export default function StudioBuilder() {
       const sections = [...current.sections], index = sections.findIndex(item => item.id === id), next = index + direction
       if (index < 0 || next < 0 || next >= sections.length) return current
       ;[sections[index], sections[next]] = [sections[next], sections[index]]
+      return { ...current, sections }
+    })
+  }
+  function reorderBlock(sourceId: string, targetId: string) {
+    if (!sourceId || sourceId === targetId) return
+    setDraft(current => {
+      const sections = [...current.sections]
+      const from = sections.findIndex(item => item.id === sourceId)
+      const to = sections.findIndex(item => item.id === targetId)
+      if (from < 0 || to < 0) return current
+      const [moved] = sections.splice(from, 1)
+      sections.splice(to, 0, moved)
       return { ...current, sections }
     })
   }
@@ -190,8 +203,8 @@ export default function StudioBuilder() {
         <div className="rounded-xl border border-white/10 bg-[#151513] p-4 md:p-5">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><div><p className="text-[9px] font-bold uppercase tracking-[.2em] text-[#d6ae72]">Page structure</p><h3 className="mt-1 text-base font-semibold">Sections & content blocks</h3></div><span className="text-[10px] text-white/35">{draft.sections.length} / 40 blocks</span></div>
           {draft.sections.length===0 && <div className="rounded-lg border border-dashed border-white/15 px-4 py-10 text-center"><p className="text-sm text-white/60">Your page is empty</p><p className="mt-2 text-xs text-white/35">Add a hero, text, image or product section below.</p></div>}
-          <div className="space-y-3">{draft.sections.map((block,index)=><article key={block.id} className="rounded-xl border border-white/10 bg-[#10100f] p-3 md:p-4">
-            <div className="mb-3 flex items-center justify-between gap-2"><div className="flex items-center gap-2"><span className="grid h-6 w-6 place-items-center rounded-full bg-[#d6ae72]/15 text-[10px] text-[#e8c98e]">{index+1}</span><div><p className="text-xs font-semibold text-white/85">{blockTypes.find(x=>x.type===block.type)?.label}</p><p className="text-[9px] text-white/35">{blockTypes.find(x=>x.type===block.type)?.hint}</p></div></div><div className="flex gap-1"><button aria-label="Move section up" disabled={index===0} onClick={()=>moveBlock(block.id,-1)} className="rounded p-2 text-white/45 hover:bg-white/10 disabled:opacity-20"><ArrowUp className="h-3.5 w-3.5"/></button><button aria-label="Move section down" disabled={index===draft.sections.length-1} onClick={()=>moveBlock(block.id,1)} className="rounded p-2 text-white/45 hover:bg-white/10 disabled:opacity-20"><ArrowDown className="h-3.5 w-3.5"/></button><button aria-label="Duplicate section" onClick={()=>duplicateBlock(block.id)} disabled={draft.sections.length>=40} className="rounded p-2 text-white/45 hover:bg-white/10 disabled:opacity-20"><Copy className="h-3.5 w-3.5"/></button><button aria-label="Remove section" onClick={()=>updateDraft("sections",draft.sections.filter(item=>item.id!==block.id))} className="rounded p-2 text-red-300/70 hover:bg-red-400/10"><Trash2 className="h-3.5 w-3.5"/></button></div></div>
+          <div className="space-y-3">{draft.sections.map((block,index)=><article key={block.id} onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();reorderBlock(draggedBlockId,block.id);setDraggedBlockId("")}} className={`rounded-xl border bg-[#10100f] p-3 transition md:p-4 ${draggedBlockId===block.id?"border-[#d6ae72] opacity-60":"border-white/10"}`}>
+            <div className="mb-3 flex items-center justify-between gap-2"><div className="flex items-center gap-2"><span draggable onDragStart={e=>{e.dataTransfer.effectAllowed="move";setDraggedBlockId(block.id)}} onDragEnd={()=>setDraggedBlockId("")} className="cursor-grab touch-none rounded p-1 text-white/35 active:cursor-grabbing" title="Drag to reorder"><GripVertical className="h-4 w-4"/></span><span className="grid h-6 w-6 place-items-center rounded-full bg-[#d6ae72]/15 text-[10px] text-[#e8c98e]">{index+1}</span><div><p className="text-xs font-semibold text-white/85">{blockTypes.find(x=>x.type===block.type)?.label}</p><p className="text-[9px] text-white/35">{blockTypes.find(x=>x.type===block.type)?.hint}</p></div></div><div className="flex gap-1"><button aria-label="Move section up" disabled={index===0} onClick={()=>moveBlock(block.id,-1)} className="rounded p-2 text-white/45 hover:bg-white/10 disabled:opacity-20"><ArrowUp className="h-3.5 w-3.5"/></button><button aria-label="Move section down" disabled={index===draft.sections.length-1} onClick={()=>moveBlock(block.id,1)} className="rounded p-2 text-white/45 hover:bg-white/10 disabled:opacity-20"><ArrowDown className="h-3.5 w-3.5"/></button><button aria-label="Duplicate section" onClick={()=>duplicateBlock(block.id)} disabled={draft.sections.length>=40} className="rounded p-2 text-white/45 hover:bg-white/10 disabled:opacity-20"><Copy className="h-3.5 w-3.5"/></button><button aria-label="Remove section" onClick={()=>updateDraft("sections",draft.sections.filter(item=>item.id!==block.id))} className="rounded p-2 text-red-300/70 hover:bg-red-400/10"><Trash2 className="h-3.5 w-3.5"/></button></div></div>
             {block.type!=="spacer" && <div className="grid gap-3 md:grid-cols-2">
               <label className={labelClass}>Eyebrow<input className={fieldClass} value={block.eyebrow} onChange={e=>updateBlock(block.id,{eyebrow:e.target.value})}/></label>
               <label className={labelClass}>Heading<input className={fieldClass} value={block.title} onChange={e=>updateBlock(block.id,{title:e.target.value})}/></label>
