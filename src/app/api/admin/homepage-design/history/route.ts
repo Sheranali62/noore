@@ -40,8 +40,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Choose a valid version to restore." }, { status: 400 })
   }
 
-  const versions = await readJsonSetting<Version[]>(HISTORY_KEY, [])
-  const target = Array.isArray(versions) ? versions.find(version => version.id === body.versionId) : undefined
+  const storedVersions = await readJsonSetting<Version[]>(HISTORY_KEY, [])
+  const versions = Array.isArray(storedVersions) ? storedVersions : []
+  const target = versions.find(version => version.id === body.versionId)
   if (!target?.design) return NextResponse.json({ error: "That version is no longer available." }, { status: 404 })
 
   const current = await readJsonSetting<unknown>(DESIGN_KEY, {})
