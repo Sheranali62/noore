@@ -74,6 +74,7 @@ export function normalizeStudioBlock(input: unknown): StudioBlock {
     title: clean(row.title, 240),
     body: clean(row.body, 4000),
     image: safeUrl(row.image),
+    imageAlt: clean(row.imageAlt, 240),
     buttonText: clean(row.buttonText, 80),
     buttonUrl: safeUrl(row.buttonUrl),
     backgroundColor: color(row.backgroundColor, "#f7f6f2"),
