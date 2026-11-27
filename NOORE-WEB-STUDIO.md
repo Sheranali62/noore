@@ -69,13 +69,14 @@
 - Preview deployments share the connected production Supabase project.
 - Preview is read-only for Studio content writes: homepage design, homepage layout, hero banners, page content, storefront image settings, image uploads, custom pages/navigation/media/SEO/redirects, and restore actions are blocked with HTTP 409.
 - Preview homepage section reads do not create defaults.
+- Product-grid cards in draft preview are non-interactive, so draft preview cannot add items to a production cart.
 - No new database tables or migrations are required; Studio data uses bounded JSON values in the existing `Setting` table.
 - No products, prices, orders, customers, inventory, payments, checkout logic or existing public routes are replaced by the custom page builder.
 - No production database changes or production deployment were performed as part of this branch.
 
 ## Remaining release verification
 
-- Run the latest Vercel build and resolve any TypeScript/build errors.
+- Vercel build for commit `4b5b68f` passed compilation, TypeScript and static page generation. The latest non-interactive draft-preview changes are awaiting a fresh build.
 - Browser-test create/edit/preview/publish/unpublish/delete, navigation, image upload, metadata, redirects, revisions and responsive layouts with an isolated preview database.
 - Verify published pages and redirects against the real storefront before production rollout.
 - Production publish remains gated on a verified restorable backup, confirmed production DB target and explicit release approval.
