@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { randomUUID } from "node:crypto"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/admin"
 import { normalizeHomepageDesign } from "@/lib/homepage-design"
@@ -44,7 +45,7 @@ export async function PUT(request: Request) {
   if (!Array.isArray(versions)) versions = []
   if (JSON.stringify(previousDesign) !== JSON.stringify(design)) {
     versions = [{
-      id: crypto.randomUUID(),
+      id: randomUUID(),
       createdAt: new Date().toISOString(),
       label: "Saved homepage design",
       design: previousDesign,
