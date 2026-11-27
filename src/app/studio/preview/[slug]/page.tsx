@@ -14,5 +14,5 @@ export default async function StudioDraftPreview({ params }: { params: Promise<{
   const workspace = await getStudioWorkspace()
   const page = workspace.pages.find(item => item.slug === slug)
   if (!page) notFound()
-  return <div><div className="sticky top-0 z-[100] flex items-center justify-between bg-[#171715] px-4 py-3 text-xs text-white"><span className="font-semibold text-[#e8c98e]">NOORÉ · PRIVATE DRAFT PREVIEW</span><a href="/studio" className="underline underline-offset-4">Back to Studio</a></div><StudioPageRenderer page={page.draft} /></div>
+  return <div><div className="sticky top-0 z-[100] flex items-center justify-between bg-[#171715] px-4 py-3 text-xs text-white"><span className="font-semibold text-[#e8c98e]">NOORÉ · PRIVATE DRAFT PREVIEW</span><a href="/studio" className="underline underline-offset-4">Back to Studio</a></div><StudioPageRenderer page={page.draft} preview /></div>
 }
