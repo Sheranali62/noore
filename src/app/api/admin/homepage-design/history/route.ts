@@ -30,6 +30,7 @@ export async function GET() {
 export async function POST(request: Request) {
   const auth = await requireAdmin(ROLES)
   if (!auth.session) return auth.response
+  if (!["SUPER_ADMIN", "ADMIN"].includes(auth.session.user?.role || "")) return NextResponse.json({ error: "Only an administrator can restore or publish homepage versions." }, { status: 403 })
   if (previewBlocked()) {
     return NextResponse.json({ error: "Restoring versions is disabled in preview because it shares production data." }, { status: 409 })
   }
