@@ -29,6 +29,12 @@ export async function POST(request: Request) {
   const auth = await requireAdmin(ROLES)
   if (!auth.session) return auth.response
   if (blocked()) return NextResponse.json({ error: "Studio publishing and saving are disabled in Preview because it shares production data. Use Preview to inspect the workspace only." }, { status: 409 })
+  const origin = request.headers.get("origin")
+  if ((origin && new URL(origin).origin !== new URL(request.url).origin) || request.headers.get("sec-fetch-site") === "cross-site") {
+    return NextResponse.json({ error: "Cross-site Studio requests are not allowed." }, { status: 403 })
+  }
+  const contentLength = Number(request.headers.get("content-length") || 0)
+  if (contentLength > 1_500_000) return NextResponse.json({ error: "Studio update is too large." }, { status: 413 })
 
   let body: Record<string, unknown>
   try { body = await request.json() } catch { return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 }) }
