@@ -44,6 +44,8 @@ export async function POST(request: Request) {
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) || slug.length > 80) return NextResponse.json({ error: "Use a valid URL slug (letters, numbers and hyphens)." }, { status: 400 })
     const duplicate = workspace.pages.find(page => page.slug === slug && page.id !== pageInput.id)
     if (duplicate) return NextResponse.json({ error: "That page URL is already in use." }, { status: 409 })
+    const rawDraft = pageInput.draft as Record<string, unknown> | undefined
+    if (typeof rawDraft?.title !== "string" || !rawDraft.title.trim()) return NextResponse.json({ error: "A page title is required." }, { status: 400 })
     const draft = normalizeStudioPageVersion(pageInput.draft)
     if (!draft.title || draft.sections.length > 40) return NextResponse.json({ error: "A page title and valid sections are required." }, { status: 400 })
     const existing = workspace.pages.find(page => page.id === pageInput.id || page.slug === slug)
@@ -61,7 +63,7 @@ export async function POST(request: Request) {
     workspace.pages = existing ? workspace.pages.map(item => item.id === existing.id ? page : item) : [...workspace.pages, page]
     await writeStudioWorkspace(normalizeStudioWorkspace(workspace))
     await audit(actorId, "PAGE_DRAFT_SAVED", page.id, { slug, title: draft.title, sections: draft.sections.length })
-    return NextResponse.json({ page, workspace, message: "Draft saved. The published page is unchanged until you publish." })
+    return NextResponse.json({ page, workspace, history: await getStudioPageHistory(), message: "Draft saved. The published page is unchanged until you publish." })
   }
 
   if (action === "publish-page" || action === "unpublish-page" || action === "delete-page") {
@@ -115,11 +117,14 @@ export async function POST(request: Request) {
     if (!version) return NextResponse.json({ error: "That revision is no longer available." }, { status: 404 })
     const page = workspace.pages.find(item => item.id === version.pageId)
     if (!page) return NextResponse.json({ error: "The original page no longer exists." }, { status: 404 })
+    const now = new Date().toISOString()
+    const currentSnapshot: StudioPageHistory = { id: randomUUID(), pageId: page.id, pageTitle: page.draft.title, createdAt: now, snapshot: page.draft }
+    await writeStudioHistory([currentSnapshot, ...history].slice(0, 100))
     page.draft = normalizeStudioPageVersion(version.snapshot)
-    page.updatedAt = new Date().toISOString()
+    page.updatedAt = now
     await writeStudioWorkspace(workspace)
     await audit(actorId, "PAGE_REVISION_RESTORED", page.id, { versionId, slug: page.slug })
-    return NextResponse.json({ workspace, message: "Revision restored to draft. Publish it when ready." })
+    return NextResponse.json({ workspace, history: await getStudioPageHistory(), message: "Revision restored to draft. Publish it when ready." })
   }
 
   return NextResponse.json({ error: "Unsupported Studio action." }, { status: 400 })
