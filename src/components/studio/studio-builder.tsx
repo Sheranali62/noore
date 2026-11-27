@@ -30,6 +30,7 @@ export default function StudioBuilder() {
   const [tab, setTab] = useState<Tab>("pages")
   const [workspace, setWorkspace] = useState<StudioWorkspace>(emptyWorkspace)
   const [history, setHistory] = useState<StudioPageHistory[]>([])
+  const [role, setRole] = useState("")
   const [selectedId, setSelectedId] = useState("")
   const [draft, setDraft] = useState<StudioPageVersion>(blankVersion())
   const [slug, setSlug] = useState("")
@@ -56,6 +57,7 @@ export default function StudioBuilder() {
       if (!response.ok) throw new Error(data.error || "Could not load Studio workspace")
       setWorkspace(data.workspace || emptyWorkspace)
       setHistory(data.history || [])
+      setRole(data.role || "")
       const first = data.workspace?.pages?.[0]
       if (first) selectPage(first)
     } catch (reason) { setError(reason instanceof Error ? reason.message : "Could not load Studio") }
@@ -106,8 +108,10 @@ export default function StudioBuilder() {
     if (result?.page) setWorkspace(result.workspace)
   }
   async function publishPage() {
-    if (isNew || !selectedId) { const saved = await post({ action: "save-page", page: { slug, draft } }); if (!saved?.page) return; const result = await post({ action: "publish-page", pageId: saved.page.id }); if (result?.workspace) setWorkspace(result.workspace); return }
-    await post({ action: "save-page", page: { id: selectedId, slug, draft } }).then(async saved => { if (saved?.page) await post({ action: "publish-page", pageId: saved.page.id }) })
+    const saved = await post({ action: "save-page", page: { id: selectedId || undefined, slug, draft } })
+    if (!saved?.page) return
+    const action = role === "CONTENT_MANAGER" ? "request-approval" : "publish-page"
+    await post({ action, pageId: saved.page.id })
   }
   async function saveGlobal() {
     await post({ action: "save-global", workspace: { seo: workspace.seo, navigation: workspace.navigation, media: workspace.media, redirects: workspace.redirects } })
@@ -154,7 +158,7 @@ export default function StudioBuilder() {
       <aside className="h-fit rounded-xl border border-white/10 bg-[#151513] p-3">
         <div className="mb-3 flex items-center justify-between"><p className="text-[10px] font-bold uppercase tracking-[.18em] text-white/45">Your pages</p><span className="text-[10px] text-white/35">{workspace.pages.length}</span></div>
         {workspace.pages.length === 0 && <p className="py-5 text-xs leading-5 text-white/35">No custom pages yet. Create your first landing page.</p>}
-        <div className="space-y-1">{workspace.pages.map(page => <button key={page.id} onClick={() => selectPage(page)} className={`w-full rounded-lg p-3 text-left transition ${selectedId===page.id?"bg-[#d6ae72]/15 ring-1 ring-[#d6ae72]/30":"hover:bg-white/5"}`}><span className="block truncate text-xs font-semibold text-white/85">{page.draft.title}</span><span className="mt-1 block truncate text-[10px] text-white/35">/pages/{page.slug}</span><span className={`mt-2 inline-flex rounded-full px-2 py-1 text-[9px] ${page.published?"bg-emerald-400/10 text-emerald-200":"bg-amber-300/10 text-amber-200"}`}>{page.published?(JSON.stringify(page.draft)===JSON.stringify(page.published)?"Published":"Published · draft changes"):"Draft"}</span></button>)}</div>
+        <div className="space-y-1">{workspace.pages.map(page => <button key={page.id} onClick={() => selectPage(page)} className={`w-full rounded-lg p-3 text-left transition ${selectedId===page.id?"bg-[#d6ae72]/15 ring-1 ring-[#d6ae72]/30":"hover:bg-white/5"}`}><span className="block truncate text-xs font-semibold text-white/85">{page.draft.title}</span><span className="mt-1 block truncate text-[10px] text-white/35">/pages/{page.slug}</span><span className={`mt-2 inline-flex rounded-full px-2 py-1 text-[9px] ${page.published?"bg-emerald-400/10 text-emerald-200":"bg-amber-300/10 text-amber-200"}`}>{page.approvalStatus === "pending" ? "Awaiting approval" : page.published ? (JSON.stringify(page.draft)===JSON.stringify(page.published)?"Published":"Published · draft changes") : "Draft"}</span></button>)}</div>
         {selectedId && activePage && <div className="mt-4 border-t border-white/10 pt-3"><button onClick={() => { if (confirm("Delete this custom page? Its published URL will stop working.")) void post({action:"delete-page",pageId:selectedId}) }} className="inline-flex items-center gap-2 px-2 py-2 text-[10px] text-red-300"><Trash2 className="h-3 w-3" /> Delete page</button></div>}
       </aside>
 
@@ -162,7 +166,7 @@ export default function StudioBuilder() {
         <div className="rounded-xl border border-white/10 bg-[#151513] p-4 md:p-5">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><div><p className="text-[9px] font-bold uppercase tracking-[.2em] text-[#d6ae72]">Page details</p><h3 className="mt-1 text-base font-semibold">{isNew?"Create a page":draft.title}</h3></div><div className="flex flex-wrap gap-2">{!isNew && <a href={`/studio/preview/${slug}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 px-3 py-2 text-[10px] text-white/70"><Eye className="h-3 w-3" /> Preview draft</a>}{activePage?.published && <a href={`/pages/${slug}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-300/25 px-3 py-2 text-[10px] text-emerald-200"><ExternalLink className="h-3 w-3" /> Live page</a>}</div></div>
           <div className="grid gap-4 md:grid-cols-2"><label className={labelClass}>Page title<input className={fieldClass} value={draft.title} onChange={e=>updateDraft("title",e.target.value)} maxLength={160}/></label><label className={labelClass}>URL slug<div className="mt-1.5 flex rounded-lg border border-white/10 bg-[#10100f]"><span className="border-r border-white/10 px-3 py-2.5 text-xs text-white/35">/pages/</span><input className="min-w-0 flex-1 bg-transparent px-3 py-2.5 text-sm text-white outline-none" value={slug} onChange={e=>setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g,"-").replace(/-+/g,"-"))}/></div></label></div>
-          <div className="mt-5 flex flex-wrap items-center justify-between gap-3"><p className="text-[10px] text-white/35">Save creates a private draft. Publish makes this page publicly accessible.</p><div className="flex gap-2"><button onClick={()=>void savePage()} disabled={busy} className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2.5 text-xs font-semibold text-white/75 disabled:opacity-40"><Save className="h-3.5 w-3.5"/> Save draft</button><button onClick={()=>void publishPage()} disabled={busy} className="inline-flex items-center gap-2 rounded-lg bg-[#d6ae72] px-4 py-2.5 text-xs font-bold text-[#17130e] disabled:opacity-40"><Check className="h-3.5 w-3.5"/> Publish page</button></div></div>
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-3"><p className="text-[10px] text-white/35">Save creates a private draft. Publish makes this page publicly accessible.</p><div className="flex gap-2"><button onClick={()=>void savePage()} disabled={busy} className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2.5 text-xs font-semibold text-white/75 disabled:opacity-40"><Save className="h-3.5 w-3.5"/> Save draft</button><button onClick={()=>void publishPage()} disabled={busy} className="inline-flex items-center gap-2 rounded-lg bg-[#d6ae72] px-4 py-2.5 text-xs font-bold text-[#17130e] disabled:opacity-40"><Check className="h-3.5 w-3.5"/>{role === "CONTENT_MANAGER" ? "Request approval" : activePage?.approvalStatus === "pending" ? "Approve & publish" : "Publish page"}</button></div></div>
         </div>
 
         <div className="rounded-xl border border-white/10 bg-[#151513] p-4 md:p-5">
