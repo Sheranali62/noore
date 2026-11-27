@@ -1,0 +1,181 @@
+import { NextResponse } from "next/server"
+import { randomUUID } from "node:crypto"
+import { prisma } from "@/lib/prisma"
+import { requireAdmin } from "@/lib/admin"
+import {
+  getStudioPageHistory, getStudioWorkspace, normalizeStudioPageVersion,
+  normalizeStudioWorkspace, writeStudioHistory, writeStudioWorkspace,
+  type StudioPage, type StudioPageHistory,
+} from "@/lib/studio-workspace"
+
+export const dynamic = "force-dynamic"
+const ROLES = ["SUPER_ADMIN", "ADMIN", "CONTENT_MANAGER"]
+const blocked = () => process.env.VERCEL_ENV === "preview"
+
+async function audit(actorId: string | undefined, action: string, entityId: string | null, details: Record<string, unknown>) {
+  try {
+    await prisma.auditLog.create({ data: { actorId: actorId || null, action, entityType: "STUDIO", entityId, details: JSON.parse(JSON.stringify(details)) } })
+  } catch { /* Studio saves must not fail because optional audit metadata is unavailable. */ }
+}
+
+export async function GET() {
+  const auth = await requireAdmin(ROLES)
+  if (!auth.session) return auth.response
+  const [workspace, history] = await Promise.all([getStudioWorkspace(), getStudioPageHistory()])
+  return NextResponse.json({ workspace, history, role: auth.session.user?.role || "" })
+}
+
+export async function POST(request: Request) {
+  const auth = await requireAdmin(ROLES)
+  if (!auth.session) return auth.response
+  if (blocked()) return NextResponse.json({ error: "Studio publishing and saving are disabled in Preview because it shares production data. Use Preview to inspect the workspace only." }, { status: 409 })
+  const origin = request.headers.get("origin")
+  if ((origin && new URL(origin).origin !== new URL(request.url).origin) || request.headers.get("sec-fetch-site") === "cross-site") {
+    return NextResponse.json({ error: "Cross-site Studio requests are not allowed." }, { status: 403 })
+  }
+  const contentLength = Number(request.headers.get("content-length") || 0)
+  if (contentLength > 1_500_000) return NextResponse.json({ error: "Studio update is too large." }, { status: 413 })
+
+  let body: Record<string, unknown>
+  try { body = await request.json() } catch { return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 }) }
+  const action = typeof body.action === "string" ? body.action : ""
+  const workspace = await getStudioWorkspace()
+  const history = await getStudioPageHistory()
+  const actorId = auth.session.user?.id
+
+  if (action === "save-page") {
+    const pageInput = body.page as Record<string, unknown> | undefined
+    if (!pageInput || typeof pageInput !== "object") return NextResponse.json({ error: "Page details are required." }, { status: 400 })
+    const slug = typeof pageInput.slug === "string" ? pageInput.slug.trim().toLowerCase() : ""
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) || slug.length > 80) return NextResponse.json({ error: "Use a valid URL slug (letters, numbers and hyphens)." }, { status: 400 })
+    const existing = workspace.pages.find(page => page.id === pageInput.id || page.slug === slug)
+    if (!existing && workspace.pages.length >= 100) return NextResponse.json({ error: "The Studio page limit of 100 has been reached." }, { status: 409 })
+    const duplicate = workspace.pages.find(page => page.slug === slug && page.id !== pageInput.id)
+    if (duplicate) return NextResponse.json({ error: "That page URL is already in use." }, { status: 409 })
+    const rawDraft = pageInput.draft as Record<string, unknown> | undefined
+    if (typeof rawDraft?.title !== "string" || !rawDraft.title.trim()) return NextResponse.json({ error: "A page title is required." }, { status: 400 })
+    const rawSections = Array.isArray(rawDraft.sections) ? rawDraft.sections.length : 0
+    if (rawSections > 40) return NextResponse.json({ error: "A page can contain up to 40 sections." }, { status: 400 })
+    const draft = normalizeStudioPageVersion(pageInput.draft)
+    if (!draft.title || draft.sections.length > 40) return NextResponse.json({ error: "A page title and valid sections are required." }, { status: 400 })
+    const now = new Date().toISOString()
+    if (existing && JSON.stringify(existing.draft) !== JSON.stringify(draft)) {
+      const snapshot: StudioPageHistory = { id: randomUUID(), pageId: existing.id, pageTitle: existing.draft.title, createdAt: now, snapshot: existing.draft }
+      await writeStudioHistory([snapshot, ...history].slice(0, 100))
+    }
+    const draftChanged = !!existing && JSON.stringify(existing.draft) !== JSON.stringify(draft)
+    const page: StudioPage = existing ? {
+      ...existing, slug, draft, updatedAt: now,
+      approvalStatus: draftChanged ? "draft" : existing.approvalStatus,
+      approvalRequestedAt: draftChanged ? null : existing.approvalRequestedAt,
+      approvedAt: draftChanged ? null : existing.approvedAt,
+      approvedBy: draftChanged ? null : existing.approvedBy,
+    } : {
+      id: randomUUID(), slug, draft, published: null,
+      createdAt: now, updatedAt: now, publishedAt: null,
+      approvalStatus: "draft", approvalRequestedAt: null, approvedAt: null, approvedBy: null,
+    }
+    workspace.pages = existing ? workspace.pages.map(item => item.id === existing.id ? page : item) : [...workspace.pages, page]
+    await writeStudioWorkspace(normalizeStudioWorkspace(workspace))
+    await audit(actorId, "PAGE_DRAFT_SAVED", page.id, { slug, title: draft.title, sections: draft.sections.length })
+    return NextResponse.json({ page, workspace, history: await getStudioPageHistory(), message: "Draft saved. The published page is unchanged until you publish." })
+  }
+
+  if (action === "request-approval") {
+    const pageId = typeof body.pageId === "string" ? body.pageId : ""
+    const page = workspace.pages.find(item => item.id === pageId)
+    if (!page) return NextResponse.json({ error: "Page not found." }, { status: 404 })
+    if (page.approvalStatus === "pending") return NextResponse.json({ error: "This page is already awaiting review." }, { status: 409 })
+    const requestedAt = new Date().toISOString()
+    page.approvalStatus = "pending"
+    page.approvalRequestedAt = requestedAt
+    page.updatedAt = requestedAt
+    await writeStudioWorkspace(workspace)
+    await audit(actorId, "PAGE_APPROVAL_REQUESTED", page.id, { slug: page.slug, title: page.draft.title })
+    return NextResponse.json({ workspace, message: "Page submitted for administrator review." })
+  }
+
+  if (action === "publish-page" || action === "unpublish-page" || action === "delete-page") {
+    const pageId = typeof body.pageId === "string" ? body.pageId : ""
+    const page = workspace.pages.find(item => item.id === pageId)
+    if (!page) return NextResponse.json({ error: "Page not found." }, { status: 404 })
+    if (action === "publish-page" && !["SUPER_ADMIN", "ADMIN"].includes(auth.session.user?.role || "")) return NextResponse.json({ error: "Only an administrator can approve and publish a page." }, { status: 403 })
+    if ((action === "unpublish-page" || action === "delete-page") && !["SUPER_ADMIN", "ADMIN"].includes(auth.session.user?.role || "")) return NextResponse.json({ error: "Only an administrator can unpublish or delete a page." }, { status: 403 })
+    if (action === "publish-page") {
+      if (page.published) {
+        const snapshot: StudioPageHistory = { id: randomUUID(), pageId: page.id, pageTitle: page.published.title, createdAt: new Date().toISOString(), snapshot: page.published }
+        await writeStudioHistory([{ ...snapshot }, ...history].slice(0, 100))
+      }
+      const wasPending = page.approvalStatus === "pending"
+      const publishedAt = new Date().toISOString()
+      page.published = page.draft
+      page.publishedAt = publishedAt
+      page.updatedAt = publishedAt
+      page.approvalStatus = "approved"
+      page.approvedAt = publishedAt
+      page.approvedBy = actorId || null
+      await writeStudioWorkspace(workspace)
+      await audit(actorId, wasPending ? "PAGE_APPROVED_AND_PUBLISHED" : "PAGE_PUBLISHED", page.id, { slug: page.slug, title: page.draft.title })
+      return NextResponse.json({ workspace, history: await getStudioPageHistory(), message: wasPending ? "Page approved and published." : "Page published." })
+    }
+    if (action === "unpublish-page") {
+      page.published = null
+      page.publishedAt = null
+      page.approvalStatus = "draft"
+      page.approvalRequestedAt = null
+      page.approvedAt = null
+      page.approvedBy = null
+      workspace.navigation = workspace.navigation.filter(item => item.url !== `/pages/${page.slug}`)
+      page.updatedAt = new Date().toISOString()
+      await writeStudioWorkspace(workspace)
+      await audit(actorId, "PAGE_UNPUBLISHED", page.id, { slug: page.slug })
+      return NextResponse.json({ workspace, message: "Page is no longer publicly visible." })
+    }
+    workspace.pages = workspace.pages.filter(item => item.id !== page.id)
+    workspace.navigation = workspace.navigation.filter(item => item.url !== `/pages/${page.slug}`)
+    await writeStudioWorkspace(workspace)
+    await audit(actorId, "PAGE_DELETED", page.id, { slug: page.slug })
+    return NextResponse.json({ workspace, message: "Page removed from Studio." })
+  }
+
+  if (action === "save-global") {
+    if (!["SUPER_ADMIN", "ADMIN"].includes(auth.session.user?.role || "")) return NextResponse.json({ error: "Only an administrator can change global website settings." }, { status: 403 })
+    const incoming = body.workspace
+    if (!incoming || typeof incoming !== "object") return NextResponse.json({ error: "Workspace settings are required." }, { status: 400 })
+    const incomingSettings = incoming as Record<string, unknown>
+    if (Array.isArray(incomingSettings.navigation) && incomingSettings.navigation.length > 30) return NextResponse.json({ error: "You can add up to 30 navigation links." }, { status: 400 })
+    if (Array.isArray(incomingSettings.media) && incomingSettings.media.length > 300) return NextResponse.json({ error: "You can add up to 300 media assets." }, { status: 400 })
+    if (Array.isArray(incomingSettings.redirects) && incomingSettings.redirects.length > 200) return NextResponse.json({ error: "You can add up to 200 redirects." }, { status: 400 })
+    const next = normalizeStudioWorkspace({ ...workspace, ...incomingSettings, pages: workspace.pages })
+    const sources = new Set(next.redirects.map(rule => rule.from))
+    if (sources.size !== next.redirects.length) return NextResponse.json({ error: "Each redirect source must be unique." }, { status: 400 })
+    for (const rule of next.redirects) {
+      if (rule.to === rule.from || sources.has(rule.to)) return NextResponse.json({ error: "Redirect loops are not allowed. Check the source and destination paths." }, { status: 400 })
+    }
+    await writeStudioWorkspace(next)
+    await audit(actorId, "STUDIO_SETTINGS_SAVED", null, { navigationItems: next.navigation.length, mediaAssets: next.media.length, redirects: next.redirects.length })
+    return NextResponse.json({ workspace: next, message: "Studio settings saved." })
+  }
+
+  if (action === "restore-page") {
+    const versionId = typeof body.versionId === "string" ? body.versionId : ""
+    const version = history.find(item => item.id === versionId)
+    if (!version) return NextResponse.json({ error: "That revision is no longer available." }, { status: 404 })
+    const page = workspace.pages.find(item => item.id === version.pageId)
+    if (!page) return NextResponse.json({ error: "The original page no longer exists." }, { status: 404 })
+    const now = new Date().toISOString()
+    const currentSnapshot: StudioPageHistory = { id: randomUUID(), pageId: page.id, pageTitle: page.draft.title, createdAt: now, snapshot: page.draft }
+    await writeStudioHistory([currentSnapshot, ...history].slice(0, 100))
+    page.draft = normalizeStudioPageVersion(version.snapshot)
+    page.approvalStatus = "draft"
+    page.approvalRequestedAt = null
+    page.approvedAt = null
+    page.approvedBy = null
+    page.updatedAt = now
+    await writeStudioWorkspace(workspace)
+    await audit(actorId, "PAGE_REVISION_RESTORED", page.id, { versionId, slug: page.slug })
+    return NextResponse.json({ workspace, history: await getStudioPageHistory(), message: "Revision restored to draft. Publish it when ready." })
+  }
+
+  return NextResponse.json({ error: "Unsupported Studio action." }, { status: 400 })
+}

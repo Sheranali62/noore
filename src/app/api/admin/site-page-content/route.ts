@@ -16,6 +16,7 @@ export async function GET() {
 export async function PUT(request:Request) {
  const auth=await requireAdmin(["SUPER_ADMIN","ADMIN","CONTENT_MANAGER"])
  if(!auth.session)return auth.response
+ if(process.env.VERCEL_ENV === "preview") return NextResponse.json({error:"Publishing page content is disabled in preview because it shares production data."},{status:409})
  let body:unknown
  try{body=await request.json()}catch{return NextResponse.json({error:"Invalid JSON body"},{status:400})}
  if(!body||typeof body!=="object"||Array.isArray(body))return NextResponse.json({error:"Invalid page content"},{status:400})

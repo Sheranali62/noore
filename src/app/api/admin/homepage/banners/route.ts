@@ -7,6 +7,7 @@ export const dynamic = "force-dynamic"
 export async function POST(request: Request) {
   const auth = await requireAdmin(["SUPER_ADMIN", "ADMIN", "CONTENT_MANAGER"])
   if (!auth.session) return auth.response
+  if (process.env.VERCEL_ENV === "preview") return NextResponse.json({ error: "Banner publishing is disabled in preview because it shares production data." }, { status: 409 })
   try {
     const body = await request.json()
     if (!body.heading || !body.image) return NextResponse.json({ error: "Heading and desktop image are required" }, { status: 400 })

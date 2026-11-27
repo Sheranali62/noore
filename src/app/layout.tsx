@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { GoogleAnalytics } from "@/components/analytics/google-analytics"
 import { AutoDayNightTheme } from "@/components/theme/auto-day-night"
 import { PerformanceOptimizer } from "@/components/performance/performance-optimizer"
+import { getStudioWorkspace } from "@/lib/studio-workspace"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -21,7 +22,7 @@ const playfair = Playfair_Display({
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://noore-nine.vercel.app"
 
-export const metadata: Metadata = {
+const defaultMetadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
     default: "NOORÉ — Premium Pakistani Fashion",
@@ -89,6 +90,29 @@ export const metadata: Metadata = {
   },
   category: "fashion",
   alternates: { canonical: SITE_URL },
+}
+
+
+
+export async function generateMetadata(): Promise<Metadata> {
+  let seo: Awaited<ReturnType<typeof getStudioWorkspace>>["seo"]
+  try { seo = (await getStudioWorkspace()).seo } catch { seo = { title: "", description: "", keywords: "", canonical: "", ogImage: "", noIndex: false } }
+  const title = seo.title || "NOORÉ — Premium Pakistani Fashion"
+  const description = seo.description || "Timeless silhouettes rooted in Pakistani craft. Luxury pret, unstitched, men's wear, accessories. Premium fashion for the modern wardrobe."
+  const canonical = seo.canonical || SITE_URL
+  const image = seo.ogImage || "/og-image.jpg"
+  return {
+    ...defaultMetadata,
+    title: { default: title, template: "%s | NOORÉ" },
+    description,
+    ...(seo.keywords ? { keywords: seo.keywords.split(",").map(value => value.trim()).filter(Boolean) } : {}),
+    alternates: { canonical },
+    robots: seo.noIndex ? { index: false, follow: false } : defaultMetadata.robots,
+    openGraph: {
+      title, description, url: canonical, siteName: "NOORÉ", images: [{ url: image, width: 1200, height: 630, alt: title }], locale: "en_US", type: "website",
+    },
+    twitter: { card: "summary_large_image", title, description, images: [image], creator: "@noore", site: "@noore" },
+  }
 }
 
 export default function RootLayout({

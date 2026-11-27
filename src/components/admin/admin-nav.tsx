@@ -21,6 +21,7 @@ import {
   CreditCard,
   Mail,
   LifeBuoy,
+  WandSparkles,
 } from "lucide-react"
 
 const ADMIN = ["SUPER_ADMIN", "ADMIN"] as const
@@ -30,6 +31,7 @@ const CONTENT = [...ADMIN, "CONTENT_MANAGER"] as const
 
 const items = [
   { href: "/admin", label: "Dashboard", icon: Home, roles: ADMIN },
+  { href: "/admin/studio", label: "Web Studio", icon: WandSparkles, roles: CONTENT },
   { href: "/admin/products", label: "Products", icon: Package, roles: PRODUCT },
   { href: "/admin/categories", label: "Categories", icon: FolderTree, roles: PRODUCT },
   { href: "/admin/orders", label: "Orders", icon: ClipboardList, roles: ORDER },

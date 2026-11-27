@@ -19,6 +19,8 @@ const DEFAULT_SECTIONS = [
 async function ensureSections() {
   const existing = await prisma.homepageSection.findMany({ orderBy: { sortOrder: "asc" } })
   if (existing.length) return existing
+  // A preview deployment shares production data and must remain read-only.
+  if (process.env.VERCEL_ENV === "preview") return []
   await prisma.$transaction(DEFAULT_SECTIONS.map(([type], index) =>
     prisma.homepageSection.create({ data: { type, enabled: type !== "instagram", sortOrder: index + 1 } })
   ))
@@ -38,6 +40,7 @@ export async function GET() {
 export async function PUT(request: Request) {
   const auth = await requireAdmin(["SUPER_ADMIN", "ADMIN", "CONTENT_MANAGER"])
   if (!auth.session) return auth.response
+  if (process.env.VERCEL_ENV === "preview") return NextResponse.json({ error: "Homepage layout publishing is disabled in preview because it shares production data." }, { status: 409 })
   const body = await request.json()
   if (!Array.isArray(body?.sections)) return NextResponse.json({ error: "sections must be an array" }, { status: 400 })
 
