@@ -16,7 +16,7 @@
 - Heading/body typography controls.
 - Responsive desktop/mobile local canvas preview.
 - Save and discard behavior with unsaved-change state.
-- Preview deployments reject homepage writes because preview currently shares the production Supabase project.
+- Preview deployments reject homepage design writes because preview currently shares the production Supabase project.
 
 ### Version history
 - Every changed homepage save records the previous normalized design.
@@ -33,7 +33,7 @@
 
 - The canvas is a local design mock-up, not a pixel-perfect rendering of the actual storefront.
 - Homepage save is a live setting write when used on a production deployment. Do not publish from production until release/backup checks have been completed and the operator intends to change the live site.
-- The Preview environment is intentionally read-only for homepage publishing and version restore.
+- The Preview environment is intentionally read-only for all Studio content writes: homepage design, homepage layout, hero banners, individual page content, storefront image settings, image uploads, and homepage version restore. Homepage section reads also avoid creating defaults in Preview.
 - Existing image manager updates image URL settings; it is not a general-purpose DAM with folders, crop transformations or asset lifecycle controls.
 - The current site contains existing page-content tools, but a universal drag-and-drop page builder, isolated draft rendering for every route, per-page SEO metadata/redirect manager, approval workflow, and audit-grade content versioning for every content type are not yet implemented.
 - No product, order, customer, inventory, pricing, payment, checkout or storefront business data is modified by this Studio work.
