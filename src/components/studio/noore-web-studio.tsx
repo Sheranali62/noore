@@ -78,7 +78,7 @@ const tabItems: { id: StudioTab; label: string; icon: typeof Palette; descriptio
 export default function NooreWebStudio() {
   const [design, setDesign] = useState<HomepageDesign>(DEFAULT_HOMEPAGE_DESIGN)
   const [saved, setSaved] = useState<HomepageDesign>(DEFAULT_HOMEPAGE_DESIGN)
-  const [tab, setTab] = useState<StudioTab>("design")
+  const [tab, setTab] = useState<StudioTab>("pages")
   const [group, setGroup] = useState("Hero")
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop")
   const [loading, setLoading] = useState(true)
