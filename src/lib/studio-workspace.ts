@@ -138,7 +138,8 @@ export function normalizeStudioWorkspace(input: unknown): StudioWorkspace {
     return [{ id: clean(entry.id, 80) || crypto.randomUUID(), from, to, status: entry.status === 302 ? 302 as const : 301 as const, enabled: entry.enabled !== false }]
   }) : []
   const seoRow = row.seo && typeof row.seo === "object" ? row.seo as Record<string, unknown> : {}
-  const seo: StudioSiteSEO = { title: clean(seoRow.title, 180), description: clean(seoRow.description, 320), keywords: clean(seoRow.keywords, 500), canonical: safeUrl(seoRow.canonical), ogImage: safeUrl(seoRow.ogImage), noIndex: seoRow.noIndex === true }\n  return { seo, pages, navigation, media, redirects }
+  const seo: StudioSiteSEO = { title: clean(seoRow.title, 180), description: clean(seoRow.description, 320), keywords: clean(seoRow.keywords, 500), canonical: safeUrl(seoRow.canonical), ogImage: safeUrl(seoRow.ogImage), noIndex: seoRow.noIndex === true }
+  return { seo, pages, navigation, media, redirects }
 }
 
 export async function getStudioWorkspace(): Promise<StudioWorkspace> {
