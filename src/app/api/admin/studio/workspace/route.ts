@@ -48,6 +48,10 @@ export async function POST(request: Request) {
     if (!draft.title || draft.sections.length > 40) return NextResponse.json({ error: "A page title and valid sections are required." }, { status: 400 })
     const existing = workspace.pages.find(page => page.id === pageInput.id || page.slug === slug)
     const now = new Date().toISOString()
+    if (existing && JSON.stringify(existing.draft) !== JSON.stringify(draft)) {
+      const snapshot: StudioPageHistory = { id: randomUUID(), pageId: existing.id, pageTitle: existing.draft.title, createdAt: now, snapshot: existing.draft }
+      await writeStudioHistory([snapshot, ...history].slice(0, 100))
+    }
     const page: StudioPage = existing ? {
       ...existing, slug, draft, updatedAt: now,
     } : {
