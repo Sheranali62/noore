@@ -3,13 +3,13 @@
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import {
-  ArrowUpRight, Check, ChevronDown, Eye, Globe2, Laptop, LayoutTemplate,
+  ArrowUpRight, Check, Eye, Globe2, History, LayoutTemplate,
   Loader2, Monitor, Palette, RotateCcw, Save, Smartphone, Sparkles,
   Type, WandSparkles, X,
 } from "lucide-react"
 import { DEFAULT_HOMEPAGE_DESIGN, type HomepageDesign } from "@/lib/homepage-design"
 
-type StudioTab = "design" | "content" | "pages" | "seo"
+type StudioTab = "design" | "content" | "pages" | "seo" | "history"
 type Field = { key: keyof HomepageDesign; label: string; group: string; multiline?: boolean }
 
 const fields: Field[] = [
@@ -71,6 +71,7 @@ const tabItems: { id: StudioTab; label: string; icon: typeof Palette; descriptio
   { id: "content", label: "Content", icon: Type, description: "Edit homepage copy and calls to action" },
   { id: "pages", label: "Pages", icon: LayoutTemplate, description: "Open existing page management tools" },
   { id: "seo", label: "SEO", icon: Globe2, description: "Search appearance and discoverability" },
+  { id: "history", label: "History", icon: History, description: "Restore an earlier homepage design" },
 ]
 
 export default function NooreWebStudio() {
@@ -83,6 +84,9 @@ export default function NooreWebStudio() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
   const [notice, setNotice] = useState("")
+  const [versions, setVersions] = useState<Array<{ id: string; createdAt: string; label: string; design: HomepageDesign }>>([])
+  const [historyLoading, setHistoryLoading] = useState(false)
+  const [restoring, setRestoring] = useState("")
 
   useEffect(() => {
     let active = true
@@ -99,6 +103,45 @@ export default function NooreWebStudio() {
       .finally(() => { if (active) setLoading(false) })
     return () => { active = false }
   }, [])
+
+  useEffect(() => {
+    if (tab !== "history") return
+    let active = true
+    setHistoryLoading(true)
+    fetch("/api/admin/homepage-design/history", { cache: "no-store" })
+      .then(async response => {
+        const payload = await response.json()
+        if (!response.ok) throw new Error(payload.error || "Unable to load version history")
+        if (active) setVersions(Array.isArray(payload.versions) ? payload.versions : [])
+      })
+      .catch(reason => { if (active) setError(reason instanceof Error ? reason.message : "Unable to load version history") })
+      .finally(() => { if (active) setHistoryLoading(false) })
+    return () => { active = false }
+  }, [tab])
+
+  async function restoreVersion(versionId: string) {
+    if (!window.confirm("Restore this saved homepage design? Your current design will first be saved to version history.")) return
+    setRestoring(versionId)
+    setError("")
+    setNotice("")
+    try {
+      const response = await fetch("/api/admin/homepage-design/history", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ versionId }),
+      })
+      const payload = await response.json()
+      if (!response.ok) throw new Error(payload.error || "Could not restore version")
+      setDesign(payload.design)
+      setSaved(payload.design)
+      setVersions(payload.versions || [])
+      setNotice("Previous homepage design restored.")
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Could not restore version")
+    } finally {
+      setRestoring("")
+    }
+  }
 
   const changed = useMemo(
     () => (Object.keys(design) as (keyof HomepageDesign)[]).some(key => design[key] !== saved[key]),
@@ -195,7 +238,7 @@ export default function NooreWebStudio() {
 
         <section className="border-b border-white/10 bg-[#10100f] p-4 sm:p-6 lg:min-h-[calc(100vh-76px)] lg:border-b-0 lg:border-r lg:p-5">
           <div className="mb-5 flex items-start justify-between gap-3">
-            <div><p className="text-[9px] font-bold uppercase tracking-[.22em] text-[#d6ae72]">{tabItems.find(item => item.id === tab)?.label} editor</p><h2 className="mt-1 text-lg font-semibold">{tab === "design" ? "Visual identity" : tab === "content" ? "Homepage content" : tab === "pages" ? "Page manager" : "Search visibility"}</h2></div>
+            <div><p className="text-[9px] font-bold uppercase tracking-[.22em] text-[#d6ae72]">{tabItems.find(item => item.id === tab)?.label} editor</p><h2 className="mt-1 text-lg font-semibold">{tab === "design" ? "Visual identity" : tab === "content" ? "Homepage content" : tab === "pages" ? "Page manager" : tab === "history" ? "Saved versions" : "Search visibility"}</h2></div>
             {changed && <span className="rounded-full border border-amber-300/25 bg-amber-300/10 px-2.5 py-1 text-[9px] font-semibold text-amber-200">Unsaved</span>}
           </div>
 
@@ -216,7 +259,19 @@ export default function NooreWebStudio() {
 
           {!loading && tab === "pages" && <div className="space-y-3">
             <p className="text-sm leading-6 text-white/50">Use the existing NOORÉ admin tools to manage storefront content. These links preserve the current page-management workflows.</p>
-            {[["Homepage sections","/admin/homepage"],["Page content","/admin/page-content"],["Storefront images","/admin/storefront-media"],["Website design settings","/admin/website-design"]].map(([label,href]) => <Link key={href} href={href} className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[.025] p-4 text-sm text-white/80 transition hover:border-[#d6ae72]/40 hover:bg-[#d6ae72]/[.06]">{label}<ArrowUpRight className="h-4 w-4 text-[#d6ae72]" /></Link>)}
+            {[["Homepage sections","/admin/homepage"],["Page content & reusable sections","/admin/page-content"],["Media library & image uploads","/admin/storefront-media"],["Theme and storefront design","/admin/website-design"]].map(([label,href]) => <Link key={href} href={href} className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[.025] p-4 text-sm text-white/80 transition hover:border-[#d6ae72]/40 hover:bg-[#d6ae72]/[.06]">{label}<ArrowUpRight className="h-4 w-4 text-[#d6ae72]" /></Link>)}
+          </div>}
+
+          {!loading && tab === "history" && <div className="space-y-3">
+            <div className="rounded-xl border border-[#d6ae72]/20 bg-[#d6ae72]/[.05] p-4">
+              <p className="text-xs font-semibold text-[#e8c98e]">Homepage version history</p>
+              <p className="mt-2 text-xs leading-5 text-white/50">Every changed homepage save keeps the previous version. Up to 30 versions are retained in the existing settings store. Restoring creates a safety snapshot of the current design first.</p>
+            </div>
+            {historyLoading ? <p className="flex items-center gap-2 p-4 text-xs text-white/45"><Loader2 className="h-4 w-4 animate-spin" /> Loading versions…</p> : versions.length === 0 ? <p className="rounded-xl border border-white/10 p-4 text-xs text-white/45">No saved versions yet. Save a homepage design change to create your first restore point.</p> : versions.map((version, index) => <article key={version.id} className="rounded-xl border border-white/10 bg-white/[.025] p-4">
+              <div className="flex items-start justify-between gap-3"><div><p className="text-xs font-semibold text-white/85">{version.label || "Homepage version"}</p><p className="mt-1 text-[10px] text-white/40">{new Date(version.createdAt).toLocaleString()}</p></div><span className="text-[9px] text-white/30">v{versions.length - index}</span></div>
+              <p className="mt-3 line-clamp-2 text-xs leading-5 text-white/55">{version.design?.heroHeading || "Homepage design snapshot"}</p>
+              <button type="button" onClick={() => restoreVersion(version.id)} disabled={!!restoring || historyLoading} className="mt-3 inline-flex items-center gap-2 rounded-lg border border-[#d6ae72]/30 px-3 py-2 text-[10px] font-semibold text-[#e8c98e] hover:bg-[#d6ae72]/10 disabled:opacity-40">{restoring === version.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <RotateCcw className="h-3 w-3" />} Restore this version</button>
+            </article>)}
           </div>}
 
           {!loading && tab === "seo" && <div className="space-y-4">
