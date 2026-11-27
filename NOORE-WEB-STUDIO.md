@@ -13,7 +13,7 @@
 - Edit homepage announcement, hero, collection, favourites, category, arrivals, luxury, sale, brand, newsletter and footer copy.
 - Edit the existing brand palette and heading/body typography.
 - Responsive desktop/mobile visual canvas preview.
-- Save, discard and unsaved-change state.
+- Save, discard and unsaved-change state. Homepage publishing and homepage-version restore are administrator-only; Content Managers can read the design but cannot publish directly.
 - Up to 30 previous homepage design snapshots and restore support.
 
 ## Custom page builder
