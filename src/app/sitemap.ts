@@ -65,5 +65,12 @@ export default async function sitemap() {
     priority: 0.7,
   }))
 
-  const studioPages = (await getStudioWorkspace()).pages.flatMap((page) => page.published && !page.published.noIndex ? [{\n    url: `${SITE_URL}/pages/${page.slug}`,\n    lastModified: new Date(page.publishedAt || page.updatedAt),\n    changeFrequency: "weekly" as const,\n    priority: 0.6,\n  }] : [])\n\n  return [...staticPages, ...blogPages, ...productPages, ...studioPages]
+  const studioPages = (await getStudioWorkspace()).pages.flatMap((page) => page.published && !page.published.noIndex ? [{
+    url: `${SITE_URL}/pages/${page.slug}`,
+    lastModified: new Date(page.publishedAt || page.updatedAt),
+    changeFrequency: "weekly" as const,
+    priority: 0.6,
+  }] : [])
+
+  return [...staticPages, ...blogPages, ...productPages, ...studioPages]
 }
