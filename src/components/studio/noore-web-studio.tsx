@@ -251,7 +251,7 @@ export default function NooreWebStudio() {
 
         <section className="border-b border-white/10 bg-[#10100f] p-4 sm:p-6 lg:min-h-[calc(100vh-76px)] lg:border-b-0 lg:border-r lg:p-5">
           <div className="mb-5 flex items-start justify-between gap-3">
-            <div><p className="text-[9px] font-bold uppercase tracking-[.22em] text-[#d6ae72]">{tabItems.find(item => item.id === tab)?.label} editor</p><h2 className="mt-1 text-lg font-semibold">{tab === "design" ? "Visual identity" : tab === "content" ? "Homepage content" : tab === "pages" ? "Page manager" : tab === "history" ? "Saved versions" : "Search visibility"}</h2></div>
+            <div><p className="text-[9px] font-bold uppercase tracking-[.22em] text-[#d6ae72]">{tabItems.find(item => item.id === tab)?.label} editor</p><h2 className="mt-1 text-lg font-semibold">{tab === "design" ? "Visual identity" : tab === "content" ? "Homepage content" : tab === "history" ? "Saved versions" : "Search visibility"}</h2></div>
             {changed && <span className="rounded-full border border-amber-300/25 bg-amber-300/10 px-2.5 py-1 text-[9px] font-semibold text-amber-200">Unsaved</span>}
           </div>
 
@@ -268,11 +268,6 @@ export default function NooreWebStudio() {
             <label className="block text-xs font-semibold text-white/70">Section to edit<select value={group} onChange={event => setGroup(event.target.value)} className="mt-2 w-full rounded-xl border border-white/10 bg-[#171716] px-3 py-3 text-sm text-white outline-none focus:border-[#d6ae72]/60">{groups.map(item => <option key={item}>{item}</option>)}</select></label>
             {fields.filter(field => field.group === group).map(field => <label key={field.key} className="block text-xs font-medium text-white/65">{field.label}{field.multiline ? <textarea rows={3} value={String(design[field.key])} onChange={event => update(field.key, event.target.value)} className="mt-2 w-full resize-y rounded-xl border border-white/10 bg-[#171716] px-3 py-3 text-sm leading-5 text-white outline-none focus:border-[#d6ae72]/60" /> : <input value={String(design[field.key])} onChange={event => update(field.key, event.target.value)} className="mt-2 w-full rounded-xl border border-white/10 bg-[#171716] px-3 py-3 text-sm text-white outline-none focus:border-[#d6ae72]/60" />}</label>)}
             {fields.filter(field => field.group === group).length === 0 && <p className="rounded-xl border border-white/10 p-4 text-sm text-white/45">No editable fields are configured for this section yet.</p>}
-          </div>}
-
-          {!loading && tab === "pages" && <div className="space-y-3">
-            <p className="text-sm leading-6 text-white/50">Use the existing NOORÉ admin tools to manage storefront content. These links preserve the current page-management workflows.</p>
-            {[["Homepage sections","/admin/homepage"],["Page content & reusable sections","/admin/page-content"],["Media library & image uploads","/admin/storefront-media"],["Theme and storefront design","/admin/website-design"]].map(([label,href]) => <Link key={href} href={href} className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[.025] p-4 text-sm text-white/80 transition hover:border-[#d6ae72]/40 hover:bg-[#d6ae72]/[.06]">{label}<ArrowUpRight className="h-4 w-4 text-[#d6ae72]" /></Link>)}
           </div>}
 
           {!loading && tab === "history" && <div className="space-y-3">
