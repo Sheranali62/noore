@@ -85,6 +85,17 @@ export default function StudioBuilder() {
       return { ...current, sections }
     })
   }
+  function duplicateBlock(id: string) {
+    setDraft(current => {
+      if (current.sections.length >= 40) return current
+      const index = current.sections.findIndex(item => item.id === id)
+      if (index < 0) return current
+      const copy = { ...current.sections[index], id: crypto.randomUUID(), items: current.sections[index].items.map(item => ({ ...item })) }
+      const sections = [...current.sections]
+      sections.splice(index + 1, 0, copy)
+      return { ...current, sections }
+    })
+  }
   function addBlock(type: StudioBlockType) {
     setDraft(current => ({ ...current, sections: [...current.sections, blankBlock(type)] }))
   }
@@ -178,7 +189,7 @@ export default function StudioBuilder() {
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><div><p className="text-[9px] font-bold uppercase tracking-[.2em] text-[#d6ae72]">Page structure</p><h3 className="mt-1 text-base font-semibold">Sections & content blocks</h3></div><span className="text-[10px] text-white/35">{draft.sections.length} / 40 blocks</span></div>
           {draft.sections.length===0 && <div className="rounded-lg border border-dashed border-white/15 px-4 py-10 text-center"><p className="text-sm text-white/60">Your page is empty</p><p className="mt-2 text-xs text-white/35">Add a hero, text, image or product section below.</p></div>}
           <div className="space-y-3">{draft.sections.map((block,index)=><article key={block.id} className="rounded-xl border border-white/10 bg-[#10100f] p-3 md:p-4">
-            <div className="mb-3 flex items-center justify-between gap-2"><div className="flex items-center gap-2"><span className="grid h-6 w-6 place-items-center rounded-full bg-[#d6ae72]/15 text-[10px] text-[#e8c98e]">{index+1}</span><div><p className="text-xs font-semibold text-white/85">{blockTypes.find(x=>x.type===block.type)?.label}</p><p className="text-[9px] text-white/35">{blockTypes.find(x=>x.type===block.type)?.hint}</p></div></div><div className="flex gap-1"><button aria-label="Move section up" disabled={index===0} onClick={()=>moveBlock(block.id,-1)} className="rounded p-2 text-white/45 hover:bg-white/10 disabled:opacity-20"><ArrowUp className="h-3.5 w-3.5"/></button><button aria-label="Move section down" disabled={index===draft.sections.length-1} onClick={()=>moveBlock(block.id,1)} className="rounded p-2 text-white/45 hover:bg-white/10 disabled:opacity-20"><ArrowDown className="h-3.5 w-3.5"/></button><button aria-label="Remove section" onClick={()=>updateDraft("sections",draft.sections.filter(item=>item.id!==block.id))} className="rounded p-2 text-red-300/70 hover:bg-red-400/10"><Trash2 className="h-3.5 w-3.5"/></button></div></div>
+            <div className="mb-3 flex items-center justify-between gap-2"><div className="flex items-center gap-2"><span className="grid h-6 w-6 place-items-center rounded-full bg-[#d6ae72]/15 text-[10px] text-[#e8c98e]">{index+1}</span><div><p className="text-xs font-semibold text-white/85">{blockTypes.find(x=>x.type===block.type)?.label}</p><p className="text-[9px] text-white/35">{blockTypes.find(x=>x.type===block.type)?.hint}</p></div></div><div className="flex gap-1"><button aria-label="Move section up" disabled={index===0} onClick={()=>moveBlock(block.id,-1)} className="rounded p-2 text-white/45 hover:bg-white/10 disabled:opacity-20"><ArrowUp className="h-3.5 w-3.5"/></button><button aria-label="Move section down" disabled={index===draft.sections.length-1} onClick={()=>moveBlock(block.id,1)} className="rounded p-2 text-white/45 hover:bg-white/10 disabled:opacity-20"><ArrowDown className="h-3.5 w-3.5"/></button><button aria-label="Duplicate section" onClick={()=>duplicateBlock(block.id)} disabled={draft.sections.length>=40} className="rounded p-2 text-white/45 hover:bg-white/10 disabled:opacity-20"><Copy className="h-3.5 w-3.5"/></button><button aria-label="Remove section" onClick={()=>updateDraft("sections",draft.sections.filter(item=>item.id!==block.id))} className="rounded p-2 text-red-300/70 hover:bg-red-400/10"><Trash2 className="h-3.5 w-3.5"/></button></div></div>
             {block.type!=="spacer" && <div className="grid gap-3 md:grid-cols-2">
               <label className={labelClass}>Eyebrow<input className={fieldClass} value={block.eyebrow} onChange={e=>updateBlock(block.id,{eyebrow:e.target.value})}/></label>
               <label className={labelClass}>Heading<input className={fieldClass} value={block.title} onChange={e=>updateBlock(block.id,{title:e.target.value})}/></label>
