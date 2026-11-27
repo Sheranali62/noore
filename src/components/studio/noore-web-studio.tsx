@@ -8,6 +8,7 @@ import {
   Type, WandSparkles, X,
 } from "lucide-react"
 import { DEFAULT_HOMEPAGE_DESIGN, type HomepageDesign } from "@/lib/homepage-design"
+import StudioBuilder from "@/components/studio/studio-builder"
 
 type StudioTab = "design" | "content" | "pages" | "seo" | "history"
 type Field = { key: keyof HomepageDesign; label: string; group: string; multiline?: boolean }
@@ -69,7 +70,7 @@ const colors: { key: keyof HomepageDesign; label: string }[] = [
 const tabItems: { id: StudioTab; label: string; icon: typeof Palette; description: string }[] = [
   { id: "design", label: "Design", icon: Palette, description: "Colors, typography and visual identity" },
   { id: "content", label: "Content", icon: Type, description: "Edit homepage copy and calls to action" },
-  { id: "pages", label: "Pages", icon: LayoutTemplate, description: "Open existing page management tools" },
+  { id: "pages", label: "Builder", icon: LayoutTemplate, description: "Build custom pages, menus and content" },
   { id: "seo", label: "SEO", icon: Globe2, description: "Search appearance and discoverability" },
   { id: "history", label: "History", icon: History, description: "Restore an earlier homepage design" },
 ]
@@ -187,6 +188,18 @@ export default function NooreWebStudio() {
     color: design.textColor,
     fontFamily: design.bodyFont === "serif" ? "Georgia, serif" : "Arial, sans-serif",
   }
+
+  if (tab === "pages") return (
+    <div className="min-h-screen bg-[#090909] text-white">
+      <header className="sticky top-0 z-40 border-b border-[#d6ae72]/20 bg-[#0b0b0b]/95 px-4 py-4 backdrop-blur-xl sm:px-6">
+        <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-3">
+          <div><Link href="/admin" className="font-editorial text-2xl tracking-wide text-[#e8c98e]">NOORÉ</Link><p className="mt-1 text-[9px] font-semibold uppercase tracking-[.22em] text-[#d6ae72]">Complete website builder</p></div>
+          <div className="flex gap-2"><button onClick={() => setTab("design")} className="rounded-lg border border-white/15 px-3 py-2 text-xs text-white/70">Homepage editor</button><Link href="/" target="_blank" className="rounded-lg bg-[#d6ae72] px-3 py-2 text-xs font-bold text-[#17130e]">View website</Link></div>
+        </div>
+      </header>
+      <div className="mx-auto max-w-[1600px] p-4 sm:p-6 lg:p-8"><StudioBuilder /></div>
+    </div>
+  )
 
   return (
     <div className="min-h-screen bg-[#090909] text-white">
