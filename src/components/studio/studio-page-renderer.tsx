@@ -21,9 +21,6 @@ export default async function StudioPageRenderer({ page }: { page: StudioPageVer
 function StudioSection({ block, products }: { block: StudioBlock; products: Array<{ id: string; name: string; slug: string; price: number; salePrice: number | null; images: string[]; category: string; stock: number; gender: string | null }> }) {
   const style = { backgroundColor: safeStyle(block.backgroundColor, "#f7f6f2"), color: safeStyle(block.textColor, "#30352e") }
   const align = block.align === "center" ? "text-center" : block.align === "right" ? "text-right" : "text-left"
-async function StudioSection({ block }: { block: StudioBlock }) {
-  const style = { backgroundColor: safeStyle(block.backgroundColor, "#f7f6f2"), color: safeStyle(block.textColor, "#30352e") }
-  const align = block.align === "center" ? "text-center" : block.align === "right" ? "text-right" : "text-left"
   if (block.type === "spacer") return <div aria-hidden="true" className="h-12 md:h-24" />
   if (block.type === "product-grid") {
     const matchingProducts = products.filter(product => !block.productCategory || product.category.toLowerCase() === block.productCategory.toLowerCase()).slice(0, block.productCount)
