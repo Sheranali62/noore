@@ -1,4 +1,5 @@
 const buckets = new Map<string, { count: number; resetAt: number }>()
+let warnedAboutRateLimitSchema = false
 
 export function getClientIp(request: Request) {
   const candidate = request.headers.get("x-real-ip") ||
@@ -32,6 +33,17 @@ export function checkRateLimit(key: string, limit: number, windowMs: number) {
 import { createHmac } from "crypto"
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+
+function isMissingRateLimitTable(error: unknown) {
+  if (!error || typeof error !== "object") return false
+  const candidate = error as { code?: unknown; message?: unknown; meta?: { code?: unknown; message?: unknown } }
+  const code = candidate.code ?? candidate.meta?.code
+  const message = String(candidate.message ?? candidate.meta?.message ?? "")
+  return code === "42P01" || (
+    message.includes('relation "RateLimitBucket" does not exist') ||
+    message.includes('relation "RateLimitBucket"') && message.toLowerCase().includes("does not exist")
+  )
+}
 
 export async function enforceRateLimit(
   request: NextRequest,
@@ -78,6 +90,21 @@ export async function enforceRateLimit(
       { status: 429, headers: { "Retry-After": String(retryAfter), "Cache-Control": "no-store" } }
     )
   } catch (error) {
+    if (isMissingRateLimitTable(error)) {
+      // Temporary compatibility path for preview databases that have not received
+      // the RateLimitBucket migration. This is per-instance, not globally distributed.
+      if (!warnedAboutRateLimitSchema) {
+        console.warn("RateLimitBucket table is missing; using in-memory rate limiting until the database migration is applied.")
+        warnedAboutRateLimitSchema = true
+      }
+      const result = checkRateLimit(key, limit, windowMs)
+      if (result.allowed) return null
+      return NextResponse.json(
+        { error: "Too many requests. Please wait a little and try again." },
+        { status: 429, headers: { "Retry-After": String(result.retryAfterSeconds), "Cache-Control": "no-store" } }
+      )
+    }
+
     console.error("Rate limit check failed:", error)
     return NextResponse.json({ error: "This service is temporarily unavailable. Please try again shortly." }, { status: 503 })
   }
