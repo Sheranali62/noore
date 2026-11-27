@@ -76,7 +76,7 @@
 
 ## Remaining release verification
 
-- Vercel build for commit `4b5b68f` passed compilation, TypeScript and static page generation. Non-interactive draft preview and searchable media-library changes are awaiting a fresh build.
-- Browser-test create/edit/preview/publish/unpublish/delete, navigation, image upload, metadata, redirects, revisions and responsive layouts with an isolated preview database.
+- Vercel build for commit `f4a96c9` passed compilation, TypeScript and static page generation, including non-interactive draft product previews, searchable media assets and approval-state restoration.
+- Browser-test create/edit/preview/publish/unpublish/delete, navigation, image upload, metadata, redirects, revisions and responsive layouts. Preview currently shares production Supabase, so write actions intentionally return HTTP 409; full write-path QA requires an isolated preview database.
 - Verify published pages and redirects against the real storefront before production rollout.
 - Production publish remains gated on a verified restorable backup, confirmed production DB target and explicit release approval.
