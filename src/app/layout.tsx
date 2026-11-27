@@ -95,7 +95,7 @@ const defaultMetadata: Metadata = {
 
 
 export async function generateMetadata(): Promise<Metadata> {
-  const seo = (await getStudioWorkspace()).seo
+  let seo: Awaited<ReturnType<typeof getStudioWorkspace>>["seo"]\n  try { seo = (await getStudioWorkspace()).seo } catch { seo = { title: "", description: "", keywords: "", canonical: "", ogImage: "", noIndex: false } }
   const title = seo.title || "NOORÉ — Premium Pakistani Fashion"
   const description = seo.description || "Timeless silhouettes rooted in Pakistani craft. Luxury pret, unstitched, men's wear, accessories. Premium fashion for the modern wardrobe."
   const canonical = seo.canonical || SITE_URL
