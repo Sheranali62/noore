@@ -1,49 +1,80 @@
 # NOORÉ Web Studio
 
-## Access points and permissions
+## Entry points and access
 
 - Standalone workspace: `/studio`.
 - Integrated admin workspace: `/admin/studio`.
-- Routes and APIs use the existing NextAuth admin guard and allow `SUPER_ADMIN`, `ADMIN`, and `CONTENT_MANAGER`.
-- Admin navigation exposes the integrated workspace to those roles.
+- The Studio and its APIs require an authenticated `SUPER_ADMIN`, `ADMIN`, or `CONTENT_MANAGER` role.
+- The Builder is available from the Studio's left-hand workspace navigation.
 
-## Connected functionality
+## Homepage design editor
 
-### Homepage design and content
-- Reads and edits the existing `homepage_design` setting.
-- Editable homepage announcement, hero, collection, favourites, categories, arrivals, luxury, sale, brand, newsletter and footer copy.
-- Color controls for page, text, accent, buttons, surfaces, borders, header, footer and announcement.
-- Heading/body typography controls.
-- Responsive desktop/mobile local canvas preview.
-- Save and discard behavior with unsaved-change state.
-- Preview deployments reject homepage design writes because preview currently shares the production Supabase project.
+- Existing `homepage_design` setting is retained.
+- Edit homepage announcement, hero, collection, favourites, category, arrivals, luxury, sale, brand, newsletter and footer copy.
+- Edit the existing brand palette and heading/body typography.
+- Responsive desktop/mobile visual canvas preview.
+- Save, discard and unsaved-change state.
+- Up to 30 previous homepage design snapshots and restore support.
 
-### Version history
-- Every changed homepage save records the previous normalized design.
-- Keeps the latest 30 snapshots in the existing `Setting` table under `homepage_design_versions`; no schema migration is required.
-- History is admin-only and supports restoring a selected snapshot.
-- A restore first snapshots the current design, so it can be restored again.
-- Preview deployments reject restores for the same production-data safety reason.
+## Custom page builder
 
-### Existing site management tools
-- Studio links to existing homepage section management, page content, storefront media/image uploads and website design tools.
-- These tools remain authoritative for their current content and media workflows; Studio does not duplicate product, order, customer, inventory or checkout data.
+- Create up to 100 custom storefront pages at `/pages/[slug]`.
+- Build each page with up to 40 reusable blocks: hero, rich text, image, image + text, live product grid, call-to-action, FAQ and spacer.
+- Reorder and remove sections, edit colors, image URLs/alt text, content and product category/count.
+- Private authenticated draft preview at `/studio/preview/[slug]`.
+- Separate Save Draft and Publish Page actions. Editing a published page does not replace its live version until publish.
+- Unpublish and delete custom pages.
+- Published pages render server-side; product-grid blocks query only active catalogue products and reuse the existing product card/cart experience.
+- Section content is rendered as text, not arbitrary HTML.
 
-## Important boundaries
+## SEO and discoverability
 
-- The canvas is a local design mock-up, not a pixel-perfect rendering of the actual storefront.
-- Homepage save is a live setting write when used on a production deployment. Do not publish from production until release/backup checks have been completed and the operator intends to change the live site.
-- The Preview environment is intentionally read-only for all Studio content writes: homepage design, homepage layout, hero banners, individual page content, storefront image settings, image uploads, and homepage version restore. Homepage section reads also avoid creating defaults in Preview.
-- Existing image manager updates image URL settings; it is not a general-purpose DAM with folders, crop transformations or asset lifecycle controls.
-- The current site contains existing page-content tools, but a universal drag-and-drop page builder, isolated draft rendering for every route, per-page SEO metadata/redirect manager, approval workflow, and audit-grade content versioning for every content type are not yet implemented.
-- No product, order, customer, inventory, pricing, payment, checkout or storefront business data is modified by this Studio work.
-- No database schema migration or production deployment is part of this change.
+- Global site title, description, keywords, canonical URL, social image and site-wide noindex setting.
+- Per-custom-page SEO title, meta description, canonical URL, Open Graph image and noindex control.
+- Custom pages are added to the sitemap only when published and indexable.
+- Custom page metadata includes Open Graph and Twitter sharing data.
+- The sitemap and root metadata respect the global noindex setting.
 
-## Remaining phases before calling Studio fully complete
+## Navigation
 
-1. Isolated, true storefront rendering of unpublished drafts across all routes.
-2. Reusable drag-and-drop page sections/blocks with persisted page layouts.
-3. Per-page SEO title/description, canonical, social metadata, structured data and redirect management wired into route metadata.
-4. Full media library (folders, search, metadata, alt text, crop/transform and asset usage tracking).
-5. Approval/publishing workflow, revision history for all page/content types, audit log and rollback.
-6. Browser regression/accessibility testing and production release after verified backup and isolated preview database are available.
+- Manage custom menu labels, URLs and visibility.
+- Enabled items appear in a supplemental navigation row below the existing NOORÉ header.
+- Existing navigation and storefront routes are preserved.
+
+## Media library
+
+- Manage image URL records with names, alt text and folders.
+- Upload images through the existing secured Vercel Blob upload API (JPG, PNG, WebP and AVIF, 8 MB maximum).
+- Preview assets, copy URLs, remove library records and see usage counts across Studio page drafts and published versions.
+- Existing Storefront Image Manager remains available for the current predefined homepage and department image slots.
+
+## Redirects
+
+- Manage enabled 301 and 302 redirects for unmatched legacy paths.
+- The public catch-all route applies the configured HTTP status and destination.
+- Redirect source paths must be unique; direct loops and destinations that point to another configured source are rejected.
+- Existing application routes take precedence. This is intentionally designed for legacy URLs that do not collide with existing routes.
+
+## Revision history and audit
+
+- Page draft edits snapshot the previous draft before replacing it.
+- Publishing an updated page snapshots its previous published version.
+- Restore moves a chosen revision back into draft; publishing is a separate action.
+- Up to 100 page revision snapshots are retained.
+- Studio actions write best-effort entries to the existing `AuditLog` model.
+
+## Production and preview safety
+
+- Preview deployments share the connected production Supabase project.
+- Preview is read-only for Studio content writes: homepage design, homepage layout, hero banners, page content, storefront image settings, image uploads, custom pages/navigation/media/SEO/redirects, and restore actions are blocked with HTTP 409.
+- Preview homepage section reads do not create defaults.
+- No new database tables or migrations are required; Studio data uses bounded JSON values in the existing `Setting` table.
+- No products, prices, orders, customers, inventory, payments, checkout logic or existing public routes are replaced by the custom page builder.
+- No production database changes or production deployment were performed as part of this branch.
+
+## Remaining release verification
+
+- Run the latest Vercel build and resolve any TypeScript/build errors.
+- Browser-test create/edit/preview/publish/unpublish/delete, navigation, image upload, metadata, redirects, revisions and responsive layouts with an isolated preview database.
+- Verify published pages and redirects against the real storefront before production rollout.
+- Production publish remains gated on a verified restorable backup, confirmed production DB target and explicit release approval.
