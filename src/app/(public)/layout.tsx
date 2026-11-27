@@ -12,6 +12,7 @@ import { CartDrawer } from "@/components/cart/cart-drawer"
 import { InterestTracker } from "@/components/personalization/interest-tracker"
 import { WhatsAppButton } from "@/components/shared/whatsapp-button"
 import { SOCIAL_LINKS } from "@/config/social-links"
+import StudioNavigationBar from "@/components/studio/studio-navigation-bar"
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession()
@@ -117,6 +118,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
 
   return <div className="noore-sage-theme noore-global-design" style={{ "--noore-site-bg": siteDesign.backgroundColor || "#F7F6F2", "--noore-site-text": siteDesign.textColor || "#30352E", "--noore-site-accent": siteDesign.accentColor || "#535F4C", "--noore-site-surface": siteDesign.surfaceColor || "#FFFFFF", "--noore-site-muted": siteDesign.mutedTextColor || "#77786F", "--noore-site-border": siteDesign.borderColor || "#DEDCD3", "--noore-site-header": siteDesign.headerColor || "#F7F6F2", "--noore-site-header-text": siteDesign.headerTextColor || "#30352E", "--noore-site-footer": siteDesign.footerColor || "#535F4C", "--noore-site-footer-text": siteDesign.footerTextColor || "#F7F6F2", "--noore-site-announcement": siteDesign.announcementColor || "#535F4C", "--noore-site-announcement-text": siteDesign.announcementTextColor || "#FFFFFF", "--noore-site-body-font": siteDesign.bodyFont === "serif" ? "Georgia, serif" : "Arial, sans-serif", "--noore-site-heading-font": siteDesign.headingFont === "sans" ? "Arial, sans-serif" : "Georgia, serif" } as React.CSSProperties}>
     <Header scrolled={scrolled} />
+    <StudioNavigationBar />
     {announcementVisible && (
       <div className="noore-global-announcement relative z-40 border-b border-[#D4A07D]/20 bg-[#535F4C] text-[#f8eee5]">
         <div className="mx-auto flex min-h-9 max-w-7xl items-center justify-center gap-3 px-10 py-2 text-center">
