@@ -68,6 +68,8 @@ export async function POST(request: Request) {
       ...existing, slug, draft, updatedAt: now,
       approvalStatus: draftChanged ? "draft" : existing.approvalStatus,
       approvalRequestedAt: draftChanged ? null : existing.approvalRequestedAt,
+      approvedAt: draftChanged ? null : existing.approvedAt,
+      approvedBy: draftChanged ? null : existing.approvedBy,
     } : {
       id: randomUUID(), slug, draft, published: null,
       createdAt: now, updatedAt: now, publishedAt: null,
@@ -97,6 +99,7 @@ export async function POST(request: Request) {
     const page = workspace.pages.find(item => item.id === pageId)
     if (!page) return NextResponse.json({ error: "Page not found." }, { status: 404 })
     if (action === "publish-page" && !["SUPER_ADMIN", "ADMIN"].includes(auth.session.user?.role || "")) return NextResponse.json({ error: "Only an administrator can approve and publish a page." }, { status: 403 })
+    if ((action === "unpublish-page" || action === "delete-page") && !["SUPER_ADMIN", "ADMIN"].includes(auth.session.user?.role || "")) return NextResponse.json({ error: "Only an administrator can unpublish or delete a page." }, { status: 403 })
     if (action === "publish-page") {
       if (page.published) {
         const snapshot: StudioPageHistory = { id: randomUUID(), pageId: page.id, pageTitle: page.published.title, createdAt: new Date().toISOString(), snapshot: page.published }
@@ -134,6 +137,7 @@ export async function POST(request: Request) {
   }
 
   if (action === "save-global") {
+    if (!["SUPER_ADMIN", "ADMIN"].includes(auth.session.user?.role || "")) return NextResponse.json({ error: "Only an administrator can change global website settings." }, { status: 403 })
     const incoming = body.workspace
     if (!incoming || typeof incoming !== "object") return NextResponse.json({ error: "Workspace settings are required." }, { status: 400 })
     const incomingSettings = incoming as Record<string, unknown>
