@@ -14,7 +14,7 @@ const blocked = () => process.env.VERCEL_ENV === "preview"
 
 async function audit(actorId: string | undefined, action: string, entityId: string | null, details: Record<string, unknown>) {
   try {
-    await prisma.auditLog.create({ data: { actorId: actorId || null, action, entityType: "STUDIO", entityId, details } })
+    await prisma.auditLog.create({ data: { actorId: actorId || null, action, entityType: "STUDIO", entityId, details: JSON.parse(JSON.stringify(details)) } })
   } catch { /* Studio saves must not fail because optional audit metadata is unavailable. */ }
 }
 
