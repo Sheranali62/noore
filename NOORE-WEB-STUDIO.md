@@ -43,7 +43,7 @@
 
 ## Media library
 
-- Manage image URL records with names, alt text and folders.
+- Manage image URL records with editable names, alt text and folders, search across asset metadata, usage counts and removal.
 - Upload images through the existing secured Vercel Blob upload API (JPG, PNG, WebP and AVIF, 8 MB maximum).
 - Preview assets, copy URLs, remove library records and see usage counts across Studio page drafts and published versions.
 - Existing Storefront Image Manager remains available for the current predefined homepage and department image slots.
@@ -76,7 +76,7 @@
 
 ## Remaining release verification
 
-- Vercel build for commit `4b5b68f` passed compilation, TypeScript and static page generation. The latest non-interactive draft-preview changes are awaiting a fresh build.
+- Vercel build for commit `4b5b68f` passed compilation, TypeScript and static page generation. Non-interactive draft preview and searchable media-library changes are awaiting a fresh build.
 - Browser-test create/edit/preview/publish/unpublish/delete, navigation, image upload, metadata, redirects, revisions and responsive layouts with an isolated preview database.
 - Verify published pages and redirects against the real storefront before production rollout.
 - Production publish remains gated on a verified restorable backup, confirmed production DB target and explicit release approval.
