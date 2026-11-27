@@ -38,7 +38,9 @@ export type StudioPage = {
 export type StudioNavigationItem = { id: string; label: string; url: string; enabled: boolean; sortOrder: number }
 export type StudioMediaAsset = { id: string; name: string; url: string; alt: string; folder: string; createdAt: string }
 export type StudioRedirect = { id: string; from: string; to: string; status: 301 | 302; enabled: boolean }
+export type StudioSiteSEO = { title: string; description: string; keywords: string; canonical: string; ogImage: string; noIndex: boolean }
 export type StudioWorkspace = {
+  seo: StudioSiteSEO
   pages: StudioPage[]
   navigation: StudioNavigationItem[]
   media: StudioMediaAsset[]
@@ -133,7 +135,8 @@ export function normalizeStudioWorkspace(input: unknown): StudioWorkspace {
     if (!from.startsWith("/") || from.startsWith("//") || from === to || !to) return []
     return [{ id: clean(entry.id, 80) || crypto.randomUUID(), from, to, status: entry.status === 302 ? 302 as const : 301 as const, enabled: entry.enabled !== false }]
   }) : []
-  const seoRow = row.seo && typeof row.seo === "object" ? row.seo as Record<string, unknown> : {}\n  const seo: StudioSiteSEO = { title: clean(seoRow.title, 180), description: clean(seoRow.description, 320), keywords: clean(seoRow.keywords, 500), canonical: safeUrl(seoRow.canonical), ogImage: safeUrl(seoRow.ogImage), noIndex: seoRow.noIndex === true }\n  return { seo, pages, navigation, media, redirects }
+  const seoRow = row.seo && typeof row.seo === "object" ? row.seo as Record<string, unknown> : {}
+  const seo: StudioSiteSEO = { title: clean(seoRow.title, 180), description: clean(seoRow.description, 320), keywords: clean(seoRow.keywords, 500), canonical: safeUrl(seoRow.canonical), ogImage: safeUrl(seoRow.ogImage), noIndex: seoRow.noIndex === true }\n  return { seo, pages, navigation, media, redirects }
 }
 
 export async function getStudioWorkspace(): Promise<StudioWorkspace> {
