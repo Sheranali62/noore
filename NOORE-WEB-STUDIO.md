@@ -22,8 +22,8 @@
 - Build each page with up to 40 reusable blocks: hero, rich text, image, image + text, live product grid, call-to-action, FAQ and spacer.
 - Reorder and remove sections, edit colors, image URLs/alt text, content and product category/count.
 - Private authenticated draft preview at `/studio/preview/[slug]`.
-- Separate Save Draft and Publish Page actions. Editing a published page does not replace its live version until publish.
-- Unpublish and delete custom pages.
+- Separate Save Draft, Request Approval and administrator Approve & Publish actions. Editing a published page does not replace its live version until an administrator publishes it.
+- Unpublish and delete custom pages (administrator only). Content Managers can create/edit drafts and request approval but cannot publish, unpublish, delete pages or change global site settings.
 - Published pages render server-side; product-grid blocks query only active catalogue products and reuse the existing product card/cart experience.
 - Section content is rendered as text, not arbitrary HTML.
 
@@ -57,7 +57,7 @@
 
 ## Revision history and audit
 
-- Page draft edits snapshot the previous draft before replacing it.
+- Page draft edits snapshot the previous draft before replacing it.\n- Content Managers can submit drafts for administrator review; approval and publishing are separate role-gated actions with audit events.
 - Publishing an updated page snapshots its previous published version.
 - Restore moves a chosen revision back into draft; publishing is a separate action.
 - Up to 100 page revision snapshots are retained.
