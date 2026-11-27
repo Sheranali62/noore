@@ -7,18 +7,18 @@ function safeStyle(color: string, fallback: string) {
   return /^#[0-9a-f]{6}$/i.test(color) ? color : fallback
 }
 
-export default async function StudioPageRenderer({ page }: { page: StudioPageVersion }) {
+export default async function StudioPageRenderer({ page, preview = false }: { page: StudioPageVersion; preview?: boolean }) {
   const needsProducts = page.sections.some(block => block.type === "product-grid")
   const products = needsProducts ? await prisma.product.findMany({
     where: { status: "ACTIVE" }, orderBy: { createdAt: "desc" }, take: 200,
     select: { id: true, name: true, slug: true, price: true, salePrice: true, images: true, category: true, stock: true, gender: true },
   }) : []
   return <main className="min-h-screen bg-[#f7f6f2] text-[#30352e]">
-    {page.sections.map(block => <StudioSection key={block.id} block={block} products={products} />)}
+    {page.sections.map(block => <StudioSection key={block.id} block={block} products={products} preview={preview} />)}
   </main>
 }
 
-function StudioSection({ block, products }: { block: StudioBlock; products: Array<{ id: string; name: string; slug: string; price: number; salePrice: number | null; images: string[]; category: string; stock: number; gender: string | null }> }) {
+function StudioSection({ block, products, preview }: { block: StudioBlock; products: Array<{ id: string; name: string; slug: string; price: number; salePrice: number | null; images: string[]; category: string; stock: number; gender: string | null }>; preview: boolean }) {
   const style = { backgroundColor: safeStyle(block.backgroundColor, "#f7f6f2"), color: safeStyle(block.textColor, "#30352e") }
   const align = block.align === "center" ? "text-center" : block.align === "right" ? "text-right" : "text-left"
   if (block.type === "spacer") return <div aria-hidden="true" className="h-12 md:h-24" />
@@ -27,7 +27,7 @@ function StudioSection({ block, products }: { block: StudioBlock; products: Arra
     return <section style={style} className="px-5 py-14 md:px-8 md:py-20"><div className="mx-auto max-w-7xl">
       {block.eyebrow && <p className={`text-[10px] font-semibold uppercase tracking-[.25em] opacity-60 ${align}`}>{block.eyebrow}</p>}
       {block.title && <h2 className={`mt-3 font-editorial text-3xl md:text-5xl ${align}`}>{block.title}</h2>}
-      {matchingProducts.length ? <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 lg:grid-cols-4">{matchingProducts.map(product => <ProductCard key={product.id} id={product.id} name={product.name} slug={product.slug} price={product.price} salePrice={product.salePrice} image={product.images[0] || "/placeholder.jpg"} category={product.category} stock={product.stock} gender={product.gender} />)}</div> : <p className="mt-6 text-sm opacity-60">New pieces are coming soon.</p>}
+      {matchingProducts.length ? <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 lg:grid-cols-4">{matchingProducts.map(product => preview ? <article key={product.id} className="overflow-hidden"><img src={product.images[0] || "/placeholder.jpg"} alt={product.name} className="aspect-[3/4] w-full object-cover" /><p className="mt-3 text-xs font-medium">{product.name}</p><p className="mt-1 text-xs opacity-65">Rs. {product.salePrice ?? product.price}</p></article> : <ProductCard key={product.id} id={product.id} name={product.name} slug={product.slug} price={product.price} salePrice={product.salePrice} image={product.images[0] || "/placeholder.jpg"} category={product.category} stock={product.stock} gender={product.gender} />)}</div> : <p className="mt-6 text-sm opacity-60">New pieces are coming soon.</p>}
     </div></section>
   }
   if (block.type === "faq") return <section style={style} className="px-5 py-14 md:px-8 md:py-20"><div className="mx-auto max-w-4xl">
