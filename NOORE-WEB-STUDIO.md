@@ -57,7 +57,8 @@
 
 ## Revision history and audit
 
-- Page draft edits snapshot the previous draft before replacing it.\n- Content Managers can submit drafts for administrator review; approval and publishing are separate role-gated actions with audit events.
+- Page draft edits snapshot the previous draft before replacing it.
+- Content Managers can submit drafts for administrator review; approval and publishing are separate role-gated actions with audit events.
 - Publishing an updated page snapshots its previous published version.
 - Restore moves a chosen revision back into draft; publishing is a separate action.
 - Up to 100 page revision snapshots are retained.
