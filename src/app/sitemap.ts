@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic"
 export const revalidate = 0
 
 import { prisma } from "@/lib/prisma"
+import { getStudioWorkspace } from "@/lib/studio-workspace"
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://noore-nine.vercel.app").replace(/\/$/, "")
 
@@ -64,5 +65,5 @@ export default async function sitemap() {
     priority: 0.7,
   }))
 
-  return [...staticPages, ...blogPages, ...productPages]
+  const studioPages = (await getStudioWorkspace()).pages.flatMap((page) => page.published && !page.published.noIndex ? [{\n    url: `${SITE_URL}/pages/${page.slug}`,\n    lastModified: new Date(page.publishedAt || page.updatedAt),\n    changeFrequency: "weekly" as const,\n    priority: 0.6,\n  }] : [])\n\n  return [...staticPages, ...blogPages, ...productPages, ...studioPages]
 }
