@@ -167,6 +167,10 @@ export async function POST(request: Request) {
     const currentSnapshot: StudioPageHistory = { id: randomUUID(), pageId: page.id, pageTitle: page.draft.title, createdAt: now, snapshot: page.draft }
     await writeStudioHistory([currentSnapshot, ...history].slice(0, 100))
     page.draft = normalizeStudioPageVersion(version.snapshot)
+    page.approvalStatus = "draft"
+    page.approvalRequestedAt = null
+    page.approvedAt = null
+    page.approvedBy = null
     page.updatedAt = now
     await writeStudioWorkspace(workspace)
     await audit(actorId, "PAGE_REVISION_RESTORED", page.id, { versionId, slug: page.slug })
