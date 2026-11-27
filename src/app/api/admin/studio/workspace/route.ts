@@ -22,7 +22,7 @@ export async function GET() {
   const auth = await requireAdmin(ROLES)
   if (!auth.session) return auth.response
   const [workspace, history] = await Promise.all([getStudioWorkspace(), getStudioPageHistory()])
-  return NextResponse.json({ workspace, history })
+  return NextResponse.json({ workspace, history, role: auth.session.user?.role || "" })
 }
 
 export async function POST(request: Request) {
@@ -63,11 +63,15 @@ export async function POST(request: Request) {
       const snapshot: StudioPageHistory = { id: randomUUID(), pageId: existing.id, pageTitle: existing.draft.title, createdAt: now, snapshot: existing.draft }
       await writeStudioHistory([snapshot, ...history].slice(0, 100))
     }
+    const draftChanged = !!existing && JSON.stringify(existing.draft) !== JSON.stringify(draft)
     const page: StudioPage = existing ? {
       ...existing, slug, draft, updatedAt: now,
+      approvalStatus: draftChanged ? "draft" : existing.approvalStatus,
+      approvalRequestedAt: draftChanged ? null : existing.approvalRequestedAt,
     } : {
       id: randomUUID(), slug, draft, published: null,
       createdAt: now, updatedAt: now, publishedAt: null,
+      approvalStatus: "draft", approvalRequestedAt: null, approvedAt: null, approvedBy: null,
     }
     workspace.pages = existing ? workspace.pages.map(item => item.id === existing.id ? page : item) : [...workspace.pages, page]
     await writeStudioWorkspace(normalizeStudioWorkspace(workspace))
@@ -75,25 +79,47 @@ export async function POST(request: Request) {
     return NextResponse.json({ page, workspace, history: await getStudioPageHistory(), message: "Draft saved. The published page is unchanged until you publish." })
   }
 
+  if (action === "request-approval") {
+    const pageId = typeof body.pageId === "string" ? body.pageId : ""
+    const page = workspace.pages.find(item => item.id === pageId)
+    if (!page) return NextResponse.json({ error: "Page not found." }, { status: 404 })
+    if (page.approvalStatus === "pending") return NextResponse.json({ error: "This page is already awaiting review." }, { status: 409 })
+    page.approvalStatus = "pending"
+    page.approvalRequestedAt = new Date().toISOString()
+    page.updatedAt = page.approvalRequestedAt
+    await writeStudioWorkspace(workspace)
+    await audit(actorId, "PAGE_APPROVAL_REQUESTED", page.id, { slug: page.slug, title: page.draft.title })
+    return NextResponse.json({ workspace, message: "Page submitted for administrator review." })
+  }
+
   if (action === "publish-page" || action === "unpublish-page" || action === "delete-page") {
     const pageId = typeof body.pageId === "string" ? body.pageId : ""
     const page = workspace.pages.find(item => item.id === pageId)
     if (!page) return NextResponse.json({ error: "Page not found." }, { status: 404 })
+    if (action === "publish-page" && !["SUPER_ADMIN", "ADMIN"].includes(auth.session.user?.role || "")) return NextResponse.json({ error: "Only an administrator can approve and publish a page." }, { status: 403 })
     if (action === "publish-page") {
       if (page.published) {
         const snapshot: StudioPageHistory = { id: randomUUID(), pageId: page.id, pageTitle: page.published.title, createdAt: new Date().toISOString(), snapshot: page.published }
         await writeStudioHistory([{ ...snapshot }, ...history].slice(0, 100))
       }
+      const wasPending = page.approvalStatus === "pending"
       page.published = page.draft
       page.publishedAt = new Date().toISOString()
       page.updatedAt = page.publishedAt
+      page.approvalStatus = "approved"
+      page.approvedAt = page.publishedAt
+      page.approvedBy = actorId || null
       await writeStudioWorkspace(workspace)
-      await audit(actorId, "PAGE_PUBLISHED", page.id, { slug: page.slug, title: page.draft.title })
-      return NextResponse.json({ workspace, message: "Page published." })
+      await audit(actorId, wasPending ? "PAGE_APPROVED_AND_PUBLISHED" : "PAGE_PUBLISHED", page.id, { slug: page.slug, title: page.draft.title })
+      return NextResponse.json({ workspace, history: await getStudioPageHistory(), message: wasPending ? "Page approved and published." : "Page published." })
     }
     if (action === "unpublish-page") {
       page.published = null
       page.publishedAt = null
+      page.approvalStatus = "draft"
+      page.approvalRequestedAt = null
+      page.approvedAt = null
+      page.approvedBy = null
       workspace.navigation = workspace.navigation.filter(item => item.url !== `/pages/${page.slug}`)
       page.updatedAt = new Date().toISOString()
       await writeStudioWorkspace(workspace)
