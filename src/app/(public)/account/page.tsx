@@ -10,6 +10,7 @@ const cards = [
   { href: "/account/profile", icon: "○", title: "Profile", text: "Update your name and email" },
   { href: "/account/addresses", icon: "⌂", title: "Addresses", text: "Manage your COD delivery details" },
   { href: "/account/support", icon: "?", title: "Support Centre", text: "Contact customer care and follow replies" },
+  { href: "/account/notifications", icon: "✧", title: "Updates", text: "Follow order, return and support updates" },
   { href: "/wishlist", icon: "♡", title: "Wishlist", text: "Return to pieces you love" },
 ]
 
