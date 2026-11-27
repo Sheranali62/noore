@@ -35,6 +35,10 @@ export type StudioPage = {
   createdAt: string
   updatedAt: string
   publishedAt: string | null
+  approvalStatus: "draft" | "pending" | "approved"
+  approvalRequestedAt: string | null
+  approvedAt: string | null
+  approvedBy: string | null
 }
 export type StudioNavigationItem = { id: string; label: string; url: string; enabled: boolean; sortOrder: number }
 export type StudioMediaAsset = { id: string; name: string; url: string; alt: string; folder: string; createdAt: string }
@@ -114,6 +118,10 @@ export function normalizeStudioWorkspace(input: unknown): StudioWorkspace {
       createdAt: clean(page.createdAt, 40) || new Date().toISOString(),
       updatedAt: clean(page.updatedAt, 40) || new Date().toISOString(),
       publishedAt: clean(page.publishedAt, 40) || null,
+      approvalStatus: page.approvalStatus === "pending" || page.approvalStatus === "approved" ? page.approvalStatus : "draft",
+      approvalRequestedAt: clean(page.approvalRequestedAt, 40) || null,
+      approvedAt: clean(page.approvedAt, 40) || null,
+      approvedBy: clean(page.approvedBy, 120) || null,
     }]
   }) : []
   const navigation = Array.isArray(row.navigation) ? row.navigation.slice(0, 30).flatMap((item, index): StudioNavigationItem[] => {
