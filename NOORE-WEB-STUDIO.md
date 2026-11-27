@@ -2,7 +2,7 @@
 
 ## Phase 1 implementation
 
-The Web Studio is available at `/studio` and is also linked from the existing admin navigation.
+The standalone Web Studio is available at `/studio`. The same shared workspace is available inside the existing admin shell at `/admin/studio` and from the role-aware admin navigation.
 
 ### Access control
 - The standalone route uses the existing NextAuth session and `requireAdmin` guard.
