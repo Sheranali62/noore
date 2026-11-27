@@ -15,7 +15,8 @@ async function getPublishedPage(slug: string) {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
-  const page = await getPublishedPage(slug)
+  const workspace = await getStudioWorkspace()
+  const page = workspace.pages.find(item => item.slug === slug && item.published) || null
   if (!page?.published) return { title: "Page not found", robots: { index: false, follow: false } }
   const version = page.published
   const title = version.seoTitle || version.title
@@ -25,7 +26,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title,
     description,
     alternates: { canonical },
-    robots: version.noIndex ? { index: false, follow: false } : { index: true, follow: true },
+    robots: version.noIndex || workspace.seo.noIndex ? { index: false, follow: false } : { index: true, follow: true },
     openGraph: {
       title,
       description,
