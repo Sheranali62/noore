@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireAdmin } from "@/lib/admin"
-import { DEFAULT_HOMEPAGE_DESIGN, normalizeHomepageDesign } from "@/lib/homepage-design"
+import { normalizeHomepageDesign } from "@/lib/homepage-design"
 
 export const dynamic = "force-dynamic"
 const KEY = "homepage_design"
@@ -18,6 +18,16 @@ export async function GET() {
 export async function PUT(request: Request) {
   const auth = await requireAdmin(["SUPER_ADMIN", "ADMIN", "CONTENT_MANAGER"])
   if (!auth.session) return auth.response
+
+  // Preview deployments share the connected Supabase project with production.
+  // Never allow a preview editor to write the live homepage setting.
+  if (process.env.VERCEL_ENV === "preview") {
+    return NextResponse.json(
+      { error: "Publishing is disabled in preview. Your edits remain local; publish from the production admin after review." },
+      { status: 409 },
+    )
+  }
+
   let body: unknown
   try { body = await request.json() } catch { return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 }) }
   if (!body || typeof body !== "object" || Array.isArray(body)) return NextResponse.json({ error: "Design settings must be an object" }, { status: 400 })
