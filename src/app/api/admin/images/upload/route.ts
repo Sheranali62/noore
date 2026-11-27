@@ -40,6 +40,7 @@ export async function POST(request: NextRequest) {
   }
   const auth = await requireAdmin(["SUPER_ADMIN", "ADMIN", "CONTENT_MANAGER"])
   if (!auth.session) return auth.response
+  if (process.env.VERCEL_ENV === "preview") return NextResponse.json({ error: "Image uploads are disabled in preview because the storage bucket is shared with production." }, { status: 409 })
   const rateLimit = await enforceRateLimit(request, "admin-image-upload", 50, 60 * 60 * 1000, auth.session.user.id)
   if (rateLimit) return rateLimit
 
