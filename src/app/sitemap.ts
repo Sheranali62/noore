@@ -65,7 +65,8 @@ export default async function sitemap() {
     priority: 0.7,
   }))
 
-  const studioPages = (await getStudioWorkspace()).pages.flatMap((page) => page.published && !page.published.noIndex ? [{
+  const studioWorkspace = await getStudioWorkspace()
+  const studioPages = studioWorkspace.seo.noIndex ? [] : studioWorkspace.pages.flatMap((page) => page.published && !page.published.noIndex ? [{
     url: `${SITE_URL}/pages/${page.slug}`,
     lastModified: new Date(page.publishedAt || page.updatedAt),
     changeFrequency: "weekly" as const,
