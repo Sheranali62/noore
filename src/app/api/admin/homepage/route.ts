@@ -19,6 +19,8 @@ const DEFAULT_SECTIONS = [
 async function ensureSections() {
   const existing = await prisma.homepageSection.findMany({ orderBy: { sortOrder: "asc" } })
   if (existing.length) return existing
+  // A preview deployment shares production data and must remain read-only.
+  if (process.env.VERCEL_ENV === "preview") return []
   await prisma.$transaction(DEFAULT_SECTIONS.map(([type], index) =>
     prisma.homepageSection.create({ data: { type, enabled: type !== "instagram", sortOrder: index + 1 } })
   ))
