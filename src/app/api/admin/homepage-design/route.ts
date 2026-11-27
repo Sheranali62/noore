@@ -19,6 +19,7 @@ export async function GET() {
 export async function PUT(request: Request) {
   const auth = await requireAdmin(["SUPER_ADMIN", "ADMIN", "CONTENT_MANAGER"])
   if (!auth.session) return auth.response
+  if (!["SUPER_ADMIN", "ADMIN"].includes(auth.session.user?.role || "")) return NextResponse.json({ error: "Only an administrator can publish the homepage design." }, { status: 403 })
 
   // Preview deployments share the connected Supabase project with production.
   // Never allow a preview editor to write the live homepage setting.
