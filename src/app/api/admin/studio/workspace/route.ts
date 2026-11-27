@@ -94,6 +94,7 @@ export async function POST(request: Request) {
     if (action === "unpublish-page") {
       page.published = null
       page.publishedAt = null
+      workspace.navigation = workspace.navigation.filter(item => item.url !== `/pages/${page.slug}`)
       page.updatedAt = new Date().toISOString()
       await writeStudioWorkspace(workspace)
       await audit(actorId, "PAGE_UNPUBLISHED", page.id, { slug: page.slug })
@@ -109,7 +110,11 @@ export async function POST(request: Request) {
   if (action === "save-global") {
     const incoming = body.workspace
     if (!incoming || typeof incoming !== "object") return NextResponse.json({ error: "Workspace settings are required." }, { status: 400 })
-    const incomingSettings = incoming as Record<string, unknown>\n    if (Array.isArray(incomingSettings.navigation) && incomingSettings.navigation.length > 30) return NextResponse.json({ error: "You can add up to 30 navigation links." }, { status: 400 })\n    if (Array.isArray(incomingSettings.media) && incomingSettings.media.length > 300) return NextResponse.json({ error: "You can add up to 300 media assets." }, { status: 400 })\n    if (Array.isArray(incomingSettings.redirects) && incomingSettings.redirects.length > 200) return NextResponse.json({ error: "You can add up to 200 redirects." }, { status: 400 })\n    const next = normalizeStudioWorkspace({ ...workspace, ...incomingSettings, pages: workspace.pages })
+    const incomingSettings = incoming as Record<string, unknown>
+    if (Array.isArray(incomingSettings.navigation) && incomingSettings.navigation.length > 30) return NextResponse.json({ error: "You can add up to 30 navigation links." }, { status: 400 })
+    if (Array.isArray(incomingSettings.media) && incomingSettings.media.length > 300) return NextResponse.json({ error: "You can add up to 300 media assets." }, { status: 400 })
+    if (Array.isArray(incomingSettings.redirects) && incomingSettings.redirects.length > 200) return NextResponse.json({ error: "You can add up to 200 redirects." }, { status: 400 })
+    const next = normalizeStudioWorkspace({ ...workspace, ...incomingSettings, pages: workspace.pages })
     const sources = new Set(next.redirects.map(rule => rule.from))
     if (sources.size !== next.redirects.length) return NextResponse.json({ error: "Each redirect source must be unique." }, { status: 400 })
     for (const rule of next.redirects) {
