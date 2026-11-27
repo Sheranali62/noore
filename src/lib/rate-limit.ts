@@ -78,7 +78,15 @@ export async function enforceRateLimit(
       { status: 429, headers: { "Retry-After": String(retryAfter), "Cache-Control": "no-store" } }
     )
   } catch (error) {
-    console.error("Rate limit check failed:", error)
-    return NextResponse.json({ error: "This service is temporarily unavailable. Please try again shortly." }, { status: 503 })
+    // A missing or temporarily unavailable persistent bucket table must not
+    // block legitimate customer registration. Keep a per-instance HMAC-keyed
+    // fallback limit while the persistent database is unavailable.
+    console.error("Persistent rate limit unavailable; using process-local fallback:", error)
+    const fallback = checkRateLimit(key, limit, windowMs)
+    if (fallback.allowed) return null
+    return NextResponse.json(
+      { error: "Too many requests. Please wait a little and try again." },
+      { status: 429, headers: { "Retry-After": String(fallback.retryAfterSeconds), "Cache-Control": "no-store" } }
+    )
   }
 }
