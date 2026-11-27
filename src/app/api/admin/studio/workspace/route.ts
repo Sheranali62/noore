@@ -86,9 +86,10 @@ export async function POST(request: Request) {
     const page = workspace.pages.find(item => item.id === pageId)
     if (!page) return NextResponse.json({ error: "Page not found." }, { status: 404 })
     if (page.approvalStatus === "pending") return NextResponse.json({ error: "This page is already awaiting review." }, { status: 409 })
+    const requestedAt = new Date().toISOString()
     page.approvalStatus = "pending"
-    page.approvalRequestedAt = new Date().toISOString()
-    page.updatedAt = page.approvalRequestedAt
+    page.approvalRequestedAt = requestedAt
+    page.updatedAt = requestedAt
     await writeStudioWorkspace(workspace)
     await audit(actorId, "PAGE_APPROVAL_REQUESTED", page.id, { slug: page.slug, title: page.draft.title })
     return NextResponse.json({ workspace, message: "Page submitted for administrator review." })
@@ -106,11 +107,12 @@ export async function POST(request: Request) {
         await writeStudioHistory([{ ...snapshot }, ...history].slice(0, 100))
       }
       const wasPending = page.approvalStatus === "pending"
+      const publishedAt = new Date().toISOString()
       page.published = page.draft
-      page.publishedAt = new Date().toISOString()
-      page.updatedAt = page.publishedAt
+      page.publishedAt = publishedAt
+      page.updatedAt = publishedAt
       page.approvalStatus = "approved"
-      page.approvedAt = page.publishedAt
+      page.approvedAt = publishedAt
       page.approvedBy = actorId || null
       await writeStudioWorkspace(workspace)
       await audit(actorId, wasPending ? "PAGE_APPROVED_AND_PUBLISHED" : "PAGE_PUBLISHED", page.id, { slug: page.slug, title: page.draft.title })
