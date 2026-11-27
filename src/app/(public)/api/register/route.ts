@@ -54,7 +54,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: PASSWORD_POLICY_MESSAGE }, { status: 400 })
     }
 
-    const response = await fetch(supabaseUrl.replace(/\/$/, "") + "/auth/v1/signup", {
+    // Always send confirmation emails back to the Vercel deployment that
+    // received this registration request, never Supabase's localhost fallback.
+    const redirectTo = new URL("/login?verified=true", request.nextUrl.origin).toString()
+    const signupUrl = new URL("/auth/v1/signup", supabaseUrl.replace(/\/$/, "") + "/")
+    signupUrl.searchParams.set("redirect_to", redirectTo)
+
+    const response = await fetch(signupUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json", apikey: anonKey },
       body: JSON.stringify({ email, password, data: { full_name: name, name } }),
